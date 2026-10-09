@@ -1,0 +1,54 @@
+Options -Indexes
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+AddDefaultCharset UTF-8
+
+# HTTPS. Включать только после того, как https://домен/ открывается без ошибки
+# (на 24.09.2026 тестовый адрес по HTTPS сбрасывал соединение). Проще всего
+# включить перенаправление в панели Beget; ручной вариант:
+# <IfModule mod_rewrite.c>
+#   RewriteEngine On
+#   RewriteCond %{HTTPS} !=on
+#   RewriteCond %{HTTP:X-Forwarded-Proto} !https
+#   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# </IfModule>
+
+# Сайт статический: исполняемые, служебные и резервные файлы не отдаются,
+# даже если их случайно загрузить в public_html.
+<IfModule mod_authz_core.c>
+  <FilesMatch "\.(?:php\d?|phtml|phar|cgi|pl|py|sh|md|bak|old|orig|swp|sql|log|ini|env|zip|tar|gz|7z|rar)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Permitted-Cross-Domain-Policies "none"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(self), gyroscope=(self), magnetometer=(self), xr-spatial-tracking=(self), fullscreen=(self)"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+  # HSTS включать только после проверки HTTPS на всех адресах сайта:
+  # Header always set Strict-Transport-Security "max-age=31536000"
+
+  # Ссылки на CSS, JS и изображения содержат ?v=<хэш содержимого>, поэтому
+  # их можно кэшировать. HTML и поисковый индекс всегда проверяются заново.
+  <FilesMatch "\.(?:png|jpe?g|svg|webp|avif|woff2?|css|js)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+  <FilesMatch "\.(?:html|json)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+  AddType image/svg+xml .svg
+  AddType application/javascript .js
+  AddCharset UTF-8 .html .css .js .json .txt .xml
+</IfModule>

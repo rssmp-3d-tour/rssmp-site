@@ -1,0 +1,16 @@
+{
+  "name": "rssmp-tour-vendor",
+  "private": true,
+  "description": "Сборка сторонних библиотек 3D-тура (Photo Sphere Viewer, three.js) в один локальный файл static/vendor/psv.js",
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": {
+    "@photo-sphere-viewer/core": "5.15.1",
+    "@photo-sphere-viewer/markers-plugin": "5.15.1",
+    "@photo-sphere-viewer/autorotate-plugin": "5.15.1",
+    "@photo-sphere-viewer/gyroscope-plugin": "5.15.1",
+    "@photo-sphere-viewer/equirectangular-tiles-adapter": "5.15.1",
+    "three": "0.185.1",
+    "esbuild": "0.28.2"
+  }
+}

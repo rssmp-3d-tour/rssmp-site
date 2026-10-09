@@ -1,0 +1,10 @@
+# Результат сборки: пересоздаётся командой python3 build_pages.py
+dist/
+node_modules/
+tests/results*/
+__pycache__/
+*.pyc
+.DS_Store
+# Пока репозиторий открытый: отчёт с вопросами к юристу и черновики медицинских текстов хранятся у владельца
+AUDIT_REPORT.md
+docs/разбор-mos03-и-черновики.html

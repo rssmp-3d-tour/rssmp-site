@@ -1,0 +1,74 @@
+name: Сайт — сборка и проверки
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Сборка и проверки
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+
+      - name: Зависимости тестов и Chromium
+        working-directory: tests
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Все проверки (tests/run-all.sh)
+        working-directory: tests
+        run: bash run-all.sh
+
+      - name: Сборки для Beget и GitHub Pages
+        run: |
+          python3 build_pages.py
+          mkdir -p out
+          cp -a dist out/beget
+          RSSMP_TARGET=github python3 build_pages.py
+          cp -a dist out/github-pages
+
+      - name: Архив для Beget
+        uses: actions/upload-artifact@v4
+        with:
+          name: rssmp-beget
+          path: out/beget
+          include-hidden-files: true
+
+      - name: Архив для GitHub Pages
+        uses: actions/upload-artifact@v4
+        with:
+          name: rssmp-github-pages
+          path: out/github-pages
+          include-hidden-files: true
+
+      - name: Скриншоты и отчёты упавших проверок
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            tests/results
+            tests/results-vehicles
+          if-no-files-found: ignore

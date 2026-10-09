@@ -1,0 +1,15 @@
+{
+  "name": "rssmp-site-tests",
+  "private": true,
+  "type": "module",
+  "description": "Автоматические проверки сайта РССМП: страницы, доступность (axe), 3D-тур, HTML",
+  "scripts": {
+    "test": "bash run-all.sh"
+  },
+  "devDependencies": {
+    "axe-core": "^4.10.0",
+    "html-validate": "^9.0.0",
+    "playwright": "1.56.1",
+    "pngjs": "^7.0.0"
+  }
+}

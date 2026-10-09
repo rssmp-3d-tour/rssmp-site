@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru" data-search-index="/search-index.json">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="%%ROBOTS%%">
+  <meta name="theme-color" content="#10282b">
+  <title>%%TITLE%% — РССМП, Грозный</title>
+  <meta name="description" content="%%DESCRIPTION%%">
+%%CANONICAL%%
+  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Перейти к содержимому</a>
+  <aside class="topbar" aria-label="Регион и основной сайт"><div class="wrap"><span>ГРОЗНЫЙ · ЧЕЧЕНСКАЯ РЕСПУБЛИКА</span><a href="https://rssmp.ru/" target="_blank" rel="noopener">Основной сайт РССМП</a></div></aside>
+  <header>
+    <div class="wrap header-row">
+      <a class="brand" href="/" aria-label="РССМП — на главную"><span class="logo-motion"><img src="/assets/logo.png" width="51" height="58" alt="Эмблема РССМП"></span><span class="wordmark" aria-hidden="true"><span>Р</span><span>С</span><span>С</span><span>М</span><span>П</span><i></i></span><span class="brand-caption">Республиканская станция<br>скорой медицинской помощи</span></a>
+      <div class="header-tools"><button type="button" class="icon-button" data-open-search aria-label="Открыть поиск по сайту"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button type="button" class="icon-button" data-open-settings aria-label="Настройки отображения">Аа</button><a class="emergency" href="tel:103">Вызвать скорую <b>103</b></a><button type="button" class="menu icon-button" aria-expanded="false" aria-controls="nav">Меню</button></div>
+    </div>
+    <!-- Стили меню привязаны к id="nav"; класс site-nav оставлен для совместимости со style.css v9.1 при частичной загрузке. -->
+    <nav class="wrap site-nav" id="nav" aria-label="Главное меню">%%NAV%%</nav>
+  </header>
+  <main id="main" tabindex="-1">%%BODY%%</main>
+  <footer>
+    <div class="wrap">
+      <div class="footer-top"><div><span class="footer-mark">РССМП<span> / ГРОЗНЫЙ</span></span><p>Республиканская станция<br>скорой медицинской помощи</p></div><a class="footer-phone" href="tel:103">103 <span>Вызов скорой помощи</span></a></div>
+      <div class="footer-grid">
+        <div><strong>Контакты</strong><p>364068, Чеченская Республика,<br>Грозный, ул. Лермонтова, 1</p><a href="tel:+78712222124">+7 (8712) 22-21-24</a><a href="mailto:rssmp-95@mail.ru">rssmp-95@mail.ru</a></div>
+        <div><strong>О станции</strong><a href="/about/">Знакомство со службой</a><a href="/gallery/">Фотогалерея</a><a href="/tours/">3D-туры</a><a href="/news/">Новости</a></div>
+        <div class="footer-external"><strong>Официальные материалы</strong><a href="https://rssmp.ru/dokumenty/">Документы</a><a href="https://rssmp.ru/vakansii/">Вакансии</a><a href="https://rssmp.ru/mail/">Интернет-приёмная</a><a href="https://rssmp.ru/">Основной сайт РССМП</a></div>
+      </div>
+      <div class="footer-bottom"><span>© %%YEAR%% ГБУ «РССМП»</span><a href="/privacy/">Конфиденциальность</a><a href="#main">Наверх</a></div>
+    </div>
+  </footer>
+  <dialog id="search-dialog" aria-labelledby="search-title"><div class="dialog-top"><h2 id="search-title">Поиск по сайту</h2><button type="button" data-close-dialog aria-label="Закрыть поиск">×</button></div><label class="sr-only" for="site-search">Поиск по страницам сайта</label><input id="site-search" type="search" placeholder="Например, контакты или 3D-тур" autocomplete="off" enterkeyhint="go"><p class="search-status" aria-live="polite">Введите запрос или выберите раздел.</p><div id="search-results"></div></dialog>
+  <dialog id="settings-dialog" aria-labelledby="settings-title"><div class="dialog-top"><h2 id="settings-title">Настройки отображения</h2><button type="button" data-close-dialog aria-label="Закрыть настройки">×</button></div><p>Настройки сохраняются только в вашем браузере.</p><label class="setting"><span>Увеличенный текст</span><input type="checkbox" id="large-text"></label><label class="setting"><span>Высокая контрастность</span><input type="checkbox" id="high-contrast"></label><label class="setting"><span>Отключить анимацию</span><input type="checkbox" id="reduce-motion"></label><button type="button" class="btn" id="reset-settings">Сбросить настройки</button></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

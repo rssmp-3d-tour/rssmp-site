@@ -1,0 +1,1076 @@
+(() => {
+  'use strict';
+
+  // 3D-тур на Photo Sphere Viewer (vendor/psv.js, лицензия MIT). Движок показывает
+  // панораму и отвечает за перетаскивание, инерцию, колесо и масштаб двумя пальцами.
+  // Точки, карточки, экскурсия, гироскоп, VR и эффект присутствия — код сайта ниже.
+  const root = document.querySelector('[data-tour-viewer]');
+  if (!root) return;
+
+  // The tour fills the rest of the first screen: style.css sets its height to the
+  // window height minus --tour-offset, the distance from the top of the page.
+  function fitToScreen() {
+    if (root.classList.contains('is-pseudo-fullscreen') || document.fullscreenElement || document.webkitFullscreenElement) return;
+    root.style.setProperty('--tour-offset', `${Math.round(root.getBoundingClientRect().top + window.scrollY + 16)}px`);
+  }
+  fitToScreen();
+  window.addEventListener('resize', fitToScreen, { passive: true });
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(fitToScreen);
+    for (const element of [document.querySelector('header'), document.querySelector('.tour-intro')]) if (element) observer.observe(element);
+  }
+
+  const fallback = root.querySelector('[data-tour-fallback]');
+  const statusLine = root.querySelector('[data-vr-status]');
+  const announcer = root.querySelector('[data-tour-announce]');
+  let statusTimer = 0;
+  const setStatus = text => {
+    if (!statusLine) return;
+    statusLine.textContent = text;
+    clearTimeout(statusTimer);
+    if (text) statusTimer = setTimeout(() => { statusLine.textContent = ''; }, 6000);
+  };
+  const announce = text => { if (announcer) announcer.textContent = text; };
+  function showFallback(title, text, canRetry = false) {
+    fallback.hidden = false;
+    fallback.querySelector('strong').textContent = title;
+    fallback.querySelector('span').textContent = text;
+    const retry = fallback.querySelector('[data-tour-retry]');
+    if (retry) retry.hidden = !canRetry;
+    root.classList.remove('is-loading', 'is-switching', 'is-sharpening');
+    root.removeAttribute('aria-busy');
+    announce(`${title} ${text}`);
+  }
+
+  // The engine draws into its own element; older markup had a bare <canvas> instead.
+  root.querySelector(':scope > canvas')?.remove();
+  let stage = root.querySelector('[data-tour-stage]');
+  if (!stage) {
+    stage = document.createElement('div');
+    stage.className = 'tour-psv';
+    stage.setAttribute('data-tour-stage', '');
+    stage.setAttribute('aria-hidden', 'true');
+    root.prepend(stage);
+  }
+  const PSV = window.RssmpPSV;
+  if (!PSV || !PSV.Viewer) {
+    showFallback('Не удалось загрузить модуль 3D-тура.', 'Обновите страницу. Если ошибка повторится, откройте сайт в другом браузере.', true);
+    fallback.querySelector('[data-tour-retry]')?.addEventListener('click', () => location.reload());
+    return;
+  }
+
+  const vehicles = {
+    b: { title: 'Автомобиль класса B', short: 'Класс B' },
+    c: { title: 'Реанимобиль класса C', short: 'Класс C' }
+  };
+
+  const scenes = {
+    'b-exterior': {
+      vehicle: 'b', view: 'exterior',
+      title: 'Автомобиль класса B · снаружи',
+      image: '/assets/tour-exterior-demo.jpg',
+      yaw: 0,
+      pitch: -0.03,
+      hotspots: [
+        { yaw: 0.08, pitch: -0.02, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Реальная модель и комплектация будут указаны после съёмки автомобиля станции.', next: 'b-interior', action: 'Перейти в салон' },
+        { yaw: -0.92, pitch: 0.03, title: 'Светозвуковая сигнализация', text: 'Специальные световые и звуковые сигналы применяются при выполнении экстренного вызова в установленном порядке.' },
+        { yaw: 0.84, pitch: 0.01, title: 'Доступ в медицинский салон', text: 'Двери и ступень обеспечивают доступ бригады к медицинскому салону и перемещение пациента.' },
+        { yaw: 1.48, pitch: -0.04, title: 'Внешние отсеки', text: 'В зависимости от модели автомобиля в защищённых отсеках может размещаться часть переносного оснащения.' }
+      ]
+    },
+    'b-interior': {
+      vehicle: 'b', view: 'interior',
+      title: 'Автомобиль класса B · медицинский салон',
+      image: '/assets/tour-interior-demo.jpg',
+      yaw: 0,
+      pitch: -0.02,
+      hotspots: [
+        { yaw: 0.04, pitch: 0.02, title: 'Монитор пациента', text: 'Применяется для наблюдения за показателями пациента. Название модели и доступные режимы будут указаны по паспорту оборудования станции.' },
+        { yaw: -0.72, pitch: -0.17, title: 'Система носилок', text: 'Предназначена для перемещения пациента и фиксации носилок в медицинском салоне.' },
+        { yaw: 1.04, pitch: 0.04, title: 'Кислородная система', text: 'Обеспечивает размещение и подключение кислородного оборудования. Точный состав зависит от комплектации автомобиля.' },
+        { yaw: -1.25, pitch: 0.06, title: 'Сумка экстренной помощи', text: 'Переносная медицинская укладка позволяет доставить необходимые средства непосредственно к пациенту.' },
+        { yaw: 1.72, pitch: -0.08, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
+        { yaw: -2.02, pitch: 0.08, title: 'Аспиратор', text: 'Медицинский аспиратор применяется для удаления жидкостей из дыхательных путей. Конкретная модель требует подтверждения станции.' },
+        { yaw: 2.38, pitch: 0.02, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля класса B.', next: 'b-exterior', action: 'Выйти наружу' }
+      ]
+    },
+    'c-exterior': {
+      vehicle: 'c', view: 'exterior',
+      title: 'Реанимобиль класса C · снаружи',
+      image: '/assets/tour-exterior-demo.jpg',
+      yaw: 0.18,
+      pitch: -0.03,
+      hotspots: [
+        { yaw: 0.08, pitch: -0.02, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Марка, модель и фактическая комплектация будут указаны после съёмки.', next: 'c-interior', action: 'Перейти в салон' },
+        { yaw: -0.92, pitch: 0.03, title: 'Светозвуковая сигнализация', text: 'Комплекс специальных сигналов делает автомобиль заметным при выполнении экстренного вызова.' },
+        { yaw: 0.84, pitch: 0.01, title: 'Зона загрузки пациента', text: 'Задняя часть автомобиля обеспечивает установку и фиксацию транспортировочной системы.' },
+        { yaw: 1.48, pitch: -0.04, title: 'Подключение внешнего питания', text: 'На некоторых моделях используется для поддержания готовности бортового медицинского оборудования. Наличие уточняется по автомобилю станции.' }
+      ]
+    },
+    'c-interior': {
+      vehicle: 'c', view: 'interior',
+      title: 'Реанимобиль класса C · медицинский салон',
+      image: '/assets/tour-interior-demo.jpg',
+      yaw: 0.1,
+      pitch: -0.02,
+      hotspots: [
+        { yaw: 0.04, pitch: 0.02, title: 'Монитор-дефибриллятор', text: 'Комплекс для мониторинга показателей пациента и проведения предусмотренных моделью лечебных мероприятий. Точная модель будет указана после инвентаризации.' },
+        { yaw: 0.55, pitch: 0.08, title: 'Аппарат искусственной вентиляции лёгких', text: 'Предназначен для респираторной поддержки пациента. Режимы работы зависят от конкретной модели.' },
+        { yaw: 1.02, pitch: -0.02, title: 'Инфузионное оборудование', text: 'Оборудование для контролируемого введения растворов. Фактический состав необходимо подтвердить по комплектации реанимобиля.' },
+        { yaw: 1.54, pitch: 0.04, title: 'Кислородная система', text: 'Стационарные крепления, редукторы и точки подключения обеспечивают использование кислородного оборудования.' },
+        { yaw: -0.68, pitch: -0.16, title: 'Система носилок', text: 'Обеспечивает перемещение пациента и надёжное крепление во время транспортировки.' },
+        { yaw: -1.22, pitch: 0.04, title: 'Реанимационная сумка', text: 'Переносная укладка с оборудованием и материалами для оказания помощи вне автомобиля. Состав будет описан по описи станции.' },
+        { yaw: -1.82, pitch: 0.07, title: 'Аспиратор', text: 'Предназначен для удаления жидкостей из дыхательных путей. На странице будет указана фактическая модель станции.' },
+        { yaw: 2.38, pitch: 0.02, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру реанимобиля класса C.', next: 'c-exterior', action: 'Выйти наружу' }
+      ]
+    }
+  };
+
+  const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
+  const datasetKey = (prefix, name) => prefix + name.replace(/(?:^|-)(\w)/g, (match, letter) => letter.toUpperCase());
+
+  // Panorama files, previews and tiles come from the page (TOUR_PANORAMAS in
+  // build_pages.py); the paths in `scenes` above are defaults for older markup.
+  for (const name of Object.keys(scenes)) {
+    const image = root.dataset[datasetKey('panorama', name)];
+    if (image) scenes[name].image = image;
+    scenes[name].preview = root.dataset[datasetKey('preview', name)] || null;
+    try { scenes[name].tiles = JSON.parse(root.dataset[datasetKey('tiles', name)] || 'null'); } catch { scenes[name].tiles = null; }
+  }
+  // While classes B and C share the same demonstration panoramas, the page shows
+  // one demonstration tour without a class choice. With four separate files the
+  // B/C selector is used. The build sets the mode by comparing file contents.
+  const separateVehicles = ['exterior', 'interior'].every(view => scenes[`b-${view}`].image !== scenes[`c-${view}`].image);
+  const mode = ['demo', 'vehicles'].includes(root.dataset.tourMode) ? root.dataset.tourMode : (separateVehicles ? 'vehicles' : 'demo');
+  if (mode === 'demo') {
+    vehicles.demo = { title: 'Демонстрационный тур', short: 'Демо' };
+    const demoTransitions = {
+      exterior: { title: 'Автомобиль скорой помощи', text: 'Демонстрационная панорама показывает возможности тура. Модели и комплектация автомобилей классов B и C будут указаны после съёмки автомобилей станции.' },
+      interior: { title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля.' }
+    };
+    for (const view of ['exterior', 'interior']) {
+      const source = scenes[`b-${view}`];
+      scenes[`demo-${view}`] = {
+        ...source,
+        vehicle: 'demo',
+        title: view === 'exterior' ? 'Демонстрационная панорама · снаружи' : 'Демонстрационная панорама · салон',
+        hotspots: source.hotspots.map(spot => spot.next ? { ...spot, ...demoTransitions[view], next: `demo-${spot.next.split('-')[1]}` } : spot)
+      };
+    }
+    document.querySelector('.tour-vehicle-selector')?.setAttribute('hidden', '');
+  }
+  // Links shared earlier (#b-interior, #c-exterior …) open the same view in the current mode.
+  function sceneFromHash(hash) {
+    const match = /^(b|c|demo)-(exterior|interior)$/.exec(hash);
+    if (!match) return null;
+    if (mode === 'demo') return `demo-${match[2]}`;
+    return match[1] === 'demo' ? `b-${match[2]}` : hash;
+  }
+  const defaultScene = mode === 'demo' ? 'demo-exterior' : 'b-exterior';
+
+  // Numbers in the page introduction follow the scene data.
+  const tourScenes = Object.values(scenes).filter(scene => (mode === 'demo') === (scene.vehicle === 'demo'));
+  const plural = (n, forms) => forms[n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : 2];
+  const stats = {
+    scenes: [tourScenes.length, ['панорама', 'панорамы', 'панорам'], ' 360°'],
+    points: [tourScenes.reduce((sum, scene) => sum + scene.hotspots.length, 0), ['интерактивная точка', 'интерактивные точки', 'интерактивных точек'], '']
+  };
+  for (const [key, [count, forms, suffix]] of Object.entries(stats)) {
+    const value = document.querySelector(`[data-stat="${key}"]`), label = document.querySelector(`[data-stat-label="${key}"]`);
+    if (value) value.textContent = String(count);
+    if (label) label.textContent = plural(count, forms) + suffix;
+  }
+  // Tiles are used only when every scene has them: the engine works in one mode.
+  const tilesMode = tourScenes.every(scene => scene.tiles && scene.tiles.base && Array.isArray(scene.tiles.levels) && scene.tiles.levels.length > 0);
+
+  // Angles are kept in radians; the engine counts the field of view in degrees
+  // and the zoom as 0–100 between the widest and the narrowest view.
+  const TAU = Math.PI * 2;
+  const DEFAULT_FOV = Math.PI / 2.25, MIN_FOV = 0.58, MAX_FOV = 1.72, MAX_PITCH = 1.28;
+  const toDegrees = radians => radians * 180 / Math.PI;
+  const toRadians = degrees => degrees * Math.PI / 180;
+  const clampFov = value => Math.max(MIN_FOV, Math.min(MAX_FOV, value));
+  const clampPitch = value => Math.max(-MAX_PITCH, Math.min(MAX_PITCH, value));
+  const zoomOf = fov => Math.max(0, Math.min(100, (MAX_FOV - clampFov(fov)) / (MAX_FOV - MIN_FOV) * 100));
+  const fovOf = zoom => MAX_FOV + (MIN_FOV - MAX_FOV) * zoom / 100;
+  const shortestArc = (from, to) => { let d = (to - from) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
+  const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedMotion = () => motionQuery.matches || document.documentElement.classList.contains('no-motion');
+  const isAbort = error => Boolean(PSV.utils?.isAbortError?.(error) || error?.name === 'AbortError');
+  const state = { vehicle: 'b', scene: 'b-exterior', dragging: false, auto: false, gyro: false, presence: false };
+
+  // three.js inside the engine needs WebGL 2 (Chrome, Edge, Firefox, Safari 15+). The engine
+  // itself does not throw without it, so the check comes first.
+  const hasWebGL2 = (() => {
+    try {
+      const gl = document.createElement('canvas').getContext('webgl2');
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      return Boolean(gl);
+    } catch { return false; }
+  })();
+  if (!hasWebGL2) {
+    stage.hidden = true;
+    showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.');
+    return;
+  }
+  let viewer = null;
+  try {
+    const config = {
+      container: stage,
+      navbar: false,
+      loadingImg: null,
+      loadingTxt: '',
+      minFov: toDegrees(MIN_FOV),
+      maxFov: toDegrees(MAX_FOV),
+      defaultZoomLvl: zoomOf(DEFAULT_FOV),
+      mousewheel: true,
+      mousewheelCtrlKey: false,
+      touchmoveTwoFingers: false,
+      keyboard: false,
+      moveInertia: !reducedMotion(),
+      canvasBackground: '#040d0a',
+      lang: { loading: 'Загрузка…', loadError: 'Не удалось загрузить панораму', webglError: 'Не удалось запустить 3D-графику', twoFingers: 'Перемещайте панораму двумя пальцами', ctrlZoom: 'Масштаб — Ctrl и колесо мыши' }
+    };
+    // Tiles: the small preview appears at once, then only the visible parts load at the needed detail.
+    if (tilesMode) config.adapter = [PSV.EquirectangularTilesAdapter, { showErrorTile: false, baseBlur: true }];
+    viewer = new PSV.Viewer(config);
+  } catch {
+    stage.hidden = true;
+    showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.');
+    return;
+  }
+  const engineCanvas = stage.querySelector('canvas');
+  engineCanvas?.addEventListener('webglcontextlost', event => {
+    event.preventDefault();
+    showFallback('3D-графика временно остановлена.', 'Обновите страницу, чтобы восстановить панорамный тур.');
+  });
+  engineCanvas?.addEventListener('webglcontextrestored', () => location.reload());
+  if ('ResizeObserver' in window) new ResizeObserver(() => viewer.autoSize()).observe(root);
+  const currentView = () => {
+    const position = viewer.getPosition();
+    return { yaw: position.yaw, pitch: position.pitch, fov: fovOf(viewer.getZoomLevel()) };
+  };
+
+  // Scripted camera moves (a point, a door, the opening reveal) use the engine's
+  // animation; any drag or wheel stops it. The promise tells whether it arrived.
+  let flight = null, gyroYawOffset = null;
+  function flyTo(target, done = null, { duration = 0 } = {}) {
+    const from = currentView();
+    const to = { yaw: target.yaw, pitch: clampPitch(target.pitch), fov: clampFov(target.fov ?? Math.min(from.fov, DEFAULT_FOV)) };
+    if (state.gyro) gyroYawOffset = null;
+    if (reducedMotion() || document.hidden || state.gyro) {
+      viewer.rotate({ yaw: to.yaw, pitch: to.pitch });
+      viewer.zoom(zoomOf(to.fov));
+      done?.();
+      return Promise.resolve(true);
+    }
+    const distance = Math.hypot(shortestArc(from.yaw, to.yaw), to.pitch - from.pitch, (to.fov - from.fov) * 2);
+    const animation = viewer.animate({ yaw: to.yaw, pitch: to.pitch, zoom: zoomOf(to.fov), speed: duration || Math.min(1100, 400 + distance * 320) });
+    if (!animation) { done?.(); return Promise.resolve(true); }
+    flight = animation;
+    return Promise.resolve(animation).then(completed => {
+      if (flight === animation) flight = null;
+      if (completed) done?.();
+      return completed;
+    });
+  }
+  // Where to aim at a point so that the description card does not cover it:
+  // left of centre on wide screens (card on the right), above centre on phones (card at the bottom).
+  const narrowLayout = matchMedia('(max-width: 800px)');
+  function framing(spot) {
+    const fov = Math.min(currentView().fov, DEFAULT_FOV), t = Math.tan(fov / 2), aspect = root.clientWidth / Math.max(1, root.clientHeight);
+    if (narrowLayout.matches) return { yaw: spot.yaw, pitch: spot.pitch - Math.atan(0.42 * t), fov };
+    return { yaw: spot.yaw + Math.atan(0.3 * t * aspect), pitch: spot.pitch, fov };
+  }
+
+  // Hotspots. Buttons are always paired with the scene they were built for,
+  // so a scene switch can never read hotspots of another scene.
+  const hotspotsLayer = root.querySelector('[data-hotspots]');
+  const hotspotList = document.querySelector('[data-hotspot-list]');
+  const infoCard = root.querySelector('[data-tour-card]');
+  const infoTitle = infoCard.querySelector('[data-card-title]');
+  const infoText = infoCard.querySelector('[data-card-text]');
+  const infoAction = infoCard.querySelector('[data-card-action]');
+  const infoIndex = infoCard.querySelector('[data-card-index]');
+  const prevButton = infoCard.querySelector('[data-card-prev]');
+  const nextButton = infoCard.querySelector('[data-card-next]');
+  const guideTimer = infoCard.querySelector('.tour-guide-timer');
+  const speakButton = infoCard.querySelector('[data-card-speak]');
+  const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  if (speakButton) speakButton.hidden = !canSpeak;
+  let activeHotspot = null, cardOpener = null, placedHotspots = [];
+  const infoSpots = scene => scene.hotspots.filter(spot => !spot.next);
+
+  function chevron() {
+    const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), path = document.createElementNS(ns, 'path');
+    for (const [name, value] of Object.entries({ viewBox: '0 0 24 24', width: '16', height: '16', 'aria-hidden': 'true' })) svg.setAttribute(name, value);
+    for (const [name, value] of Object.entries({ d: 'M9 6l6 6-6 6', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' })) path.setAttribute(name, value);
+    svg.append(path);
+    return svg;
+  }
+  function clearHotspots() {
+    placedHotspots = [];
+    hotspotsLayer.replaceChildren();
+    hotspotList?.replaceChildren();
+  }
+  function buildHotspots(scene) {
+    clearHotspots();
+    let number = 0;
+    scene.hotspots.forEach((spot, order) => {
+      const button = document.createElement('button');
+      button.className = spot.next ? 'tour-hotspot is-transition' : 'tour-hotspot';
+      button.type = 'button';
+      button.hidden = true;
+      button.setAttribute('aria-label', spot.title);
+      button.style.setProperty('--order', String(order));
+      const mark = document.createElement('span');
+      mark.setAttribute('aria-hidden', 'true');
+      if (spot.next) mark.append(chevron()); else mark.textContent = String(++number);
+      const label = document.createElement('b');
+      label.textContent = spot.title;
+      button.append(mark, label);
+      if (spot.next) {
+        const action = document.createElement('small');
+        action.textContent = spot.action;
+        button.append(action);
+      }
+      button.addEventListener('click', () => { stopGuide(); openHotspot(spot, button); });
+      hotspotsLayer.append(button);
+      placedHotspots.push({ spot, button });
+      if (hotspotList) {
+        const item = document.createElement('li');
+        if (spot.next) item.className = 'is-transition';
+        const listButton = document.createElement('button');
+        listButton.type = 'button';
+        listButton.textContent = spot.next ? `${spot.title} · ${spot.action}` : spot.title;
+        listButton.addEventListener('click', () => {
+          stopGuide();
+          flyTo(framing(spot));
+          root.scrollIntoView({ block: 'nearest' });
+          openHotspot(spot, listButton);
+        });
+        item.append(listButton);
+        hotspotList.append(item);
+      }
+    });
+  }
+  // Marks follow the picture: the engine reports every redraw.
+  function updateHotspots() {
+    if (!placedHotspots.length) return;
+    const w = root.clientWidth, h = root.clientHeight;
+    for (const { spot, button } of placedHotspots) {
+      const position = { yaw: spot.yaw, pitch: spot.pitch };
+      let point = null;
+      if (viewer.dataHelper.isPointVisible(position)) {
+        point = viewer.dataHelper.sphericalCoordsToViewerCoords(position);
+        if (point.x < -0.075 * w || point.x > 1.075 * w || point.y < -0.075 * h || point.y > 1.075 * h) point = null;
+      }
+      button.hidden = !point;
+      if (point) button.style.transform = `translate(-50%,-50%) translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
+    }
+  }
+  viewer.addEventListener('render', updateHotspots);
+  function markActive() {
+    for (const { spot, button } of placedHotspots) button.classList.toggle('is-active', spot === activeHotspot);
+  }
+  function stopSpeech() { if (canSpeak) speechSynthesis.cancel(); }
+  function openHotspot(spot, opener, { focus = true } = {}) {
+    activeHotspot = spot;
+    cardOpener = opener || null;
+    const info = infoSpots(scenes[state.scene]), index = info.indexOf(spot), canStep = !spot.next && info.length > 1;
+    if (infoIndex) infoIndex.textContent = spot.next ? 'Переход' : `Точка ${index + 1} из ${info.length}`;
+    if (prevButton) prevButton.hidden = !canStep;
+    if (nextButton) nextButton.hidden = !canStep;
+    infoTitle.textContent = spot.title;
+    infoText.textContent = spot.text;
+    infoAction.hidden = !spot.next;
+    infoAction.textContent = spot.action || 'Перейти';
+    stopSpeech();
+    infoCard.hidden = false;
+    if (focus) infoCard.focus({ preventScroll: true });
+    markActive();
+    if (state.presence && navigator.vibrate) navigator.vibrate(35);
+  }
+  function closeCard(restoreFocus = true) {
+    if (infoCard.hidden) return;
+    stopSpeech();
+    infoCard.hidden = true;
+    activeHotspot = null;
+    markActive();
+    if (!restoreFocus) return;
+    const target = cardOpener && cardOpener.isConnected && !cardOpener.hidden ? cardOpener : root;
+    target.focus({ preventScroll: true });
+  }
+  function stepHotspot(delta) {
+    const info = infoSpots(scenes[state.scene]), index = info.indexOf(activeHotspot);
+    if (index < 0 || info.length < 2) return;
+    if (guide && delta > 0) { guideNext(); return; }
+    stopGuide();
+    const spot = info[(index + delta + info.length) % info.length];
+    flyTo(framing(spot));
+    openHotspot(spot, cardOpener, { focus: false });
+  }
+  prevButton?.addEventListener('click', () => stepHotspot(-1));
+  nextButton?.addEventListener('click', () => stepHotspot(1));
+  infoAction.addEventListener('click', () => {
+    const spot = activeHotspot;
+    if (!spot?.next) return;
+    if (guide) {
+      clearTimeout(guide.timer);
+      guide.visited.add(spot.next);
+      guide.pendingScene = spot.next;
+    }
+    goToScene(spot.next, spot);
+    root.focus({ preventScroll: true });
+  });
+  infoCard.querySelector('[data-card-close]').addEventListener('click', () => { stopGuide(); closeCard(); });
+  speakButton?.addEventListener('click', () => {
+    if (!canSpeak || !activeHotspot) return;
+    stopSpeech();
+    const utterance = new SpeechSynthesisUtterance(`${activeHotspot.title}. ${activeHotspot.text}`);
+    utterance.lang = 'ru-RU';
+    speechSynthesis.speak(utterance);
+  });
+
+  // Tabs: vehicle and view selectors follow the ARIA tabs pattern.
+  const vehicleTabs = [...document.querySelectorAll('[data-vehicle]')];
+  const viewTabs = [...root.querySelectorAll('[data-view]')];
+  if (!root.id) root.id = 'tour-viewport';
+  function syncTabs(tabs, isSelected) {
+    tabs.forEach(tab => {
+      const selected = isSelected(tab);
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      if (!tab.hasAttribute('aria-controls')) tab.setAttribute('aria-controls', root.id);
+    });
+  }
+  function syncThumbs(vehicle) {
+    for (const tab of viewTabs) {
+      const thumb = tab.querySelector('[data-scene-thumb]'), scene = scenes[`${vehicle}-${tab.dataset.view}`];
+      const src = scene && (scene.preview || scene.image);
+      if (thumb && src && thumb.getAttribute('src') !== src) thumb.src = src;
+    }
+  }
+  function tabKeys(tabs) {
+    tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
+      const keys = { ArrowRight: index + 1, ArrowDown: index + 1, ArrowLeft: index - 1, ArrowUp: index - 1, Home: 0, End: tabs.length - 1 };
+      if (!(event.key in keys)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const next = tabs[(keys[event.key] + tabs.length) % tabs.length];
+      next.focus();
+      next.click();
+    }));
+  }
+  tabKeys(vehicleTabs);
+  tabKeys(viewTabs);
+
+  // Scene loading. With tiles the engine shows the preview at once and then the
+  // visible tiles; with single files the preview is replaced by the full panorama.
+  // Afterwards the neighbouring scenes are fetched in advance.
+  const vehicleTitle = document.querySelector('[data-current-vehicle]');
+  const sceneName = root.querySelector('[data-scene-name]');
+  const sceneIndex = root.querySelector('[data-scene-index]');
+  const saveData = Boolean(navigator.connection && navigator.connection.saveData);
+  const prefetched = new Map();
+  let firstLoad = true, sceneLoadId = 0, slowTimer = 0;
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.decoding = 'async';
+      const settle = () => (image.complete && image.naturalWidth ? resolve(image) : reject(new Error(url)));
+      image.src = url;
+      if (image.decode) image.decode().then(() => resolve(image), () => { if (image.complete) settle(); else image.onload = image.onerror = settle; });
+      else image.onload = image.onerror = settle;
+    });
+  }
+  function prefetch(url) {
+    if (!url || prefetched.has(url)) return;
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = url;
+    prefetched.set(url, image);
+  }
+  const tileUrl = (tiles, level, col, row) => `${tiles.base}${level}/${col}_${row}.jpg`;
+  function tilesPanorama(scene) {
+    const tiles = scene.tiles;
+    return { baseUrl: scene.preview || undefined, levels: tiles.levels, tileUrl: (col, row, level) => tileUrl(tiles, level, col, row) };
+  }
+  function prefetchNeighbours(current) {
+    for (const scene of tourScenes) {
+      if (scene === current) continue;
+      prefetch(scene.preview);
+      if (scene.vehicle !== current.vehicle || saveData) continue;
+      if (!tilesMode) { prefetch(scene.image); continue; }
+      const level = scene.tiles.levels[0];
+      for (let col = 0; col < level.cols; col++) for (let row = 0; row < level.rows; row++) prefetch(tileUrl(scene.tiles, 0, col, row));
+    }
+  }
+  async function loadFullImage(scene, loadId) {
+    const timer = setTimeout(() => { if (loadId === sceneLoadId) root.classList.add('is-sharpening'); }, 500);
+    try {
+      // Decoded in the background first, so the swap itself is instant. No position
+      // is passed: the engine keeps the current view and any running camera move.
+      await loadImage(scene.image);
+      if (loadId !== sceneLoadId) return;
+      const loaded = await viewer.setPanorama(scene.image, { transition: false, showLoader: false });
+      if (loaded && loadId === sceneLoadId) prefetchNeighbours(scene);
+    } catch (error) {
+      if (loadId !== sceneLoadId || isAbort(error)) return;
+      viewer.hideError();
+      setStatus('Панорама показана в сниженном качестве: полный файл не загрузился.');
+    } finally {
+      clearTimeout(timer);
+      if (loadId === sceneLoadId) root.classList.remove('is-sharpening');
+    }
+  }
+  async function loadScene(name, fromUser = false, view = null) {
+    if (!own(scenes, name)) return;
+    const scene = scenes[name], loadId = ++sceneLoadId, intro = firstLoad;
+    const walking = root.classList.contains('is-switching');
+    const target = view || { yaw: scene.yaw, pitch: scene.pitch, fov: DEFAULT_FOV };
+    state.scene = name; state.vehicle = scene.vehicle;
+    if (state.gyro) gyroYawOffset = null;
+    closeCard(false);
+    clearHotspots();
+    fallback.hidden = true;
+    root.classList.remove('is-sharpening');
+    clearTimeout(slowTimer);
+    // A quick switch shows only the engine's dip to black; the loading screen
+    // appears if loading takes longer.
+    const busy = () => {
+      if (loadId !== sceneLoadId) return;
+      root.classList.add('is-loading');
+      root.setAttribute('aria-busy', 'true');
+    };
+    if (intro) busy(); else slowTimer = setTimeout(busy, 350);
+    if (sceneName) sceneName.textContent = scene.title;
+    if (sceneIndex) sceneIndex.textContent = `0${scene.view === 'exterior' ? 1 : 2} / 02`;
+    syncTabs(viewTabs, tab => tab.dataset.view === scene.view);
+    syncTabs(vehicleTabs, tab => tab.dataset.vehicle === scene.vehicle);
+    syncThumbs(scene.vehicle);
+    if (vehicleTitle) vehicleTitle.textContent = vehicles[scene.vehicle].title;
+    history.replaceState(null, '', `#${name}`);
+    const reveal = intro && !reducedMotion();
+    let loaded = false;
+    try {
+      loaded = await viewer.setPanorama(tilesMode ? tilesPanorama(scene) : (scene.preview || scene.image), {
+        position: { yaw: target.yaw, pitch: target.pitch },
+        zoom: zoomOf(reveal ? clampFov(target.fov + 0.3) : target.fov),
+        showLoader: false,
+        transition: intro || reducedMotion() ? false : { speed: walking ? 700 : 450, effect: 'black', rotation: false }
+      });
+    } catch (error) {
+      if (loadId !== sceneLoadId || isAbort(error)) return;
+      clearTimeout(slowTimer);
+      viewer.hideError();
+      showFallback('Не удалось загрузить панораму.', 'Проверьте подключение к интернету и повторите попытку.', true);
+      return;
+    }
+    if (!loaded || loadId !== sceneLoadId) return;
+    clearTimeout(slowTimer);
+    root.classList.remove('is-loading', 'is-switching');
+    root.removeAttribute('aria-busy');
+    buildHotspots(scene);
+    updateHotspots();
+    if (reveal) flyTo(target, null, { duration: 1200 });
+    firstLoad = false;
+    if (fromUser) announce(`${scene.title}. Активных точек: ${scene.hotspots.length}.`);
+    if (guide && guide.pendingScene === name) continueGuide();
+    if (!tilesMode && scene.preview && scene.preview !== scene.image) loadFullImage(scene, loadId);
+    else prefetchNeighbours(scene);
+  }
+  // Walking through a door: the camera moves towards it while the picture dims.
+  function goToScene(name, via = null) {
+    if (!own(scenes, name)) return;
+    closeCard(false);
+    if (via && fallback.hidden && !document.hidden && !state.gyro && !reducedMotion()) {
+      root.classList.add('is-switching');
+      const token = sceneLoadId;
+      flyTo({ yaw: via.yaw, pitch: via.pitch, fov: MIN_FOV + 0.12 }, null, { duration: 700 }).then(() => {
+        // A tab chosen during the walk wins over the door.
+        if (token === sceneLoadId) loadScene(name, true);
+      });
+    } else {
+      loadScene(name, true);
+    }
+  }
+  fallback.querySelector('[data-tour-retry]')?.addEventListener('click', () => loadScene(state.scene, true));
+  viewTabs.forEach(button => button.addEventListener('click', () => {
+    const name = `${state.vehicle}-${button.dataset.view}`;
+    if (name === state.scene && fallback.hidden) return;
+    stopGuide();
+    loadScene(name, true);
+  }));
+  vehicleTabs.forEach(button => button.addEventListener('click', () => {
+    const currentScene = scenes[state.scene]?.view || 'exterior';
+    const name = `${button.dataset.vehicle}-${currentScene}`;
+    if (name === state.scene && fallback.hidden) return;
+    stopGuide();
+    loadScene(name, true);
+  }));
+
+  // Links to a view: #scene or #scene@yaw,pitch,fov (degrees), made by the «share» button.
+  function parseHash(raw) {
+    const match = /^([a-z]+-[a-z]+)(?:@(-?\d{1,3}(?:\.\d+)?),(-?\d{1,2}(?:\.\d+)?)(?:,(\d{1,3}(?:\.\d+)?))?)?$/.exec(raw);
+    const scene = match && sceneFromHash(match[1]);
+    if (!scene || !own(scenes, scene)) return null;
+    const view = match[2] === undefined ? null : { yaw: toRadians(+match[2]), pitch: clampPitch(toRadians(+match[3])), fov: match[4] ? clampFov(toRadians(+match[4])) : DEFAULT_FOV };
+    return { scene, view };
+  }
+  window.addEventListener('hashchange', () => {
+    const target = parseHash(location.hash.slice(1));
+    if (!target) return;
+    if (target.scene !== state.scene || !fallback.hidden) { stopGuide(); loadScene(target.scene, true, target.view); }
+    else if (target.view) { stopGuide(); flyTo(target.view); }
+  });
+  const shareButton = root.querySelector('[data-share]');
+  async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try { await navigator.clipboard.writeText(text); return true; } catch {}
+    }
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.className = 'copy-buffer';
+    root.append(area);
+    area.select();
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch {}
+    area.remove();
+    return copied;
+  }
+  shareButton?.addEventListener('click', async () => {
+    const view = currentView(), yaw = Math.atan2(Math.sin(view.yaw), Math.cos(view.yaw));
+    const url = `${location.origin}${location.pathname}#${state.scene}@${Math.round(toDegrees(yaw))},${Math.round(toDegrees(view.pitch))},${Math.round(toDegrees(view.fov))}`;
+    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+      try { await navigator.share({ title: document.title, url }); return; } catch (error) { if (error && error.name === 'AbortError') return; }
+    }
+    const copied = await copyText(url);
+    shareButton.focus({ preventScroll: true });
+    setStatus(copied ? 'Ссылка на этот вид скопирована.' : `Скопируйте ссылку вручную: ${url}`);
+  });
+
+  // Guided tour («Экскурсия»): the camera visits every point of the scene, then
+  // walks through the door into the next scene. Any direct input stops it.
+  const guideButton = root.querySelector('[data-guide]');
+  const autoButton = root.querySelector('[data-auto]');
+  let guide = null;
+  const dwellTime = spot => Math.min(12000, Math.max(5000, 2500 + spot.text.length * 45));
+  function runGuideTimer(ms) {
+    if (!guideTimer) return;
+    guideTimer.style.setProperty('--dwell', `${ms}ms`);
+    guideTimer.classList.remove('is-running');
+    void guideTimer.offsetWidth;
+    guideTimer.classList.add('is-running');
+  }
+  function startGuide() {
+    if (!fallback.hidden || root.classList.contains('is-loading')) return;
+    setAuto(false);
+    guide = { visited: new Set([state.scene]), queue: infoSpots(scenes[state.scene]), timer: 0, pendingScene: null };
+    guideButton?.setAttribute('aria-pressed', 'true');
+    root.classList.add('is-guided');
+    announce('Экскурсия началась. Перемещение панорамы остановит её.');
+    guideNext();
+  }
+  function stopGuide(message = '') {
+    if (!guide) return;
+    clearTimeout(guide.timer);
+    guide = null;
+    guideButton?.setAttribute('aria-pressed', 'false');
+    root.classList.remove('is-guided');
+    guideTimer?.classList.remove('is-running');
+    if (message) announce(message);
+  }
+  function guideShow(spot, then) {
+    flyTo(framing(spot), () => {
+      if (!guide) return;
+      openHotspot(spot, null, { focus: false });
+      announce(spot.title);
+      const dwell = spot.next ? 3000 : dwellTime(spot);
+      runGuideTimer(dwell);
+      guide.timer = setTimeout(then, dwell);
+    });
+  }
+  function guideNext() {
+    if (!guide) return;
+    clearTimeout(guide.timer);
+    const spot = guide.queue.shift();
+    if (spot) { guideShow(spot, guideNext); return; }
+    const exit = scenes[state.scene].hotspots.find(item => item.next && !guide.visited.has(item.next));
+    if (exit) {
+      guideShow(exit, () => {
+        if (!guide) return;
+        guide.visited.add(exit.next);
+        guide.pendingScene = exit.next;
+        goToScene(exit.next, exit);
+      });
+      return;
+    }
+    closeCard(false);
+    stopGuide('Экскурсия завершена.');
+  }
+  function continueGuide() {
+    guide.pendingScene = null;
+    guide.queue = infoSpots(scenes[state.scene]);
+    guide.timer = setTimeout(guideNext, 900);
+  }
+  guideButton?.addEventListener('click', () => (guide ? stopGuide('Экскурсия остановлена.') : startGuide()));
+
+  // Automatic rotation; it pauses while the panorama is held.
+  let autoFrame = 0, autoLast = 0;
+  function autoTick(now) {
+    autoFrame = 0;
+    if (!state.auto) return;
+    const dt = Math.min((now - autoLast) / 1000, 0.05);
+    autoLast = now;
+    if (!state.dragging && !flight && !document.hidden) {
+      const position = viewer.getPosition();
+      viewer.rotate({ yaw: position.yaw + dt * 0.08, pitch: position.pitch });
+    }
+    autoFrame = requestAnimationFrame(autoTick);
+  }
+  function setAuto(on) {
+    state.auto = on;
+    autoButton?.setAttribute('aria-pressed', String(on));
+    if (on && !autoFrame) { autoLast = performance.now(); autoFrame = requestAnimationFrame(autoTick); }
+  }
+  autoButton?.addEventListener('click', () => {
+    if (!state.auto) stopGuide();
+    setAuto(!state.auto);
+  });
+
+  // Direct input: the engine turns and zooms the panorama itself; here it only
+  // ends the guided tour and remembers that the visitor has taken control.
+  function takeControl() {
+    stopGuide();
+    root.classList.add('has-interacted');
+  }
+  stage.addEventListener('pointerdown', () => { takeControl(); state.dragging = true; }, true);
+  for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, () => { state.dragging = false; }, true);
+  stage.addEventListener('wheel', takeControl, { capture: true, passive: true });
+  // Keys and the zoom buttons move smoothly; repeated presses add up.
+  let keyTarget = null;
+  function nudge(dYaw, dPitch, dFov) {
+    takeControl();
+    const base = keyTarget && flight ? keyTarget : currentView();
+    keyTarget = { yaw: base.yaw + dYaw, pitch: clampPitch(base.pitch + dPitch), fov: clampFov(base.fov + dFov) };
+    const target = keyTarget;
+    flyTo(target, () => { if (keyTarget === target) keyTarget = null; }, { duration: 500 });
+    if (reducedMotion()) keyTarget = null;
+  }
+  root.querySelectorAll('[data-zoom]').forEach(button => button.addEventListener('click', () => nudge(0, 0, button.dataset.zoom === 'in' ? -0.22 : 0.22)));
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      if (!infoCard.hidden) { event.preventDefault(); stopGuide(); closeCard(); return; }
+      if (guide) { event.preventDefault(); stopGuide('Экскурсия остановлена.'); return; }
+      if (root.classList.contains('is-pseudo-fullscreen')) { event.preventDefault(); setPseudoFullscreen(false); fullscreenButton.focus(); return; }
+    }
+    if (event.target.closest('[role="tablist"], input, textarea')) return;
+    const step = event.shiftKey ? 0.18 : 0.08;
+    const moves = {
+      ArrowLeft: [-step, 0, 0],
+      ArrowRight: [step, 0, 0],
+      ArrowUp: [0, step, 0],
+      ArrowDown: [0, -step, 0],
+      '+': [0, 0, -0.08],
+      '=': [0, 0, -0.08],
+      '-': [0, 0, 0.08]
+    };
+    if (!own(moves, event.key)) return;
+    event.preventDefault();
+    nudge(...moves[event.key]);
+  });
+
+  // Fullscreen. iPhone Safari has no element fullscreen, so the viewer expands
+  // over the page instead.
+  const fullscreenButton = root.querySelector('[data-fullscreen]');
+  const nativeFullscreen = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+  const canUseNativeFullscreen = () => Boolean((root.requestFullscreen || root.webkitRequestFullscreen) && (document.fullscreenEnabled ?? document.webkitFullscreenEnabled ?? true));
+  function syncFullscreenButton() {
+    const active = nativeFullscreen() === root || root.classList.contains('is-pseudo-fullscreen');
+    fullscreenButton.setAttribute('aria-label', active ? 'Выйти из полноэкранного режима' : 'Открыть на весь экран');
+    root.classList.toggle('is-fullscreen', active);
+    requestAnimationFrame(() => viewer.autoSize());
+  }
+  function setPseudoFullscreen(on) {
+    root.classList.toggle('is-pseudo-fullscreen', on);
+    document.documentElement.classList.toggle('tour-locked', on);
+    syncFullscreenButton();
+  }
+  fullscreenButton.addEventListener('click', async () => {
+    if (root.classList.contains('is-pseudo-fullscreen')) { setPseudoFullscreen(false); return; }
+    try {
+      if (nativeFullscreen()) await (document.exitFullscreen ? document.exitFullscreen() : document.webkitExitFullscreen());
+      else if (canUseNativeFullscreen()) await (root.requestFullscreen ? root.requestFullscreen() : root.webkitRequestFullscreen());
+      else setPseudoFullscreen(true);
+    } catch {
+      setPseudoFullscreen(true);
+    }
+  });
+  document.addEventListener('fullscreenchange', syncFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
+
+  // Gyroscope: offered only on touch devices, where orientation sensors exist.
+  const gyroButton = root.querySelector('[data-gyro]');
+  const canGyro = 'DeviceOrientationEvent' in window && matchMedia('(pointer: coarse)').matches;
+  if (gyroButton) gyroButton.hidden = !canGyro;
+  let gyroWatchdog = 0, gyroFromPresence = false;
+  // Converts W3C device orientation (Z-X'-Y'') to a viewing direction. The camera
+  // looks out of the back of the device, so the result does not depend on
+  // portrait or landscape screen orientation.
+  function orientationToView(alpha, beta, gamma) {
+    const a = alpha * Math.PI / 180, b = beta * Math.PI / 180, g = gamma * Math.PI / 180;
+    const x = -Math.cos(a) * Math.sin(g) - Math.sin(a) * Math.sin(b) * Math.cos(g);
+    const y = -Math.sin(a) * Math.sin(g) + Math.cos(a) * Math.sin(b) * Math.cos(g);
+    const z = -Math.cos(b) * Math.cos(g);
+    return { yaw: Math.atan2(x, y), pitch: Math.asin(Math.max(-1, Math.min(1, z))) };
+  }
+  function setGyroPressed(on) { gyroButton?.setAttribute('aria-pressed', String(on)); }
+  function disableGyro() {
+    state.gyro = false;
+    gyroYawOffset = null;
+    clearTimeout(gyroWatchdog);
+    setGyroPressed(false);
+  }
+  async function enableGyro() {
+    if (!canGyro) return false;
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        if (await DeviceOrientationEvent.requestPermission() !== 'granted') {
+          setStatus('Доступ к датчикам движения не разрешён.');
+          return false;
+        }
+      } catch {
+        setStatus(window.isSecureContext ? 'Не удалось включить управление движением.' : 'Гироскоп работает только при открытии сайта по HTTPS.');
+        return false;
+      }
+    }
+    stopGuide();
+    viewer.stopAnimation();
+    state.gyro = true;
+    gyroYawOffset = null;
+    setGyroPressed(true);
+    clearTimeout(gyroWatchdog);
+    gyroWatchdog = setTimeout(() => {
+      if (state.gyro && gyroYawOffset === null) {
+        disableGyro();
+        setStatus(window.isSecureContext ? 'Датчик движения не передаёт данные на этом устройстве.' : 'Гироскоп работает только при открытии сайта по HTTPS.');
+      }
+    }, 1500);
+    return true;
+  }
+  gyroButton?.addEventListener('click', async () => {
+    if (state.gyro) { disableGyro(); gyroFromPresence = false; } else { setStatus(''); await enableGyro(); }
+  });
+  window.addEventListener('deviceorientation', event => {
+    if (!state.gyro || event.alpha == null || event.beta == null || event.gamma == null) return;
+    const sensor = orientationToView(event.alpha, event.beta, event.gamma);
+    // Keep the current view direction when the sensor takes over; while the
+    // panorama is held, the finger sets the direction and the sensor follows.
+    if (gyroYawOffset === null || state.dragging) {
+      gyroYawOffset = viewer.getPosition().yaw - sensor.yaw;
+      if (state.dragging) return;
+    }
+    viewer.rotate({ yaw: sensor.yaw + gyroYawOffset, pitch: clampPitch(sensor.pitch) });
+  });
+
+  // Presence effect («Эффект присутствия»): synthesized spatial sound, red/blue light accents,
+  // vibration and, on phones, the gyroscope. Everything stops when it is off
+  // or when the tab is hidden.
+  const presenceButton = root.querySelector('[data-presence], [data-effects]');
+  const legacySoundButton = root.querySelector('[data-sound]');
+  let suspendTimer = 0, ambient = null;
+  function createAmbientSound() {
+    const Context = window.AudioContext || window.webkitAudioContext;
+    if (!Context) return null;
+    const context = new Context();
+    const master = context.createGain();
+    const filter = context.createBiquadFilter();
+    const panner = context.createStereoPanner ? context.createStereoPanner() : null;
+    const low = context.createOscillator();
+    const high = context.createOscillator();
+    low.type = 'sine'; low.frequency.value = 92;
+    high.type = 'sine'; high.frequency.value = 138;
+    filter.type = 'lowpass'; filter.frequency.value = 420;
+    master.gain.value = 0;
+    low.connect(filter); high.connect(filter);
+    if (panner) filter.connect(panner).connect(master); else filter.connect(master);
+    master.connect(context.destination);
+    low.start(); high.start();
+    return { context, master, panner };
+  }
+  viewer.addEventListener('position-updated', event => {
+    if (ambient?.panner) ambient.panner.pan.value = Math.sin(event.position.yaw) * 0.7;
+  });
+  async function updateAmbient() {
+    try {
+      if (state.presence && !ambient) ambient = createAmbientSound();
+      if (!ambient) {
+        if (state.presence) setStatus('Звук недоступен, остальные эффекты продолжают работать.');
+        return;
+      }
+      const { context, master } = ambient;
+      const play = state.presence && !document.hidden;
+      clearTimeout(suspendTimer);
+      if (play) await context.resume();
+      master.gain.cancelScheduledValues(context.currentTime);
+      master.gain.setTargetAtTime(play ? 0.018 : 0, context.currentTime, 0.08);
+      if (!play) suspendTimer = setTimeout(() => { if (!state.presence || document.hidden) context.suspend(); }, 350);
+    } catch {
+      setStatus('Звук недоступен, остальные эффекты продолжают работать.');
+    }
+  }
+  async function togglePresence() {
+    const on = !state.presence;
+    state.presence = on;
+    root.classList.toggle('presence-on', on);
+    root.classList.toggle('effects-off', !on);
+    presenceButton?.setAttribute('aria-pressed', String(on));
+    legacySoundButton?.setAttribute('aria-pressed', String(on));
+    setStatus('');
+    announce(on ? 'Эффект присутствия включён.' : 'Эффект присутствия выключен.');
+    if (on && navigator.vibrate) navigator.vibrate([25, 35, 25]);
+    // Sound and the iOS sensor permission both need the click itself, so both start before any await.
+    const sound = updateAmbient();
+    const gyro = on && canGyro && !state.gyro ? enableGyro() : Promise.resolve(false);
+    if (!on && gyroFromPresence) { disableGyro(); gyroFromPresence = false; }
+    const [, gyroStarted] = await Promise.all([sound, gyro]);
+    if (gyroStarted) {
+      if (state.presence) gyroFromPresence = true;
+      else disableGyro();
+    }
+  }
+  if (presenceButton) {
+    presenceButton.setAttribute('aria-pressed', 'false');
+    presenceButton.addEventListener('click', togglePresence);
+  }
+  if (legacySoundButton) {
+    legacySoundButton.setAttribute('aria-pressed', 'false');
+    legacySoundButton.addEventListener('click', () => presenceButton ? presenceButton.click() : togglePresence());
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopSpeech();
+    if (ambient) updateAmbient();
+  });
+  window.addEventListener('pagehide', () => { stopSpeech(); ambient?.context.suspend(); });
+
+  // VR headsets (WebXR; HTTPS and a compatible headset only). The engine has no
+  // WebXR mode, so the headset gets its own small WebGL sphere with the full panorama.
+  function createSphereRenderer(gl, imageUrl) {
+    const compile = (type, source) => {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) || 'shader');
+      return shader;
+    };
+    const program = gl.createProgram();
+    gl.attachShader(program, compile(gl.VERTEX_SHADER, 'attribute vec3 p;attribute vec2 t;uniform mat4 m;uniform mat4 v;varying vec2 u;void main(){u=t;gl_Position=m*v*vec4(p,1.0);}'));
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, '#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\nvarying vec2 u;uniform sampler2D s;void main(){gl_FragColor=texture2D(s,u);}'));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('link');
+    gl.useProgram(program);
+    const positions = [], uvs = [], indices = [], segments = 64, rings = 32;
+    for (let y = 0; y <= rings; y++) {
+      const v = y / rings, phi = v * Math.PI;
+      for (let x = 0; x <= segments; x++) {
+        const u = x / segments, theta = u * TAU;
+        positions.push(-Math.sin(theta) * Math.sin(phi) * 10, Math.cos(phi) * 10, Math.cos(theta) * Math.sin(phi) * 10);
+        uvs.push(u, v);
+      }
+    }
+    for (let y = 0; y < rings; y++) for (let x = 0; x < segments; x++) {
+      const a = y * (segments + 1) + x, b = a + segments + 1;
+      indices.push(a, b, a + 1, b, b + 1, a + 1);
+    }
+    const attribute = (data, size, name) => {
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(data), gl.STATIC_DRAW);
+      const location = gl.getAttribLocation(program, name);
+      gl.enableVertexAttribArray(location);
+      gl.vertexAttribPointer(location, size, gl.FLOAT, false, 0, 0);
+    };
+    attribute(positions, 3, 'p');
+    attribute(uvs, 2, 't');
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+    const projectionLocation = gl.getUniformLocation(program, 'm'), viewLocation = gl.getUniformLocation(program, 'v');
+    gl.uniform1i(gl.getUniformLocation(program, 's'), 0);
+    const texture = gl.createTexture();
+    let ready = false;
+    loadImage(imageUrl).then(image => {
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      ready = true;
+    }, () => setStatus('Не удалось загрузить панораму для VR.'));
+    gl.disable(gl.CULL_FACE);
+    return {
+      draw(projection, view, viewport) {
+        gl.viewport(...viewport);
+        gl.clearColor(0.02, 0.055, 0.045, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        if (!ready) return;
+        gl.useProgram(program);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.uniformMatrix4fv(projectionLocation, false, projection);
+        gl.uniformMatrix4fv(viewLocation, false, view);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+      }
+    };
+  }
+  const vrButton = root.querySelector('[data-vr]');
+  let xrSession = null;
+  async function setupVR() {
+    if (!vrButton || !navigator.xr || !window.isSecureContext) return;
+    try { if (await navigator.xr.isSessionSupported('immersive-vr')) vrButton.hidden = false; } catch {}
+  }
+  vrButton?.addEventListener('click', async () => {
+    if (xrSession) { xrSession.end().catch(() => {}); return; }
+    let session = null;
+    try {
+      stopGuide();
+      const gl = document.createElement('canvas').getContext('webgl', { xrCompatible: true, alpha: false });
+      if (!gl) throw new Error('webgl');
+      session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] });
+      xrSession = session;
+      if (gl.makeXRCompatible) await gl.makeXRCompatible();
+      const sphere = createSphereRenderer(gl, scenes[state.scene].image);
+      session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
+      const referenceSpace = await session.requestReferenceSpace('local');
+      session.addEventListener('end', () => {
+        xrSession = null;
+        vrButton.textContent = 'Войти в VR';
+        viewer.needsUpdate();
+      });
+      const xrFrame = (time, frameData) => {
+        const current = frameData.session, pose = frameData.getViewerPose(referenceSpace);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, current.renderState.baseLayer.framebuffer);
+        if (pose) for (const view of pose.views) {
+          const viewport = current.renderState.baseLayer.getViewport(view), matrix = new Float32Array(view.transform.inverse.matrix);
+          matrix[12] = matrix[13] = matrix[14] = 0;
+          sphere.draw(view.projectionMatrix, matrix, [viewport.x, viewport.y, viewport.width, viewport.height]);
+        }
+        current.requestAnimationFrame(xrFrame);
+      };
+      session.requestAnimationFrame(xrFrame);
+      vrButton.textContent = 'Выйти из VR';
+    } catch {
+      if (session) session.end().catch(() => {});
+      xrSession = null;
+      setStatus('VR-режим недоступен на этом устройстве.');
+    }
+  });
+
+  const requested = parseHash(location.hash.slice(1));
+  loadScene(requested ? requested.scene : defaultScene, false, requested ? requested.view : null);
+  setupVR();
+})();
