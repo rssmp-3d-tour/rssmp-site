@@ -71,4 +71,5 @@ jobs:
           path: |
             tests/results
             tests/results-vehicles
+            tests/results-demo
           if-no-files-found: ignore

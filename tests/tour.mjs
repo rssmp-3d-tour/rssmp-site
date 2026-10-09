@@ -3,7 +3,8 @@
 // the test browser (route interception); site files are not changed.
 // The tour has two modes (build_pages.py, TOUR_PANORAMAS): «demo» — one
 // demonstration tour while classes B and C share the same panoramas; «vehicles» —
-// B/C selector when four separate panorama files are configured.
+// B/C selector when separate shots are configured, with the station yard as the
+// first scene when both classes have a yard panorama.
 import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
 import fs from 'node:fs';
@@ -16,22 +17,30 @@ const browser = await chromium.launch({ args });
 const results = [];
 const check = (id, name, ok, detail = '') => results.push({ id, name, ok: Boolean(ok), detail });
 const tourHtml = await (await fetch(base + '/tours/')).text();
-const MODE = /data-tour-mode="vehicles"/.test(tourHtml) ? 'vehicles' : 'demo';
-const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 } : { 'b-exterior': 4, 'b-interior': 7, 'c-exterior': 4, 'c-interior': 8 };
+const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
+const HAS_YARD = /data-view="yard"/.test(tourHtml);
+const yard = vehicle => HAS_YARD ? { [`${vehicle}-yard`]: 2 } : {};
+const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
+  : { ...yard('b'), 'b-exterior': 4, 'b-interior': 6, ...yard('c'), 'c-exterior': 4, 'c-interior': 9 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
-const EXT = MODE === 'demo' ? 'demo-exterior' : 'b-exterior', INT = MODE === 'demo' ? 'demo-interior' : 'b-interior';
-const extFile = tourHtml.match(/data-panorama-b-exterior="\/assets\/([^"?]+)/)?.[1] || 'tour-exterior-demo.jpg';
-const extStem = extFile.replace(/\.[a-z]+$/, '');
+const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
+// The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
+const FIRST = Object.keys(expected)[0];
+// The panorama file attributes use b-* names in the demo mode as well.
+const fileScene = scene => scene.replace(/^demo-/, 'b-');
+const fileOf = scene => tourHtml.match(new RegExp(`data-panorama-${fileScene(scene)}="/assets/([^"?]+)`))?.[1];
+const extFile = fileOf(EXT), firstFile = fileOf(FIRST);
+const firstStem = firstFile.replace(/\.[a-z]+$/, '');
 // Previews (<name>-preview.jpg) exist when make_panorama_variants.py prepared the panoramas.
-const HAS_PREVIEW = /data-preview-b-exterior=/.test(tourHtml);
+const HAS_PREVIEW = new RegExp(`data-preview-${fileScene(FIRST)}=`).test(tourHtml);
 // Tiles for Photo Sphere Viewer (make_panorama_variants.py): the engine loads only visible parts.
-const tilesOf = scene => { const m = tourHtml.match(new RegExp(`data-tiles-${scene}="([^"]+)"`)); return m ? JSON.parse(m[1].replace(/&quot;/g, '"')) : null; };
-const EXT_TILES = tilesOf('b-exterior');
-const HAS_TILES = Boolean(EXT_TILES);
+const tilesOf = scene => { const m = tourHtml.match(new RegExp(`data-tiles-${fileScene(scene)}="([^"]+)"`)); return m ? JSON.parse(m[1].replace(/&quot;/g, '"')) : null; };
+const FIRST_TILES = tilesOf(FIRST);
+const HAS_TILES = Boolean(FIRST_TILES);
 const TILE_RE = /\/assets\/tour-tiles\/[^/]+\/(\d+)\/(\d+)_(\d+)\.jpg/;
 // Flights to a point take up to 1.1 s; wait a little longer before checking the frame.
 const FLIGHT = 1300;
-console.log(`Режим тура: ${MODE}; сцен: ${Object.keys(expected).length}; точек: ${TOTAL}; превью: ${HAS_PREVIEW ? 'есть' : 'нет'}; тайлы: ${HAS_TILES ? 'есть' : 'нет'}`);
+console.log(`Режим тура: ${MODE}${HAS_YARD ? ' (с двором станции)' : ''}; сцен: ${Object.keys(expected).length}; точек: ${TOTAL}; превью: ${HAS_PREVIEW ? 'есть' : 'нет'}; тайлы: ${HAS_TILES ? 'есть' : 'нет'}`);
 
 function stats(buffer) {
   const png = PNG.sync.read(buffer);
@@ -81,6 +90,9 @@ const sceneState = page => page.evaluate(() => ({
   view: document.querySelector('[data-view][aria-selected="true"]')?.dataset.view,
   vehicle: document.querySelector('[data-vehicle][aria-selected="true"]')?.dataset.vehicle
 }));
+// Loading time varies with software rendering: wait for the scene itself (at most 6 s), then for the picture to settle.
+const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h && !document.querySelector('[data-tour-viewer]').matches('.is-loading, .is-switching') && document.querySelectorAll('.tour-hotspot').length > 0, hash, { timeout: 6000 })
+  .catch(() => {}).then(() => page.waitForTimeout(500));
 
 // T1 initial render, not black, no errors
 {
@@ -98,7 +110,7 @@ const sceneState = page => page.evaluate(() => ({
   // A tile gets its own part of the pattern: level width, columns and rows come from the page.
   const tileOfPattern = url => {
     const [, level, col, row] = url.match(TILE_RE).map(Number);
-    const { width, cols, rows } = EXT_TILES.levels[level];
+    const { width, cols, rows } = FIRST_TILES.levels[level];
     const size = width / cols, png = new PNG({ width: size, height: size });
     for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
       const gx = col * size + x, gy = row * size + y, i = (y * size + x) * 4, top = gy < width / 4;
@@ -106,7 +118,8 @@ const sceneState = page => page.evaluate(() => ({
     }
     return PNG.sync.write(png);
   };
-  const page = await open('/tours/', { routes: [[/\/assets\/tour-/, r => r.fulfill({ body: TILE_RE.test(r.request().url()) ? tileOfPattern(r.request().url()) : pattern, contentType: 'image/png' })]] });
+  // The view is set to yaw 0 by the link: the starting direction of a scene is chosen for its content.
+  const page = await open(`/tours/#${FIRST}@0,0`, { routes: [[/\/assets\/tour-/, r => r.fulfill({ body: TILE_RE.test(r.request().url()) ? tileOfPattern(r.request().url()) : pattern, contentType: 'image/png' })]] });
   // WebGL picture only: hotspot marks and scene tabs over the picture would distort the samples.
   const { png } = stats(await glShot(page));
   const top = pixel(png, 0.5, 0.2), bottom = pixel(png, 0.5, 0.8), left = pixel(png, 0.3, 0.5), right = pixel(png, 0.7, 0.5), center = pixel(png, 0.5, 0.45);
@@ -122,17 +135,19 @@ const sceneState = page => page.evaluate(() => ({
   const page = await open('/tours/');
   const seq = MODE === 'demo'
     ? [['[data-view="interior"]', INT], ['[data-view="exterior"]', EXT], ['[data-view="interior"]', INT], ['[data-view="exterior"]', EXT]]
+    : HAS_YARD
+    ? [['[data-view="interior"]', 'b-interior'], ['[data-vehicle="c"]', 'c-interior'], ['[data-view="yard"]', 'c-yard'], ['[data-view="exterior"]', 'c-exterior'], ['[data-vehicle="b"]', 'b-exterior'], ['[data-view="yard"]', 'b-yard'], ['[data-view="interior"]', 'b-interior'], ['[data-view="exterior"]', 'b-exterior']]
     : [['[data-view="interior"]', 'b-interior'], ['[data-vehicle="c"]', 'c-interior'], ['[data-view="exterior"]', 'c-exterior'], ['[data-vehicle="b"]', 'b-exterior'], ['[data-view="interior"]', 'b-interior'], ['[data-view="exterior"]', 'b-exterior']];
   const log = [];
   let ok = true;
   for (const [selector, scene] of seq) {
     const before = await canvasShot(page);
     await page.click(selector);
-    await page.waitForTimeout(1200);
+    await sceneReady(page, '#' + scene);
     const st = await sceneState(page);
     const after = await canvasShot(page);
     const s = stats(after);
-    const good = st.hash === '#' + scene && st.hotspots === expected[scene] && !st.loading && !st.fallback && s.mean > 25 && st.view === scene.split('-')[1] && st.vehicle === (MODE === 'demo' ? undefined : scene[0]);
+    const good = st.hash === '#' + scene && st.hotspots === expected[scene] && !st.loading && !st.fallback && s.mean > 25 && st.view === scene.split('-')[1] && st.vehicle === (MODE === 'vehicles' ? scene[0] : undefined);
     log.push(`${scene}:${good ? 'ok' : 'BAD'}(hs=${st.hotspots},mean=${s.mean.toFixed(0)},changed=${!before.equals(after)})`);
     ok = ok && good;
   }
@@ -372,7 +387,8 @@ const sceneState = page => page.evaluate(() => ({
     const visible = () => [...document.querySelectorAll('.tour-hotspot')].filter(b => !b.hidden).length;
     fire(0, 90, 0); await frames();
     const portrait = visible();
-    fire(0, 0, -90); await frames(); // phone held upright in landscape
+    // The same heading held upright in landscape: with beta 0 and gamma -90 the compass angle is alpha 90.
+    fire(90, 0, -90); await frames();
     const landscape = visible();
     return [document.querySelector('[data-gyro]').getAttribute('aria-pressed'), portrait, landscape];
   });
@@ -426,7 +442,7 @@ const sceneState = page => page.evaluate(() => ({
   }
   // Turn the view so that both points are well inside the frame before zooming.
   await tp.locator('[data-tour-viewer]').focus();
-  for (let i = 0; i < (MODE === 'demo' ? 5 : 2); i++) await tp.keyboard.press(MODE === 'demo' ? 'ArrowLeft' : 'ArrowRight');
+  for (let i = 0; i < (MODE === 'demo' ? 5 : 0); i++) await tp.keyboard.press(MODE === 'demo' ? 'ArrowLeft' : 'ArrowRight');
   // A key press is a 500 ms camera move: wait for it to end and for the view to stop,
   // otherwise the pinch starts mid-animation and the engine applies only part of it.
   await tp.waitForTimeout(600);
@@ -465,13 +481,13 @@ const sceneState = page => page.evaluate(() => ({
 // T14 panorama load error, then retry
 {
   let fail = true;
-  // The preview, the full file and the tiles of the exterior fail.
-  const failing = new RegExp(`/assets/(tour-tiles/)?${extStem}`);
+  // The preview, the full file and the tiles of the first scene fail.
+  const failing = new RegExp(`/assets/(tour-tiles/)?${firstStem}`);
   const page = await open('/tours/', { routes: [[failing, r => fail ? r.abort() : r.continue()]] });
   const fb = await page.evaluate(() => [document.querySelector('[data-tour-fallback]').hidden, document.querySelector('[data-tour-fallback] strong').textContent, document.querySelector('[data-tour-retry]') ? !document.querySelector('[data-tour-retry]').hidden : false, document.querySelector('[data-tour-viewer]').classList.contains('is-loading')]);
   let retried = 'нет кнопки';
   if (fb[2]) { fail = false; await page.click('[data-tour-retry]'); await page.waitForTimeout(1500); const st = await sceneState(page); retried = `fallback=${st.fallback} hotspots=${st.hotspots}`; }
-  check('T14', 'Ошибка загрузки панорамы: понятное сообщение и повтор загрузки', !fb[0] && /загрузить панораму/.test(fb[1]) && !fb[3] && retried === 'fallback=false hotspots=4', `${fb} retry: ${retried}`);
+  check('T14', 'Ошибка загрузки панорамы: понятное сообщение и повтор загрузки', !fb[0] && /загрузить панораму/.test(fb[1]) && !fb[3] && retried === `fallback=false hotspots=${expected[FIRST]}`, `${fb} retry: ${retried}`);
   await page.context().close();
 }
 
@@ -505,9 +521,9 @@ const sceneState = page => page.evaluate(() => ({
   await page.waitForTimeout(300);
   const st = await page.evaluate(() => [document.querySelector('[data-effects]').getAttribute('aria-pressed'), document.querySelector('[data-sound]').getAttribute('aria-pressed')]);
   await page.click('[data-view="interior"]');
-  await page.waitForTimeout(1200);
+  await sceneReady(page, '#' + INT);
   await page.click('[data-view="exterior"]');
-  await page.waitForTimeout(1200);
+  await sceneReady(page, '#' + EXT);
   const scene = await sceneState(page);
   check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === 4 && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
   await page.context().close();
@@ -610,10 +626,13 @@ const sceneState = page => page.evaluate(() => ({
     const vehicleTabs = await page.locator('[data-vehicle]:visible').count();
     const claimsClass = labels.some(t => /класса [BC]\b|Реанимобиль/.test(t));
     const intro = await page.locator('.tour-intro').innerText();
-    const ok = common && vehicleTabs === 0 && !claimsClass && !/Класс B|Класс C/.test(intro) && /Демонстрационн/.test(text) && /не съёмка/.test(text) && !/Классы B и C/.test(home) && new Set(requested).size <= 2;
-    check('T20', 'Демо-режим: один демонстрационный тур без выбора B/C; точки и заголовки без классов; «Эффект присутствия» вместо «5D»', ok, `tabs=${vehicleTabs} claimsClass=${claimsClass} files=${[...new Set(requested)]} presence="${presenceLabel}" 5D=${/5D/.test(text + home + search)}`);
+    const files = [...new Set(requested)];
+    const ok = common && vehicleTabs === 0 && !claimsClass && !/Класс B|Класс C/.test(intro) && /Демонстрационн/.test(text) && /не съёмка/.test(text) && !/Классы B и C/.test(home) && files.length <= 2;
+    check('T20', 'Демо-режим: один демонстрационный тур без выбора B/C; точки и заголовки без классов; «Эффект присутствия» вместо «5D»', ok, `tabs=${vehicleTabs} claimsClass=${claimsClass} files=${files} presence="${presenceLabel}" 5D=${/5D/.test(text + home + search)}`);
   } else {
-    // The test copy paints each scene in its own colour: the picture must match the chosen class and view.
+    // The synthetic test copy (make-vehicles-variant.mjs) paints each scene in its own colour:
+    // the picture must match the chosen class and view. Real shots are checked by scene and files.
+    const synthetic = /-test\.png/.test(tourHtml);
     const palette = { 'b-exterior': [70, 130, 180], 'b-interior': [200, 170, 90], 'c-exterior': [90, 160, 110], 'c-interior': [170, 90, 140] };
     const nearest = ([r, g, b]) => Object.entries(palette).map(([name, [pr, pg, pb]]) => {
       const t = r + g + b || 1, u = pr + pg + pb;
@@ -621,18 +640,24 @@ const sceneState = page => page.evaluate(() => ({
     }).sort((x, y) => x[0] - y[0])[0][1];
     const shown = [];
     let thumbs = '';
-    for (const [selector, scene] of [['[data-vehicle="c"]', 'c-exterior'], ['[data-view="interior"]', 'c-interior'], ['[data-vehicle="b"]', 'b-interior'], ['[data-view="exterior"]', 'b-exterior']]) {
+    for (const [selector, scene] of [['[data-vehicle="c"]', `c-${FIRST.split('-')[1]}`], ['[data-view="interior"]', 'c-interior'], ['[data-vehicle="b"]', 'b-interior'], ['[data-view="exterior"]', 'b-exterior']]) {
       await page.click(selector);
       await page.waitForTimeout(1500);
-      const { png } = stats(await glShot(page));
-      let r = 0, g = 0, b = 0, n = 0;
-      for (let i = 0; i < png.data.length; i += 4) { r += png.data[i]; g += png.data[i + 1]; b += png.data[i + 2]; n++; }
-      shown.push(`${scene}:${nearest([r / n, g / n, b / n])}`);
+      let picture = (await sceneState(page)).hash.slice(1);
+      if (synthetic) {
+        const { png } = stats(await glShot(page));
+        let r = 0, g = 0, b = 0, n = 0;
+        for (let i = 0; i < png.data.length; i += 4) { r += png.data[i]; g += png.data[i + 1]; b += png.data[i + 2]; n++; }
+        picture = nearest([r / n, g / n, b / n]);
+      }
+      shown.push(`${scene}:${picture}`);
       if (scene === 'c-interior') thumbs = await page.evaluate(() => [...document.querySelectorAll('[data-scene-thumb]')].map(i => i.getAttribute('src').split('/').pop().split('?')[0]).join(','));
     }
     const vehicleTabs = await page.locator('[data-vehicle]:visible').count();
-    const ok = common && vehicleTabs === 2 && shown.every(item => item.split(':')[0] === item.split(':')[1]) && /tour-c-exterior/.test(thumbs) && /tour-c-interior/.test(thumbs) && /Классы B и C/.test(home);
-    check('T20', 'Режим 4 файлов: выбор B/C, у каждого класса свои панорамы и миниатюры; «Эффект присутствия» вместо «5D»', ok, `tabs=${vehicleTabs} shown=${shown} thumbs(C)=${thumbs} presence="${presenceLabel}"`);
+    const files = [...new Set(requested)];
+    const ok = common && vehicleTabs === 2 && shown.every(item => item.split(':')[0] === item.split(':')[1]) && /tour-c-exterior/.test(thumbs) && /tour-c-interior/.test(thumbs) && (!HAS_YARD || /tour-c-yard/.test(thumbs))
+      && /Классы B и C/.test(home) && !/емонстрационн|не съёмка/i.test(text) && !files.some(f => /demo/.test(f));
+    check('T20', 'Выбор B/C: у каждого класса свои панорамы и миниатюры, без демонстрационных снимков; «Эффект присутствия» вместо «5D»', ok, `tabs=${vehicleTabs} shown=${shown} thumbs(C)=${thumbs} files=${files} presence="${presenceLabel}"`);
   }
   await page.context().close();
 }
@@ -643,16 +668,16 @@ if (HAS_TILES) {
   const st = await sceneState(page);
   const s = stats(await glShot(page));
   const errors = page.errors.filter(e => !/Failed to load resource/.test(e));
-  check('T14b', 'Тайлы не загрузились: остаётся превью, тур работает', !st.fallback && !st.loading && st.hotspots === expected[EXT] && s.mean > 25 && errors.length === 0, `fallback=${st.fallback} hotspots=${st.hotspots} mean=${s.mean.toFixed(0)} errors=${errors}`);
+  check('T14b', 'Тайлы не загрузились: остаётся превью, тур работает', !st.fallback && !st.loading && st.hotspots === expected[FIRST] && s.mean > 25 && errors.length === 0, `fallback=${st.fallback} hotspots=${st.hotspots} mean=${s.mean.toFixed(0)} errors=${errors}`);
   await page.context().close();
 } else if (HAS_PREVIEW) {
-  const page = await open('/tours/', { routes: [[`**/assets/${extFile}*`, r => r.abort()]] });
+  const page = await open('/tours/', { routes: [[`**/assets/${firstFile}*`, r => r.abort()]] });
   const st = await sceneState(page);
   const note = await page.evaluate(() => document.querySelector('[data-vr-status]').textContent);
   const s = stats(await glShot(page));
   // The aborted request itself is logged by the browser; other errors are not expected.
   const errors = page.errors.filter(e => !/Failed to load resource/.test(e));
-  check('T14b', 'Полный файл не загрузился: остаётся превью, тур работает, есть пояснение', !st.fallback && !st.loading && st.hotspots === expected[EXT] && s.mean > 25 && /сниженном качестве/.test(note) && errors.length === 0, `fallback=${st.fallback} hotspots=${st.hotspots} mean=${s.mean.toFixed(0)} note="${note}" errors=${errors}`);
+  check('T14b', 'Полный файл не загрузился: остаётся превью, тур работает, есть пояснение', !st.fallback && !st.loading && st.hotspots === expected[FIRST] && s.mean > 25 && /сниженном качестве/.test(note) && errors.length === 0, `fallback=${st.fallback} hotspots=${st.hotspots} mean=${s.mean.toFixed(0)} note="${note}" errors=${errors}`);
   await page.context().close();
 } else check('T14b', 'Полный файл не загрузился: остаётся превью (превью не подготовлены — проверка не применяется)', true, 'n/a');
 
@@ -669,21 +694,21 @@ if (HAS_TILES) {
   const before = await glShot(page);
   await page.waitForTimeout(2600);
   const sharper = !before.equals(await glShot(page));
-  check('T21', 'Превью показывается сразу (точки активны), видимые тайлы подгружаются следом', !early[0] && early[1] === expected[EXT] && sharper && errors.length === 0, `loading=${early[0]} hotspots=${early[1]} picture changed after tiles=${sharper} errors=${errors}`);
+  check('T21', 'Превью показывается сразу (точки активны), видимые тайлы подгружаются следом', !early[0] && early[1] === expected[FIRST] && sharper && errors.length === 0, `loading=${early[0]} hotspots=${early[1]} picture changed after tiles=${sharper} errors=${errors}`);
   await context.close();
 } else if (HAS_PREVIEW) {
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.route(`**/assets/${extFile}*`, async r => { await new Promise(res => setTimeout(res, 2500)); await r.continue(); });
+  await page.route(`**/assets/${firstFile}*`, async r => { await new Promise(res => setTimeout(res, 2500)); await r.continue(); });
   // The panorama download delays the window «load» event, so do not wait for it.
   await page.goto(base + '/tours/', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1200);
   const early = await page.evaluate(() => { const v = document.querySelector('[data-tour-viewer]'); return [v.classList.contains('is-loading'), v.classList.contains('is-sharpening'), document.querySelectorAll('.tour-hotspot').length]; });
   await page.waitForTimeout(2600);
   const late = await page.evaluate(() => document.querySelector('[data-tour-viewer]').classList.contains('is-sharpening'));
-  check('T21', 'Превью показывается сразу (точки активны), полное качество подгружается следом', !early[0] && early[1] && early[2] === expected[EXT] && !late && errors.length === 0, `loading=${early[0]} sharpening=${early[1]} hotspots=${early[2]} → sharpening later=${late} errors=${errors}`);
+  check('T21', 'Превью показывается сразу (точки активны), полное качество подгружается следом', !early[0] && early[1] && early[2] === expected[FIRST] && !late && errors.length === 0, `loading=${early[0]} sharpening=${early[1]} hotspots=${early[2]} → sharpening later=${late} errors=${errors}`);
   await context.close();
 } else check('T21', 'Превью и полное качество (превью не подготовлены — проверка не применяется)', true, 'n/a');
 
@@ -694,11 +719,12 @@ if (HAS_TILES) {
   const page = await context.newPage();
   const errors = [], hosts = new Set();
   page.on('pageerror', e => errors.push(e.message));
-  page.on('request', r => { if (/^https?:/.test(r.url())) hosts.add(new URL(r.url()).host); const m = r.url().match(TILE_RE); if (m && r.url().includes(EXT_TILES?.base || '#')) tileRequests.add(`${m[1]}/${m[2]}_${m[3]}`); });
+  page.on('request', r => { if (/^https?:/.test(r.url())) hosts.add(new URL(r.url()).host); const m = r.url().match(TILE_RE); if (m && r.url().includes(FIRST_TILES?.base || '#')) tileRequests.add(`${m[1]}/${m[2]}_${m[3]}`); });
   await page.goto(base + '/tours/');
   await page.waitForTimeout(2500);
   const info = await page.evaluate(() => [window.RssmpPSV?.VERSION, Boolean(document.querySelector('[data-tour-viewer] canvas').getContext('webgl2'))]);
-  const level = EXT_TILES?.levels[0], all = level ? level.cols * level.rows : 0;
+  // Real shots have several levels of detail (2048, 4096, 8192 px): count the tiles of all of them.
+  const all = (FIRST_TILES?.levels || []).reduce((sum, level) => sum + level.cols * level.rows, 0);
   const tilesOk = !HAS_TILES || (tileRequests.size > 0 && tileRequests.size < all);
   check('T22', 'Движок Photo Sphere Viewer 5.15.1 с сайта (без CDN), WebGL 2; грузятся только видимые тайлы', info[0] === '5.15.1' && info[1] && hosts.size === 1 && tilesOk && errors.length === 0, `version=${info[0]} webgl2=${info[1]} hosts=${[...hosts]} tiles=${HAS_TILES ? `${tileRequests.size}/${all}` : 'нет'} errors=${errors}`);
   await context.close();
@@ -777,7 +803,7 @@ if (HAS_TILES) {
   await page.waitForTimeout(500);
   const zoomed = !a.equals(await glShot(page));
   const markers = await page.evaluate(() => [...document.querySelectorAll('.tour-hotspot:not(.is-transition) > span')].map(s => s.textContent).join(','));
-  const infoCount = expected[EXT] - 1;
+  const infoCount = expected[FIRST] - 1;
   const numbered = markers === Array.from({ length: infoCount }, (_, i) => i + 1).join(',');
   check('T26', 'Цифры во вводной части совпадают с туром; кнопки масштаба; точки пронумерованы', nums[0] === String(Object.keys(expected).length) && nums[1] === String(TOTAL) && zoomed && numbered && page.errors.length === 0, `stats=${nums} zoom=${zoomed} markers=${markers}`);
   await page.context().close();

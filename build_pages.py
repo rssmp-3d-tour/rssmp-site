@@ -93,20 +93,25 @@ def photo(file, alt, attrs='', sizes=None):
     return f'<img{attrs} src="/assets/{file}.jpg"{srcset} width="{width}" height="{height}" alt="{alt}"'
 
 
-# Панорамы 3D-тура: четыре логические сцены, у каждой свой файл в static/assets/.
-# Пока у классов B и C одинаковые демонстрационные файлы, сайт показывает ОДИН
-# демонстрационный тур без выбора класса. Когда будут готовы четыре отдельные
-# съёмки, укажите их здесь и пересоберите сайт: выбор «Класс B / Класс C»
-# включится автоматически (файлы B и C сравниваются по содержимому, отдельно
-# для вида снаружи и для салона).
+# Панорамы 3D-тура: у каждой сцены свой файл в static/assets/. Режим тура:
+# - vehicles: у классов B и C разные настоящие съёмки снаружи и в салоне —
+#   выбор «Класс B / Класс C». Двор станции ('b-yard', 'c-yard') показывается
+#   первой сценой, если его панорама задана у обоих классов;
+# - demo: иначе (файлы B и C совпадают или демонстрационные) — один
+#   демонстрационный тур без выбора класса.
 # Файлы готовит make_panorama_variants.py: к каждой панораме <имя>.jpg он создаёт
 # превью <имя>-preview.jpg, которое показывается сразу и служит миниатюрой сцены.
 TOUR_PANORAMAS = {
-    'b-exterior': 'tour-exterior-demo.jpg',
-    'b-interior': 'tour-interior-demo.jpg',
-    'c-exterior': 'tour-exterior-demo.jpg',
-    'c-interior': 'tour-interior-demo.jpg',
+    'b-yard': 'tour-b-yard.jpg',
+    'b-exterior': 'tour-b-exterior.jpg',
+    'b-interior': 'tour-b-interior.jpg',
+    'c-yard': 'tour-c-yard.jpg',
+    'c-exterior': 'tour-c-exterior.jpg',
+    'c-interior': 'tour-c-interior.jpg',
 }
+# Оба автомобиля сняты на станции 9 октября 2026 года (BEGET.md, раздел о панорамах).
+TOUR_SHOT = 'в октябре 2026 года'
+DEMO_PANORAMAS = {'tour-exterior-demo.jpg', 'tour-interior-demo.jpg'}
 
 
 def panorama_preview(file):
@@ -132,12 +137,18 @@ def tour_mode():
             raise SystemExit(f'Panorama for {scene} not found: {path}')
     digest = {scene: hashlib.sha256(path.read_bytes()).hexdigest() for scene, path in files.items()}
     separate = all(digest[f'b-{view}'] != digest[f'c-{view}'] for view in ('exterior', 'interior'))
-    return 'vehicles' if separate else 'demo'
+    real = not any(TOUR_PANORAMAS[f'{vehicle}-{view}'] in DEMO_PANORAMAS for vehicle in 'bc' for view in ('exterior', 'interior'))
+    return 'vehicles' if separate and real else 'demo'
 
 
 TOUR_MODE = tour_mode()
+VIEW_LABELS = {'yard': 'Двор станции', 'exterior': 'Снаружи', 'interior': 'Салон'}
+# Сцены автомобиля по порядку обхода; двор — если его панорама задана у обоих классов.
+TOUR_YARD = TOUR_MODE == 'vehicles' and {'b-yard', 'c-yard'} <= TOUR_PANORAMAS.keys()
+TOUR_VIEWS = (['yard'] if TOUR_YARD else []) + ['exterior', 'interior']
+TOUR_SCOPE = 'двор станции, вид снаружи, медицинский салон' if TOUR_YARD else 'внешний вид и медицинский салон'
 TOUR_SUMMARY = {'demo': 'Демонстрационный обзор: внешний вид и медицинский салон',
-                'vehicles': 'Классы B и C: внешний вид и медицинский салон'}[TOUR_MODE]
+                'vehicles': f'Классы B и C: {TOUR_SCOPE}'}[TOUR_MODE]
 
 PHOTO_SIZES = {'img_5184': (1170, 646), 'img_0072': (1290, 716), 'img_9159': (1290, 722)}
 
@@ -185,7 +196,7 @@ ICONS = {
     'next': icon('M9 6l6 6-6 6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
-TOUR_STATS = {'demo': (2, 11), 'vehicles': (4, 23)}
+TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 27) if TOUR_YARD else (4, 23)}
 
 
 def plural(n, one, few, many):
@@ -197,14 +208,17 @@ def plural(n, one, few, many):
 def tour_page(mode):
     """Страница 3D-тура. mode = 'demo' (один демонстрационный тур) или 'vehicles' (выбор классов B и C)."""
     demo = mode == 'demo'
-    previews = {scene: panorama_preview(file) for scene, file in TOUR_PANORAMAS.items()}
-    data = ''.join(f' data-panorama-{scene}="/assets/{file}"' for scene, file in TOUR_PANORAMAS.items())
+    views = TOUR_VIEWS
+    # На страницу попадают только сцены этого режима.
+    used = {scene: file for scene, file in TOUR_PANORAMAS.items() if scene.split('-')[1] in views}
+    previews = {scene: panorama_preview(file) for scene, file in used.items()}
+    data = ''.join(f' data-panorama-{scene}="/assets/{file}"' for scene, file in used.items())
     data += ''.join(f' data-preview-{scene}="{url}"' for scene, url in previews.items() if url)
-    tiles = {scene: panorama_tiles(file) for scene, file in TOUR_PANORAMAS.items()}
+    tiles = {scene: panorama_tiles(file) for scene, file in used.items()}
     # Тайлы используются, только если они есть у всех сцен: движок работает в одном режиме.
     if all(tiles.values()):
         data += ''.join(f' data-tiles-{scene}="{escape(json.dumps(value, separators=(",", ":")))}"' for scene, value in tiles.items())
-    thumbs = {view: previews[f'b-{view}'] or f'/assets/{TOUR_PANORAMAS[f"b-{view}"]}' for view in ('exterior', 'interior')}
+    thumbs = {view: previews[f'b-{view}'] or f'/assets/{used[f"b-{view}"]}' for view in views}
     scenes, points = TOUR_STATS[mode]
     if demo:
         intro = ('Демонстрационный 360°-обзор автомобиля скорой помощи: внешний вид и медицинский салон. '
@@ -215,14 +229,17 @@ def tour_page(mode):
                       'автомобилей станции. Отдельные туры по автомобилям классов B и C появятся после 360°-съёмки. '
                       'Описания оборудования публикуются после согласования с РССМП.')
     else:
-        intro = ('Выберите автомобиль класса B или C и осмотрите его снаружи и изнутри. '
-                 'Откройте точки с описаниями или включите экскурсию.')
+        intro = ('Выберите автомобиль класса B или C и осмотрите '
+                 + ('двор станции, автомобиль снаружи и медицинский салон. ' if TOUR_YARD else 'его снаружи и изнутри. ')
+                 + 'Откройте точки с описаниями или включите экскурсию.')
         selector = ('<div class="tour-vehicle-selector" role="tablist" aria-label="Выбор автомобиля"><button type="button" role="tab" id="tour-tab-b" data-vehicle="b" aria-selected="true" aria-controls="tour-viewport"><small>Автомобиль скорой помощи</small><strong>Класс B</strong><span>Выездная бригада</span></button>'
                     '<button type="button" role="tab" id="tour-tab-c" data-vehicle="c" aria-selected="false" aria-controls="tour-viewport" tabindex="-1"><small>Реанимобиль</small><strong>Класс C</strong><span>Специализированная бригада</span></button></div>\n')
-        scene_name = 'Автомобиль класса B · снаружи'
-        disclaimer = 'Описания оборудования уточняются и публикуются после согласования с РССМП.'
+        scene_name = VIEW_LABELS['yard'] if TOUR_YARD else 'Автомобиль класса B · снаружи'
+        disclaimer = (f'Панорамы сняты на станции {TOUR_SHOT}. Марки и модели автомобилей и оборудования будут указаны после подтверждения станцией. '
+                      'Описания оборудования уточняются и публикуются после согласования с РССМП.')
     tabs = ''
-    for i, (view, label) in enumerate((('exterior', 'Снаружи'), ('interior', 'Салон'))):
+    for i, view in enumerate(views):
+        label = VIEW_LABELS[view]
         state = ' aria-selected="true"' if i == 0 else ' aria-selected="false" tabindex="-1"'
         tabs += (f'<button type="button" role="tab" id="tour-tab-{view}" data-view="{view}"{state} aria-controls="tour-viewport">'
                  f'<span class="tour-thumb"><img data-scene-thumb src="{thumbs[view]}" width="1024" height="512" alt=""></span><span><i aria-hidden="true">0{i + 1}</i>{label}</span></button>')
@@ -240,7 +257,7 @@ def tour_page(mode):
   <p class="tour-sharpen" aria-hidden="true">Загрузка полного качества</p>
   <div class="tour-presence" aria-hidden="true"><i></i><i></i></div>
   <div class="tour-hotspots-layer" data-hotspots></div>
-  <div class="tour-hud-top"><div class="tour-hud-title"><span data-scene-index>01 / 02</span><b data-scene-name>{scene_name}</b></div><div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div></div>
+  <div class="tour-hud-top"><div class="tour-hud-title"><span data-scene-index>01 / {len(views):02d}</span><b data-scene-name>{scene_name}</b></div><div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div></div>
   <div class="tour-controls" role="group" aria-label="Управление обзором">
     <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
     <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
@@ -248,7 +265,7 @@ def tour_page(mode):
     <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
   </div>
   <div class="tour-zoom" role="group" aria-label="Масштаб"><button type="button" data-zoom="in" aria-label="Приблизить">{ICONS['plus']}</button><button type="button" data-zoom="out" aria-label="Отдалить">{ICONS['minus']}</button></div>
-  <div class="tour-scene-tabs" role="tablist" aria-label="Вид автомобиля">{tabs}</div>
+  <div class="tour-scene-tabs" role="tablist" aria-label="{"Сцены тура" if TOUR_YARD else "Вид автомобиля"}">{tabs}</div>
   <p class="tour-drag-hint">Перетащите, чтобы осмотреться · колесо меняет масштаб</p>
   <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
   <p class="tour-vr-status" data-vr-status aria-live="polite"></p>
@@ -263,7 +280,7 @@ def tour_page(mode):
 
 TOUR_DESCRIPTIONS = {
     'demo': 'Демонстрационный 360°-обзор автомобиля скорой помощи: внешний вид и медицинский салон.',
-    'vehicles': 'Интерактивный 360°-обзор автомобилей скорой помощи классов B и C: внешний вид и медицинский салон.',
+    'vehicles': f'Интерактивный 360°-обзор автомобилей скорой помощи классов B и C: {TOUR_SCOPE}.',
 }
 pages['/tours/'] = ('3D-туры', tour_page(TOUR_MODE), TOUR_DESCRIPTIONS[TOUR_MODE])
 
