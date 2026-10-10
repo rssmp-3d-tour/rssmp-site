@@ -281,17 +281,11 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.context().close();
 }
 
-// T7 keyboard, safe wheel handling, mouse drag, auto rotation
+// T7 keyboard, direct wheel handling, mouse drag, auto rotation
 {
   const page = await open('/tours/');
   const vp = page.locator('[data-tour-viewer]');
   await vp.hover();
-  const beforeScroll = await page.evaluate(() => scrollY);
-  await page.mouse.wheel(0, 500);
-  await page.waitForTimeout(250);
-  const pageScroll = await page.evaluate(y => scrollY > y, beforeScroll);
-  await page.evaluate(() => scrollTo(0, 0));
-  await vp.scrollIntoViewIfNeeded();
   let a = await canvasShot(page);
   await vp.focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowLeft');
@@ -304,12 +298,10 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   const box = await vp.boundingBox();
   a = await canvasShot(page);
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.keyboard.down('Control');
   await page.mouse.wheel(0, 400);
-  await page.keyboard.up('Control');
   await page.waitForTimeout(250);
   b = await canvasShot(page);
-  const ctrlWheel = !a.equals(b);
+  const wheel = !a.equals(b);
   await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.6);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5, { steps: 8 });
@@ -319,7 +311,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.click('[data-auto]');
   const s1 = await canvasShot(page); await page.waitForTimeout(900); const s2 = await canvasShot(page);
   const auto = !s1.equals(s2) && await page.getAttribute('[data-auto]', 'aria-pressed') === 'true';
-  check('T7', 'Клавиши, +/−, Ctrl+колесо, обычная прокрутка страницы, мышь и автообзор', keys && plus && ctrlWheel && pageScroll && drag && auto && page.errors.length === 0, `keys=${keys} plus=${plus} ctrlWheel=${ctrlWheel} pageScroll=${pageScroll} drag=${drag} auto=${auto}`);
+  check('T7', 'Клавиши, +/−, колесо, мышь и автообзор', keys && plus && wheel && drag && auto && page.errors.length === 0, `keys=${keys} plus=${plus} wheel=${wheel} drag=${drag} auto=${auto}`);
   await page.context().close();
 }
 
@@ -426,7 +418,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await phone2.context().close();
 }
 
-// T12 touch: one finger scrolls the page instead of trapping it in the panorama
+// T12 touch: one finger rotates the panorama directly
 {
   const page = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
   const cdp = await page.context().newCDPSession(page);
@@ -435,13 +427,15 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   const box = await page.locator('[data-tour-viewer] canvas').boundingBox();
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
   const touch = (type, points) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points.map(([x, y], id) => ({ x, y, id })) });
-  const before = await page.evaluate(() => scrollY);
+  const beforeScroll = await page.evaluate(() => scrollY);
+  const before = await canvasShot(page);
   await touch('touchStart', [[cx, cy + 100]]);
   for (let i = 1; i <= 6; i++) await touch('touchMove', [[cx, cy + 100 - i * 24]]);
   await touch('touchEnd', []);
   await page.waitForTimeout(300);
-  const after = await page.evaluate(() => scrollY);
-  check('T12a', 'Касание: один палец прокручивает страницу, нет scroll trap', after > before + 20 && page.errors.length === 0, `scroll ${before}->${after} errors=${page.errors}`);
+  const afterScroll = await page.evaluate(() => scrollY);
+  const after = await canvasShot(page);
+  check('T12a', 'Касание: один палец вращает панораму', !before.equals(after) && Math.abs(afterScroll - beforeScroll) < 10 && page.errors.length === 0, `canvasChanged=${!before.equals(after)} scroll ${beforeScroll}->${afterScroll} errors=${page.errors}`);
   if (out) await page.screenshot({ path: `${out}/tour-390.png` });
   await page.context().close();
 }
