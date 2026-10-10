@@ -285,6 +285,13 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
 {
   const page = await open('/tours/');
   const vp = page.locator('[data-tour-viewer]');
+  await vp.hover();
+  const beforeScroll = await page.evaluate(() => scrollY);
+  await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(250);
+  const pageScroll = await page.evaluate(y => scrollY > y, beforeScroll);
+  await page.evaluate(() => scrollTo(0, 0));
+  await vp.scrollIntoViewIfNeeded();
   let a = await canvasShot(page);
   await vp.focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowLeft');
@@ -312,11 +319,6 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.click('[data-auto]');
   const s1 = await canvasShot(page); await page.waitForTimeout(900); const s2 = await canvasShot(page);
   const auto = !s1.equals(s2) && await page.getAttribute('[data-auto]', 'aria-pressed') === 'true';
-  const beforeScroll = await page.evaluate(() => scrollY);
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.wheel(0, 500);
-  await page.waitForTimeout(250);
-  const pageScroll = await page.evaluate(y => scrollY > y, beforeScroll);
   check('T7', 'Клавиши, +/−, Ctrl+колесо, обычная прокрутка страницы, мышь и автообзор', keys && plus && ctrlWheel && pageScroll && drag && auto && page.errors.length === 0, `keys=${keys} plus=${plus} ctrlWheel=${ctrlWheel} pageScroll=${pageScroll} drag=${drag} auto=${auto}`);
   await page.context().close();
 }
@@ -439,7 +441,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await touch('touchEnd', []);
   await page.waitForTimeout(300);
   const after = await page.evaluate(() => scrollY);
-  check('T12a', 'Касание: один палец прокручивает страницу, нет scroll trap', after > before + 20 && page.errors.length === 0, `scroll ${before}->${after}`);
+  check('T12a', 'Касание: один палец прокручивает страницу, нет scroll trap', after > before + 20 && page.errors.length === 0, `scroll ${before}->${after} errors=${page.errors}`);
   if (out) await page.screenshot({ path: `${out}/tour-390.png` });
   await page.context().close();
 }

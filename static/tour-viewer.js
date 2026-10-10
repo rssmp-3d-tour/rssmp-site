@@ -333,6 +333,18 @@
     showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.');
     return;
   }
+  // После нативной прокрутки touchend уже нельзя отменять. PSV всё равно вызывает
+  // preventDefault(), что Chromium считает ошибкой. Для реально прокрученного
+  // одиночного касания завершаем событие до движка; жесты двумя пальцами не затрагиваются.
+  let pageTouchMoved = false;
+  stage.addEventListener('touchstart', event => { pageTouchMoved = event.touches.length === 1 ? false : pageTouchMoved; }, { capture: true, passive: true });
+  stage.addEventListener('touchmove', event => { if (event.touches.length === 1) pageTouchMoved = true; }, { capture: true, passive: true });
+  stage.addEventListener('touchend', event => {
+    if (pageTouchMoved && event.touches.length === 0) {
+      pageTouchMoved = false;
+      event.stopImmediatePropagation();
+    }
+  }, { capture: true, passive: true });
   const engineCanvas = stage.querySelector('canvas');
   engineCanvas?.addEventListener('webglcontextlost', event => {
     event.preventDefault();
