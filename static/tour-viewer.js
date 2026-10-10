@@ -111,6 +111,7 @@
         { yaw: -1.38, pitch: -0.3, title: 'Медицинская укладка у рабочего места', text: 'Переносная сумка расположена под стационарным оборудованием. Состав и порядок проверки перед сменой определяются описью и регламентом станции.' },
         { yaw: -1.15, pitch: -0.21, title: 'Дополнительная сумка оснащения', text: 'Отдельная переносная сумка хранится на открытой полке для быстрого доступа. Точный состав требует подтверждения станции.' },
         { yaw: -1.77, pitch: -0.39, title: 'Укладка на нижней полке', text: 'Крупная мягкая укладка закреплена в нижней зоне стеллажа. Назначение и содержимое необходимо сверить с фактической описью автомобиля.' },
+        { yaw: 0.37, pitch: -1.05, title: 'Жёсткий ящик у боковой двери', text: 'Жёсткий защитный ящик размещён на полу у боковой двери медицинского салона. Назначение и содержимое необходимо подтвердить по фактической описи автомобиля класса B.' },
         { yaw: -2.77, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
         { yaw: 1.96, pitch: -0.27, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля класса B.', next: 'b-exterior', action: 'Выйти наружу' }
       ]
@@ -160,6 +161,7 @@
         { yaw: -1.69, pitch: -0.2, title: 'Кейс с маркировкой LUCAS', text: 'На фотографии виден транспортировочный кейс с маркировкой LUCAS. Модель устройства, назначение и комплектность необходимо подтвердить у станции до публикации подробного описания.' },
         { yaw: -1.78, pitch: -0.39, title: 'Укладка на нижней полке', text: 'Крупная мягкая укладка размещена в нижней зоне стеллажа. Её назначение и содержимое необходимо сверить с фактической описью реанимобиля.' },
         { yaw: -0.58, pitch: -0.14, title: 'Дополнительная медицинская сумка', text: 'Отдельная переносная сумка размещена за креслом медицинского салона. Точный состав и порядок применения требуют подтверждения станции.' },
+        { yaw: 0.47, pitch: -1.05, title: 'Жёсткий ящик у боковой двери', text: 'Жёсткий защитный ящик с видимой маркировкой «44-2» размещён на полу у боковой двери. Назначение, содержимое и внутреннюю маркировку необходимо подтвердить по описи реанимобиля класса C.' },
         { yaw: -1.47, pitch: -0.48, title: 'Аспиратор', text: 'Предназначен для удаления жидкостей из дыхательных путей. На странице будет указана фактическая модель станции.' },
         { yaw: -2.85, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
         { yaw: 1.96, pitch: -0.27, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру реанимобиля класса C.', next: 'c-exterior', action: 'Выйти наружу' }
@@ -280,7 +282,27 @@
   })();
   if (!hasWebGL2) {
     stage.hidden = true;
-    showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.');
+    showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge. Список оборудования остаётся доступен ниже.');
+    const requested = parseHash(location.hash.slice(1));
+    const scene = scenes[requested ? requested.scene : defaultScene];
+    const list = document.querySelector('[data-hotspot-list]');
+    const title = root.querySelector('[data-scene-name]');
+    if (title) title.textContent = scene.title;
+    if (list) {
+      list.replaceChildren();
+      for (const spot of scene.hotspots) {
+        const item = document.createElement('li');
+        if (spot.next) item.className = 'is-transition';
+        const details = document.createElement('details');
+        const summary = document.createElement('summary');
+        const text = document.createElement('p');
+        summary.textContent = spot.next ? `${spot.title} · ${spot.action}` : spot.title;
+        text.textContent = spot.text;
+        details.append(summary, text);
+        item.append(details);
+        list.append(item);
+      }
+    }
     return;
   }
   let viewer = null;
@@ -293,9 +315,11 @@
       minFov: toDegrees(MIN_FOV),
       maxFov: toDegrees(MAX_FOV),
       defaultZoomLvl: zoomOf(DEFAULT_FOV),
+      // Обычное колесо и один палец прокручивают страницу; обзор остаётся
+      // доступен мышью, Ctrl+колесом, двумя пальцами, кнопками и клавиатурой.
       mousewheel: true,
-      mousewheelCtrlKey: false,
-      touchmoveTwoFingers: false,
+      mousewheelCtrlKey: true,
+      touchmoveTwoFingers: true,
       keyboard: false,
       moveInertia: !reducedMotion(),
       canvasBackground: '#040d0a',
@@ -1144,3 +1168,4 @@
   loadScene(requested ? requested.scene : defaultScene, false, requested ? requested.view : null);
   setupVR();
 })();
+

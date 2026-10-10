@@ -28,7 +28,7 @@ AddDefaultCharset UTF-8
   Header always set X-Permitted-Cross-Domain-Policies "none"
   Header always set Cross-Origin-Opener-Policy "same-origin"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(self), gyroscope=(self), magnetometer=(self), xr-spatial-tracking=(self), fullscreen=(self)"
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
   # HSTS включать только после проверки HTTPS на всех адресах сайта:
   # Header always set Strict-Transport-Security "max-age=31536000"
 
