@@ -315,11 +315,11 @@
       minFov: toDegrees(MIN_FOV),
       maxFov: toDegrees(MAX_FOV),
       defaultZoomLvl: zoomOf(DEFAULT_FOV),
-      // Обычное колесо и один палец прокручивают страницу; обзор остаётся
-      // доступен мышью, Ctrl+колесом, двумя пальцами, кнопками и клавиатурой.
+      // Прямое управление: перетаскивание мышью или одним пальцем вращает
+      // панораму, обычное колесо меняет масштаб.
       mousewheel: true,
-      mousewheelCtrlKey: true,
-      touchmoveTwoFingers: true,
+      mousewheelCtrlKey: false,
+      touchmoveTwoFingers: false,
       keyboard: false,
       moveInertia: !reducedMotion(),
       canvasBackground: '#040d0a',
@@ -333,18 +333,6 @@
     showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.');
     return;
   }
-  // После нативной прокрутки touchend уже нельзя отменять. PSV всё равно вызывает
-  // preventDefault(), что Chromium считает ошибкой. Для реально прокрученного
-  // одиночного касания завершаем событие до движка; жесты двумя пальцами не затрагиваются.
-  let pageTouchMoved = false;
-  stage.addEventListener('touchstart', event => { pageTouchMoved = event.touches.length === 1 ? false : pageTouchMoved; }, { capture: true, passive: true });
-  stage.addEventListener('touchmove', event => { if (event.touches.length === 1) pageTouchMoved = true; }, { capture: true, passive: true });
-  stage.addEventListener('touchend', event => {
-    if (pageTouchMoved && event.touches.length === 0) {
-      pageTouchMoved = false;
-      event.stopImmediatePropagation();
-    }
-  }, { capture: true, passive: true });
   const engineCanvas = stage.querySelector('canvas');
   engineCanvas?.addEventListener('webglcontextlost', event => {
     event.preventDefault();
