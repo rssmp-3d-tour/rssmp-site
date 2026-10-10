@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 11,
-      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 13 };
+  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 12,
+      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 14 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -248,9 +248,9 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
         'c-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
       'b-exterior': ['Задняя дверь медицинского салона'],
-      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке'],
+      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери'],
       'c-exterior': ['Задняя дверь медицинского салона'],
-      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка']
+      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
       .filter(title => !titlesByScene[scene]?.has(title))
@@ -281,10 +281,17 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.context().close();
 }
 
-// T7 keyboard, wheel, mouse drag, auto rotation
+// T7 keyboard, safe wheel handling, mouse drag, auto rotation
 {
   const page = await open('/tours/');
   const vp = page.locator('[data-tour-viewer]');
+  await vp.hover();
+  const beforeScroll = await page.evaluate(() => scrollY);
+  await page.mouse.wheel(0, 500);
+  await page.waitForTimeout(250);
+  const pageScroll = await page.evaluate(y => scrollY > y, beforeScroll);
+  await page.evaluate(() => scrollTo(0, 0));
+  await vp.scrollIntoViewIfNeeded();
   let a = await canvasShot(page);
   await vp.focus();
   for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowLeft');
@@ -297,10 +304,12 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   const box = await vp.boundingBox();
   a = await canvasShot(page);
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.down('Control');
   await page.mouse.wheel(0, 400);
+  await page.keyboard.up('Control');
   await page.waitForTimeout(250);
   b = await canvasShot(page);
-  const wheel = !a.equals(b);
+  const ctrlWheel = !a.equals(b);
   await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.6);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.5, { steps: 8 });
@@ -310,7 +319,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.click('[data-auto]');
   const s1 = await canvasShot(page); await page.waitForTimeout(900); const s2 = await canvasShot(page);
   const auto = !s1.equals(s2) && await page.getAttribute('[data-auto]', 'aria-pressed') === 'true';
-  check('T7', 'Клавиши, +/−, колесо, перетаскивание мышью, автообзор', keys && plus && wheel && drag && auto && page.errors.length === 0, `keys=${keys} plus=${plus} wheel=${wheel} drag=${drag} auto=${auto}`);
+  check('T7', 'Клавиши, +/−, Ctrl+колесо, обычная прокрутка страницы, мышь и автообзор', keys && plus && ctrlWheel && pageScroll && drag && auto && page.errors.length === 0, `keys=${keys} plus=${plus} ctrlWheel=${ctrlWheel} pageScroll=${pageScroll} drag=${drag} auto=${auto}`);
   await page.context().close();
 }
 
@@ -417,7 +426,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await phone2.context().close();
 }
 
-// T12 touch: one-finger drag and two-finger pinch (CDP touch events)
+// T12 touch: one finger scrolls the page instead of trapping it in the panorama
 {
   const page = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
   const cdp = await page.context().newCDPSession(page);
@@ -426,14 +435,13 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   const box = await page.locator('[data-tour-viewer] canvas').boundingBox();
   const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
   const touch = (type, points) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points.map(([x, y], id) => ({ x, y, id })) });
-  let a = await canvasShot(page);
-  await touch('touchStart', [[cx + 60, cy]]);
-  for (let i = 1; i <= 6; i++) await touch('touchMove', [[cx + 60 - i * 20, cy]]);
+  const before = await page.evaluate(() => scrollY);
+  await touch('touchStart', [[cx, cy + 100]]);
+  for (let i = 1; i <= 6; i++) await touch('touchMove', [[cx, cy + 100 - i * 24]]);
   await touch('touchEnd', []);
   await page.waitForTimeout(300);
-  let b = await canvasShot(page);
-  const drag = !a.equals(b);
-  check('T12a', 'Касание: перетаскивание одним пальцем', drag && page.errors.length === 0, `drag=${drag}`);
+  const after = await page.evaluate(() => scrollY);
+  check('T12a', 'Касание: один палец прокручивает страницу, нет scroll trap', after > before + 20 && page.errors.length === 0, `scroll ${before}->${after} errors=${page.errors}`);
   if (out) await page.screenshot({ path: `${out}/tour-390.png` });
   await page.context().close();
 }
@@ -491,9 +499,9 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
 // T13 WebGL unavailable
 {
   const page = await open('/tours/', { init: () => { const orig = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (type, ...rest) { return /webgl/.test(type) ? null : orig.call(this, type, ...rest); }; } });
-  const fb = await page.evaluate(() => [document.querySelector('[data-tour-fallback]').hidden, document.querySelector('[data-tour-fallback] strong').textContent]);
+  const fb = await page.evaluate(() => [document.querySelector('[data-tour-fallback]').hidden, document.querySelector('[data-tour-fallback] strong').textContent, document.querySelectorAll('[data-hotspot-list] details').length, document.querySelector('[data-hotspot-list] details p')?.textContent.length || 0]);
   const errors = page.errors.filter(e => !/WebGL/i.test(e));
-  check('T13', 'Без WebGL — понятное сообщение вместо пустого экрана', !fb[0] && /3D/.test(fb[1]) && errors.length === 0, `${fb} errors=${errors}`);
+  check('T13', 'Без WebGL — понятное сообщение и доступный список оборудования', !fb[0] && /3D/.test(fb[1]) && fb[2] === expected[FIRST] && fb[3] > 20 && errors.length === 0, `${fb} errors=${errors}`);
   await page.context().close();
 }
 
@@ -848,3 +856,4 @@ let failed = 0;
 for (const r of results) { if (!r.ok) failed++; console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.id.padEnd(5)} ${r.name}${r.detail ? ' :: ' + r.detail : ''}`); }
 console.log(`\n${results.length - failed}/${results.length} passed`);
 process.exitCode = failed ? 1 : 0;
+

@@ -196,7 +196,7 @@ ICONS = {
     'next': icon('M9 6l6 6-6 6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
-TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 44) if TOUR_YARD else (4, 34)}
+TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 46) if TOUR_YARD else (4, 36)}
 
 
 def plural(n, one, few, many):
@@ -266,14 +266,14 @@ def tour_page(mode):
   </div>
   <div class="tour-zoom" role="group" aria-label="Масштаб"><button type="button" data-zoom="in" aria-label="Приблизить">{ICONS['plus']}</button><button type="button" data-zoom="out" aria-label="Отдалить">{ICONS['minus']}</button></div>
   <div class="tour-scene-tabs" role="tablist" aria-label="{"Сцены тура" if TOUR_YARD else "Вид автомобиля"}">{tabs}</div>
-  <p class="tour-drag-hint">Перетащите, чтобы осмотреться · колесо меняет масштаб</p>
+  <p class="tour-drag-hint">Мышь — перетащить · телефон — двумя пальцами · масштаб — Ctrl + колесо</p>
   <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
   <p class="tour-vr-status" data-vr-status aria-live="polite"></p>
   <p class="sr-only" data-tour-announce aria-live="polite"></p>
 </div>
 <section class="tour-points" aria-labelledby="tour-points-title"><h2 id="tour-points-title">Точки на этой сцене</h2><ul data-hotspot-list></ul></section>
 </section>
-<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Перетаскивайте панораму мышью или пальцем. Масштаб — колесом мыши, двумя пальцами или кнопками «+» и «−». С клавиатуры — стрелками и клавишами плюс и минус.</p></div><div><h3>Возможности</h3><p>Экскурсия по точкам с описаниями, автообзор, ссылка на выбранный вид, просмотр в VR-гарнитуре и эффект присутствия: синтезированный звук, световые акценты и виброотклик.</p></div><div><h3>Совместимость</h3><p>Телефоны, планшеты и компьютеры. Гироскоп и вибрация работают на поддерживаемых мобильных устройствах, VR — в совместимой гарнитуре при открытии сайта по HTTPS.</p></div></div>
+<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>На компьютере перетаскивайте панораму мышью; масштаб меняйте с Ctrl и колесом, кнопками «+» и «−» или клавиатурой. На телефоне страница прокручивается одним пальцем, панорама перемещается двумя.</p></div><div><h3>Возможности</h3><p>Экскурсия по точкам с описаниями, автообзор, ссылка на выбранный вид, просмотр в VR-гарнитуре и эффект присутствия: синтезированный звук, световые акценты и виброотклик.</p></div><div><h3>Совместимость</h3><p>Телефоны, планшеты и компьютеры. Гироскоп и вибрация работают на поддерживаемых мобильных устройствах, VR — в совместимой гарнитуре при открытии сайта по HTTPS.</p></div></div>
 <p class="tour-disclaimer">{disclaimer}</p></div></section>
 </div><link rel="stylesheet" href="/vendor/psv.css"><script src="/vendor/psv.js" defer></script><script src="/tour-viewer.js" defer></script>'''
 
@@ -358,3 +358,4 @@ if TARGET == 'github':
 else:
     write(ROOT / '.htaccess', read(PROJECT / 'beget.htaccess'))
 print(f'Created {len(pages)} pages and 404.html ({"public" if PUBLIC else "preview"} build, target: {TARGET}, tour: {TOUR_MODE}) in {ROOT}')
+

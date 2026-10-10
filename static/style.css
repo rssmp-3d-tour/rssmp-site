@@ -1753,7 +1753,8 @@ a[href^="tel:"] {
   height: 100%;
   background: #040d0a;
   cursor: grab;
-  touch-action: none;
+  /* Один палец прокручивает страницу; Photo Sphere Viewer обрабатывает два. */
+  touch-action: pan-y;
 }
 .tour-viewport .tour-psv:active {
   cursor: grabbing;
@@ -2439,6 +2440,26 @@ a[href^="tel:"] {
 .tour-points button:hover {
   border-color: #ffffff66;
   background: #10291f;
+}
+.tour-points details {
+  max-width: 520px;
+  border: 1px solid var(--tour-line-strong);
+  border-radius: 3px;
+  color: #dfe9e3;
+}
+.tour-points summary {
+  min-height: 42px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.tour-points details p {
+  margin: 0;
+  padding: 0 14px 14px;
+  color: var(--tour-muted);
+  font-size: 13px;
+  line-height: 1.55;
 }
 
 /* How to use */

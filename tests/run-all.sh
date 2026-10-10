@@ -16,6 +16,7 @@ sleep 1
 BASE=http://localhost:8095
 node --check ../static/app.js
 node --check ../static/tour-viewer.js
+node security.mjs
 npx html-validate --config htmlvalidate.json ../dist/*.html ../dist/*/index.html
 node functional.mjs "$BASE"
 node tour.mjs "$BASE" results
