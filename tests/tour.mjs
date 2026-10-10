@@ -19,9 +19,9 @@ const check = (id, name, ok, detail = '') => results.push({ id, name, ok: Boolea
 const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
-const yard = vehicle => HAS_YARD ? { [`${vehicle}-yard`]: 2 } : {};
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...yard('b'), 'b-exterior': 4, 'b-interior': 6, ...yard('c'), 'c-exterior': 4, 'c-interior': 9 };
+  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 11,
+      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 13 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -172,7 +172,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(300);
   const responsive = !a.equals(await glShot(page));
-  check('T3b', 'Медленная сеть: «Внутри → Снаружи» во время загрузки не роняет тур', page.errors.length === 0 && responsive && st.hotspots === 4 && st.visibleHotspots > 0, `errors=${page.errors} responsive=${responsive} hotspots=${st.hotspots} visible=${st.visibleHotspots}`);
+  check('T3b', 'Медленная сеть: «Внутри → Снаружи» во время загрузки не роняет тур', page.errors.length === 0 && responsive && st.hotspots === expected[EXT] && st.visibleHotspots > 0, `errors=${page.errors} responsive=${responsive} hotspots=${st.hotspots} visible=${st.visibleHotspots}`);
   await page.context().close();
 }
 
@@ -208,14 +208,16 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   check('T5', 'Некорректный #якорь (#constructor, #__proto__ …) не ломает тур', res.every(r => r.endsWith('ok')), res.join(' | '));
 }
 
-// T6 all 23 hotspots: open each, check text, visibility and transitions
+// T6 all hotspots: open each, check text, visibility and transitions
 {
   const page = await open('/tours/');
   const hasList = await page.locator('[data-hotspot-list] button').count() > 0;
   let opened = 0, visibleWhenOpened = 0, total = 0;
   const problems = [];
+  const titlesByScene = {};
   if (hasList) {
     for (const scene of Object.keys(expected)) {
+      titlesByScene[scene] = new Set();
       await page.evaluate(s => { location.hash = s; }, scene);
       await page.waitForTimeout(1200);
       const n = await page.locator('[data-hotspot-list] button').count();
@@ -226,6 +228,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
         await btn.click();
         await page.waitForTimeout(FLIGHT);
         const card = await page.evaluate(() => ({ hidden: document.querySelector('[data-tour-card]').hidden, title: document.querySelector('[data-card-title]').textContent, text: document.querySelector('[data-card-text]').textContent }));
+        titlesByScene[scene].add(card.title);
         const visible = await page.evaluate(t => [...document.querySelectorAll('.tour-hotspot')].some(b => !b.hidden && b.getAttribute('aria-label') === t), card.title);
         if (!card.hidden && card.text.length > 20 && label.startsWith(card.title)) opened++; else problems.push(label);
         if (visible) visibleWhenOpened++; else problems.push(`not visible: ${card.title}`);
@@ -238,6 +241,22 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   }
   check('T6a', `Все точки тура (${TOTAL}) доступны списком, открываются, текст не пустой`, hasList && total === TOTAL && opened === TOTAL, hasList ? `total=${total} opened=${opened} ${problems.join('; ')}` : 'списка точек нет — точки вне кадра недоступны с клавиатуры и для screen reader');
   check('T6b', 'При выборе точки камера поворачивается к ней (точка видна в кадре)', hasList && visibleWhenOpened === TOTAL, `visible=${visibleWhenOpened}/${TOTAL}`);
+  if (MODE === 'vehicles') {
+    const required = {
+      ...(HAS_YARD ? {
+        'b-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя'],
+        'c-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя']
+      } : {}),
+      'b-exterior': ['Задняя дверь медицинского салона'],
+      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке'],
+      'c-exterior': ['Задняя дверь медицинского салона'],
+      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка']
+    };
+    const missing = Object.entries(required).flatMap(([scene, titles]) => titles
+      .filter(title => !titlesByScene[scene]?.has(title))
+      .map(title => `${scene}: ${title}`));
+    check('T6e', 'Учебные точки дверей, ступеней, кабин и отдельных сумок присутствуют', missing.length === 0, missing.join('; '));
+  }
   // transitions via card action
   await page.goto(base + '/tours/#' + EXT);
   await page.waitForTimeout(1500);
@@ -525,7 +544,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.click('[data-view="exterior"]');
   await sceneReady(page, '#' + EXT);
   const scene = await sceneState(page);
-  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === 4 && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
+  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === expected[FIRST] && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
   await page.context().close();
 }
 
