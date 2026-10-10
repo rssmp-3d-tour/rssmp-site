@@ -64,24 +64,107 @@
     c: { title: 'Реанимобиль класса C', short: 'Класс C' }
   };
 
+  // Автомобили станции сняты 9 октября 2026 года: точки стоят на фактическом оборудовании.
+  // Модели автомобилей и оборудования в описаниях не названы до подтверждения станцией.
   const scenes = {
+    'b-yard': {
+      vehicle: 'b', view: 'yard',
+      title: 'Двор станции',
+      image: '/assets/tour-b-yard.jpg',
+      yaw: -1.37,
+      pitch: 0.02,
+      hotspots: [
+        { yaw: 0.2, pitch: 0.27, title: 'Здание станции', text: 'Республиканская станция скорой медицинской помощи. Название станции указано на фасаде здания.' },
+        { yaw: -1.57, pitch: 0.04, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'b-exterior', action: 'Подойти к автомобилю' }
+      ]
+    },
     'b-exterior': {
       vehicle: 'b', view: 'exterior',
       title: 'Автомобиль класса B · снаружи',
-      image: '/assets/tour-exterior-demo.jpg',
-      yaw: 0,
-      pitch: -0.03,
+      image: '/assets/tour-b-exterior.jpg',
+      yaw: -1.45,
+      pitch: 0.02,
       hotspots: [
-        { yaw: 0.08, pitch: -0.02, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Реальная модель и комплектация будут указаны после съёмки автомобиля станции.', next: 'b-interior', action: 'Перейти в салон' },
-        { yaw: -0.92, pitch: 0.03, title: 'Светозвуковая сигнализация', text: 'Специальные световые и звуковые сигналы применяются при выполнении экстренного вызова в установленном порядке.' },
-        { yaw: 0.84, pitch: 0.01, title: 'Доступ в медицинский салон', text: 'Двери и ступень обеспечивают доступ бригады к медицинскому салону и перемещение пациента.' },
-        { yaw: 1.48, pitch: -0.04, title: 'Внешние отсеки', text: 'В зависимости от модели автомобиля в защищённых отсеках может размещаться часть переносного оснащения.' }
+        { yaw: -1.55, pitch: 0.08, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Марка, модель и фактическая комплектация будут указаны после подтверждения станцией.', next: 'b-interior', action: 'Перейти в салон' },
+        { yaw: -1.16, pitch: 0.82, title: 'Светозвуковая сигнализация', text: 'Специальные световые и звуковые сигналы применяются при выполнении экстренного вызова в установленном порядке.' },
+        { yaw: -1.55, pitch: -0.27, title: 'Доступ в медицинский салон', text: 'Двери и ступень обеспечивают доступ бригады к медицинскому салону и перемещение пациента.' },
+        { yaw: -2.42, pitch: 0.25, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' }
       ]
     },
     'b-interior': {
       vehicle: 'b', view: 'interior',
       title: 'Автомобиль класса B · медицинский салон',
-      image: '/assets/tour-interior-demo.jpg',
+      image: '/assets/tour-b-interior.jpg',
+      yaw: -1.4,
+      pitch: -0.05,
+      hotspots: [
+        { yaw: -1.34, pitch: -0.03, title: 'Аппарат искусственной вентиляции лёгких', text: 'Предназначен для респираторной поддержки пациента. Режимы работы зависят от конкретной модели.' },
+        { yaw: -1.22, pitch: 0.17, title: 'Кислородная система', text: 'Обеспечивает размещение и подключение кислородного оборудования. Точный состав зависит от комплектации автомобиля.' },
+        { yaw: -1.96, pitch: -0.5, title: 'Система носилок', text: 'Предназначена для перемещения пациента и фиксации носилок в медицинском салоне.' },
+        { yaw: -1.79, pitch: -0.14, title: 'Сумка экстренной помощи', text: 'Переносная медицинская укладка позволяет доставить необходимые средства непосредственно к пациенту.' },
+        { yaw: -2.77, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
+        { yaw: 1.96, pitch: -0.27, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля класса B.', next: 'b-exterior', action: 'Выйти наружу' }
+      ]
+    },
+    'c-yard': {
+      vehicle: 'c', view: 'yard',
+      title: 'Двор станции',
+      image: '/assets/tour-c-yard.jpg',
+      yaw: -1.1,
+      pitch: 0.02,
+      hotspots: [
+        { yaw: 0.24, pitch: 0.27, title: 'Здание станции', text: 'Республиканская станция скорой медицинской помощи. Название станции указано на фасаде здания.' },
+        { yaw: -1.3, pitch: 0.03, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'c-exterior', action: 'Подойти к автомобилю' }
+      ]
+    },
+    'c-exterior': {
+      vehicle: 'c', view: 'exterior',
+      title: 'Реанимобиль класса C · снаружи',
+      image: '/assets/tour-c-exterior.jpg',
+      yaw: -1.5,
+      pitch: 0.02,
+      hotspots: [
+        { yaw: -1.6, pitch: 0.12, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Марка, модель и фактическая комплектация будут указаны после подтверждения станцией.', next: 'c-interior', action: 'Перейти в салон' },
+        { yaw: -1.32, pitch: 0.67, title: 'Светозвуковая сигнализация', text: 'Комплекс специальных сигналов делает автомобиль заметным при выполнении экстренного вызова.' },
+        { yaw: -1.59, pitch: -0.27, title: 'Зона загрузки пациента', text: 'Задняя часть автомобиля обеспечивает установку и фиксацию транспортировочной системы.' },
+        { yaw: -2.18, pitch: 0.39, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' }
+      ]
+    },
+    'c-interior': {
+      vehicle: 'c', view: 'interior',
+      title: 'Реанимобиль класса C · медицинский салон',
+      image: '/assets/tour-c-interior.jpg',
+      yaw: -1.3,
+      pitch: -0.08,
+      hotspots: [
+        { yaw: -1.21, pitch: -0.24, title: 'Монитор-дефибриллятор', text: 'Комплекс для мониторинга показателей пациента и проведения предусмотренных моделью лечебных мероприятий. Точная модель будет указана после инвентаризации.' },
+        { yaw: -1.35, pitch: -0.05, title: 'Аппарат искусственной вентиляции лёгких', text: 'Предназначен для респираторной поддержки пациента. Режимы работы зависят от конкретной модели.' },
+        { yaw: -1.53, pitch: 0.07, title: 'Инфузионное оборудование', text: 'Оборудование для контролируемого введения растворов. Фактический состав необходимо подтвердить по комплектации реанимобиля.' },
+        { yaw: -1.24, pitch: 0.16, title: 'Кислородная система', text: 'Стационарные крепления, редукторы и точки подключения обеспечивают использование кислородного оборудования.' },
+        { yaw: -1.96, pitch: -0.51, title: 'Система носилок', text: 'Обеспечивает перемещение пациента и надёжное крепление во время транспортировки.' },
+        { yaw: -1.89, pitch: -0.16, title: 'Реанимационная сумка', text: 'Переносная укладка с оборудованием и материалами для оказания помощи вне автомобиля. Состав будет описан по описи станции.' },
+        { yaw: -1.47, pitch: -0.48, title: 'Аспиратор', text: 'Предназначен для удаления жидкостей из дыхательных путей. На странице будет указана фактическая модель станции.' },
+        { yaw: -2.85, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
+        { yaw: 1.96, pitch: -0.27, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру реанимобиля класса C.', next: 'c-exterior', action: 'Выйти наружу' }
+      ]
+    }
+  };
+  // Demonstration panoramas (tour-exterior-demo.jpg, tour-interior-demo.jpg) are shown
+  // in the demo mode only, with their own points; they are not shots of the station.
+  const demoScenes = {
+    exterior: {
+      title: 'Демонстрационная панорама · снаружи',
+      yaw: 0,
+      pitch: -0.03,
+      hotspots: [
+        { yaw: 0.08, pitch: -0.02, title: 'Автомобиль скорой помощи', text: 'Демонстрационная панорама показывает возможности тура. Модели и комплектация автомобилей классов B и C будут указаны после съёмки автомобилей станции.', next: 'demo-interior', action: 'Перейти в салон' },
+        { yaw: -0.92, pitch: 0.03, title: 'Светозвуковая сигнализация', text: 'Специальные световые и звуковые сигналы применяются при выполнении экстренного вызова в установленном порядке.' },
+        { yaw: 0.84, pitch: 0.01, title: 'Доступ в медицинский салон', text: 'Двери и ступень обеспечивают доступ бригады к медицинскому салону и перемещение пациента.' },
+        { yaw: 1.48, pitch: -0.04, title: 'Внешние отсеки', text: 'В зависимости от модели автомобиля в защищённых отсеках может размещаться часть переносного оснащения.' }
+      ]
+    },
+    interior: {
+      title: 'Демонстрационная панорама · салон',
       yaw: 0,
       pitch: -0.02,
       hotspots: [
@@ -91,37 +174,7 @@
         { yaw: -1.25, pitch: 0.06, title: 'Сумка экстренной помощи', text: 'Переносная медицинская укладка позволяет доставить необходимые средства непосредственно к пациенту.' },
         { yaw: 1.72, pitch: -0.08, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
         { yaw: -2.02, pitch: 0.08, title: 'Аспиратор', text: 'Медицинский аспиратор применяется для удаления жидкостей из дыхательных путей. Конкретная модель требует подтверждения станции.' },
-        { yaw: 2.38, pitch: 0.02, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля класса B.', next: 'b-exterior', action: 'Выйти наружу' }
-      ]
-    },
-    'c-exterior': {
-      vehicle: 'c', view: 'exterior',
-      title: 'Реанимобиль класса C · снаружи',
-      image: '/assets/tour-exterior-demo.jpg',
-      yaw: 0.18,
-      pitch: -0.03,
-      hotspots: [
-        { yaw: 0.08, pitch: -0.02, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Марка, модель и фактическая комплектация будут указаны после съёмки.', next: 'c-interior', action: 'Перейти в салон' },
-        { yaw: -0.92, pitch: 0.03, title: 'Светозвуковая сигнализация', text: 'Комплекс специальных сигналов делает автомобиль заметным при выполнении экстренного вызова.' },
-        { yaw: 0.84, pitch: 0.01, title: 'Зона загрузки пациента', text: 'Задняя часть автомобиля обеспечивает установку и фиксацию транспортировочной системы.' },
-        { yaw: 1.48, pitch: -0.04, title: 'Подключение внешнего питания', text: 'На некоторых моделях используется для поддержания готовности бортового медицинского оборудования. Наличие уточняется по автомобилю станции.' }
-      ]
-    },
-    'c-interior': {
-      vehicle: 'c', view: 'interior',
-      title: 'Реанимобиль класса C · медицинский салон',
-      image: '/assets/tour-interior-demo.jpg',
-      yaw: 0.1,
-      pitch: -0.02,
-      hotspots: [
-        { yaw: 0.04, pitch: 0.02, title: 'Монитор-дефибриллятор', text: 'Комплекс для мониторинга показателей пациента и проведения предусмотренных моделью лечебных мероприятий. Точная модель будет указана после инвентаризации.' },
-        { yaw: 0.55, pitch: 0.08, title: 'Аппарат искусственной вентиляции лёгких', text: 'Предназначен для респираторной поддержки пациента. Режимы работы зависят от конкретной модели.' },
-        { yaw: 1.02, pitch: -0.02, title: 'Инфузионное оборудование', text: 'Оборудование для контролируемого введения растворов. Фактический состав необходимо подтвердить по комплектации реанимобиля.' },
-        { yaw: 1.54, pitch: 0.04, title: 'Кислородная система', text: 'Стационарные крепления, редукторы и точки подключения обеспечивают использование кислородного оборудования.' },
-        { yaw: -0.68, pitch: -0.16, title: 'Система носилок', text: 'Обеспечивает перемещение пациента и надёжное крепление во время транспортировки.' },
-        { yaw: -1.22, pitch: 0.04, title: 'Реанимационная сумка', text: 'Переносная укладка с оборудованием и материалами для оказания помощи вне автомобиля. Состав будет описан по описи станции.' },
-        { yaw: -1.82, pitch: 0.07, title: 'Аспиратор', text: 'Предназначен для удаления жидкостей из дыхательных путей. На странице будет указана фактическая модель станции.' },
-        { yaw: 2.38, pitch: 0.02, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру реанимобиля класса C.', next: 'c-exterior', action: 'Выйти наружу' }
+        { yaw: 2.38, pitch: 0.02, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля.', next: 'demo-exterior', action: 'Выйти наружу' }
       ]
     }
   };
@@ -138,38 +191,38 @@
     try { scenes[name].tiles = JSON.parse(root.dataset[datasetKey('tiles', name)] || 'null'); } catch { scenes[name].tiles = null; }
   }
   // While classes B and C share the same demonstration panoramas, the page shows
-  // one demonstration tour without a class choice. With four separate files the
-  // B/C selector is used. The build sets the mode by comparing file contents.
+  // one demonstration tour without a class choice. With separate shots of both
+  // vehicles the B/C selector is used; the station yard is a scene when the page
+  // has its tab. The build sets the mode (build_pages.py, TOUR_PANORAMAS).
   const separateVehicles = ['exterior', 'interior'].every(view => scenes[`b-${view}`].image !== scenes[`c-${view}`].image);
   const mode = ['demo', 'vehicles'].includes(root.dataset.tourMode) ? root.dataset.tourMode : (separateVehicles ? 'vehicles' : 'demo');
+  // Views in the order of the scene tabs: the yard is shown only when the page has its tab.
+  const pageViews = [...root.querySelectorAll('[data-view]')].map(tab => tab.dataset.view);
+  const views = pageViews.length ? pageViews : ['exterior', 'interior'];
   if (mode === 'demo') {
     vehicles.demo = { title: 'Демонстрационный тур', short: 'Демо' };
-    const demoTransitions = {
-      exterior: { title: 'Автомобиль скорой помощи', text: 'Демонстрационная панорама показывает возможности тура. Модели и комплектация автомобилей классов B и C будут указаны после съёмки автомобилей станции.' },
-      interior: { title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля.' }
-    };
+    // The demonstration files come from the page as the b-* panoramas.
     for (const view of ['exterior', 'interior']) {
-      const source = scenes[`b-${view}`];
-      scenes[`demo-${view}`] = {
-        ...source,
-        vehicle: 'demo',
-        title: view === 'exterior' ? 'Демонстрационная панорама · снаружи' : 'Демонстрационная панорама · салон',
-        hotspots: source.hotspots.map(spot => spot.next ? { ...spot, ...demoTransitions[view], next: `demo-${spot.next.split('-')[1]}` } : spot)
-      };
+      const { image, preview, tiles } = scenes[`b-${view}`];
+      scenes[`demo-${view}`] = { ...demoScenes[view], vehicle: 'demo', view, image, preview, tiles };
     }
     document.querySelector('.tour-vehicle-selector')?.setAttribute('hidden', '');
   }
+  const inTour = scene => views.includes(scene.view) && (mode === 'demo' ? scene.vehicle === 'demo' : scene.vehicle !== 'demo');
+  const tourNames = new Set(Object.keys(scenes).filter(name => inTour(scenes[name])));
+  const tourScenes = [...tourNames].map(name => scenes[name]);
+  // A door to a scene outside this tour is not shown.
+  for (const scene of tourScenes) scene.hotspots = scene.hotspots.filter(spot => !spot.next || tourNames.has(spot.next));
   // Links shared earlier (#b-interior, #c-exterior …) open the same view in the current mode.
   function sceneFromHash(hash) {
-    const match = /^(b|c|demo)-(exterior|interior)$/.exec(hash);
+    const match = /^(b|c|demo)-(yard|exterior|interior)$/.exec(hash);
     if (!match) return null;
-    if (mode === 'demo') return `demo-${match[2]}`;
-    return match[1] === 'demo' ? `b-${match[2]}` : hash;
+    const name = mode === 'demo' ? `demo-${match[2]}` : match[1] === 'demo' ? `b-${match[2]}` : hash;
+    return tourNames.has(name) ? name : null;
   }
-  const defaultScene = mode === 'demo' ? 'demo-exterior' : 'b-exterior';
+  const defaultScene = mode === 'demo' ? 'demo-exterior' : `b-${views[0]}`;
 
   // Numbers in the page introduction follow the scene data.
-  const tourScenes = Object.values(scenes).filter(scene => (mode === 'demo') === (scene.vehicle === 'demo'));
   const plural = (n, forms) => forms[n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : 2];
   const stats = {
     scenes: [tourScenes.length, ['панорама', 'панорамы', 'панорам'], ' 360°'],
@@ -197,7 +250,7 @@
   const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
   const reducedMotion = () => motionQuery.matches || document.documentElement.classList.contains('no-motion');
   const isAbort = error => Boolean(PSV.utils?.isAbortError?.(error) || error?.name === 'AbortError');
-  const state = { vehicle: 'b', scene: 'b-exterior', dragging: false, auto: false, gyro: false, presence: false };
+  const state = { vehicle: scenes[defaultScene].vehicle, scene: defaultScene, dragging: false, auto: false, gyro: false, presence: false };
 
   // three.js inside the engine needs WebGL 2 (Chrome, Edge, Firefox, Safari 15+). The engine
   // itself does not throw without it, so the check comes first.
@@ -545,7 +598,7 @@
     };
     if (intro) busy(); else slowTimer = setTimeout(busy, 350);
     if (sceneName) sceneName.textContent = scene.title;
-    if (sceneIndex) sceneIndex.textContent = `0${scene.view === 'exterior' ? 1 : 2} / 02`;
+    if (sceneIndex) sceneIndex.textContent = `${String(views.indexOf(scene.view) + 1).padStart(2, '0')} / ${String(views.length).padStart(2, '0')}`;
     syncTabs(viewTabs, tab => tab.dataset.view === scene.view);
     syncTabs(vehicleTabs, tab => tab.dataset.vehicle === scene.vehicle);
     syncThumbs(scene.vehicle);
