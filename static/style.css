@@ -1753,8 +1753,8 @@ a[href^="tel:"] {
   height: 100%;
   background: #040d0a;
   cursor: grab;
-  /* Один палец прокручивает страницу; Photo Sphere Viewer обрабатывает два. */
-  touch-action: pan-y;
+  /* Жесты внутри тура принадлежат панораме: один палец вращает, pinch масштабирует. */
+  touch-action: none;
 }
 .tour-viewport .tour-psv:active {
   cursor: grabbing;
