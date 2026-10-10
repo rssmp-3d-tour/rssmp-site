@@ -172,7 +172,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(300);
   const responsive = !a.equals(await glShot(page));
-  check('T3b', 'Медленная сеть: «Внутри → Снаружи» во время загрузки не роняет тур', page.errors.length === 0 && responsive && st.hotspots === 4 && st.visibleHotspots > 0, `errors=${page.errors} responsive=${responsive} hotspots=${st.hotspots} visible=${st.visibleHotspots}`);
+  check('T3b', 'Медленная сеть: «Внутри → Снаружи» во время загрузки не роняет тур', page.errors.length === 0 && responsive && st.hotspots === expected[EXT] && st.visibleHotspots > 0, `errors=${page.errors} responsive=${responsive} hotspots=${st.hotspots} visible=${st.visibleHotspots}`);
   await page.context().close();
 }
 
@@ -544,7 +544,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.click('[data-view="exterior"]');
   await sceneReady(page, '#' + EXT);
   const scene = await sceneState(page);
-  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === 4 && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
+  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === expected[FIRST] && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
   await page.context().close();
 }
 
