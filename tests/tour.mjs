@@ -219,7 +219,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
     for (const scene of Object.keys(expected)) {
       titlesByScene[scene] = new Set();
       await page.evaluate(s => { location.hash = s; }, scene);
-      await page.waitForTimeout(1200);
+      await sceneReady(page, '#' + scene);
       const n = await page.locator('[data-hotspot-list] button').count();
       total += n;
       for (let i = 0; i < n; i++) {
