@@ -14,6 +14,11 @@ const routes = ['/', '/about/', '/patients/', '/news/', '/tours/', '/gallery/', 
 const viewports = [[1920, 1080], [1366, 768], [1024, 768], [768, 1024], [430, 932], [390, 844], [360, 800]];
 const shotViewports = new Set(['1366x768', '390x844']);
 const launchArgs = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+const tourPerformanceBudget = {
+  viewport: '1366x768',
+  maxTransferBytes: 3 * 1024 * 1024,
+  maxRequests: 35
+};
 
 const browser = await chromium.launch({ args: launchArgs });
 const report = { base, pages: [], axe: [], links: {} };
@@ -116,6 +121,13 @@ for (const href of internal) {
   report.internalLinkStatus[href] = r.status;
 }
 await browser.close();
+const tourBudgetPage = report.pages.find(p => p.route === '/tours/' && p.viewport === tourPerformanceBudget.viewport);
+report.performanceBudget = {
+  ...tourPerformanceBudget,
+  actualTransferBytes: tourBudgetPage?.transfer ?? null,
+  actualRequests: tourBudgetPage?.requests ?? null,
+  passed: Boolean(tourBudgetPage) && tourBudgetPage.transfer <= tourPerformanceBudget.maxTransferBytes && tourBudgetPage.requests <= tourPerformanceBudget.maxRequests
+};
 fs.writeFileSync(path.join(out, 'audit.json'), JSON.stringify(report, null, 1));
 
 // Human summary
@@ -137,7 +149,10 @@ lines.push('', 'Internal links non-200:', ...Object.entries(report.internalLinkS
 lines.push('', 'Headings (1366):', ...report.pages.filter(p => p.viewport === '1366x768').map(p => `${p.route}: ${p.headings.join(' > ')}`));
 lines.push('', 'Small targets (390):', ...report.pages.filter(p => p.viewport === '390x844').map(p => `${p.route}: ${p.smallTargets.join('; ')}`));
 lines.push('', 'Weight (1366):', ...report.pages.filter(p => p.viewport === '1366x768').map(p => `${p.route}: ${(p.transfer / 1024).toFixed(0)} KB, ${p.requests} req, load ${p.loadMs} ms`));
+const budget = report.performanceBudget;
+lines.push('', `Performance budget: ${budget.passed ? 'PASS' : 'FAIL'} /tours/ ${budget.actualTransferBytes === null ? 'missing' : `${(budget.actualTransferBytes / 1024).toFixed(0)} KB`} <= ${(budget.maxTransferBytes / 1024).toFixed(0)} KB, ${budget.actualRequests ?? 'missing'} <= ${budget.maxRequests} req`);
 lines.push('', 'Meta:', ...report.pages.filter(p => p.viewport === '1366x768').map(p => `${p.route}: title="${p.title}" robots=${p.robots} canonical=${p.canonical} desc=${p.description?.slice(0, 50)}`));
 lines.push('', 'Images without width/height:', [...new Set(report.pages.flatMap(p => p.imgsNoSize))].join(', '));
 fs.writeFileSync(path.join(out, 'summary.txt'), lines.join('\n'));
 console.log(lines.join('\n'));
+if (!budget.passed) process.exitCode = 1;

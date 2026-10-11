@@ -565,7 +565,6 @@
   const vehicleTitle = document.querySelector('[data-current-vehicle]');
   const sceneName = root.querySelector('[data-scene-name]');
   const sceneIndex = root.querySelector('[data-scene-index]');
-  const saveData = Boolean(navigator.connection && navigator.connection.saveData);
   const prefetched = new Map();
   let firstLoad = true, sceneLoadId = 0, slowTimer = 0;
   function loadImage(url) {
@@ -590,14 +589,10 @@
     const tiles = scene.tiles;
     return { baseUrl: scene.preview || undefined, levels: tiles.levels, tileUrl: (col, row, level) => tileUrl(tiles, level, col, row) };
   }
-  function prefetchNeighbours(current) {
+  function prefetchScenePreviews(current) {
     for (const scene of tourScenes) {
       if (scene === current) continue;
       prefetch(scene.preview);
-      if (scene.vehicle !== current.vehicle || saveData) continue;
-      if (!tilesMode) { prefetch(scene.image); continue; }
-      const level = scene.tiles.levels[0];
-      for (let col = 0; col < level.cols; col++) for (let row = 0; row < level.rows; row++) prefetch(tileUrl(scene.tiles, 0, col, row));
     }
   }
   async function loadFullImage(scene, loadId) {
@@ -608,7 +603,7 @@
       await loadImage(scene.image);
       if (loadId !== sceneLoadId) return;
       const loaded = await viewer.setPanorama(scene.image, { transition: false, showLoader: false });
-      if (loaded && loadId === sceneLoadId) prefetchNeighbours(scene);
+      if (loaded && loadId === sceneLoadId) prefetchScenePreviews(scene);
     } catch (error) {
       if (loadId !== sceneLoadId || isAbort(error)) return;
       viewer.hideError();
@@ -672,7 +667,7 @@
     if (fromUser) announce(`${scene.title}. Активных точек: ${scene.hotspots.length}.`);
     if (guide && guide.pendingScene === name) continueGuide();
     if (!tilesMode && scene.preview && scene.preview !== scene.image) loadFullImage(scene, loadId);
-    else prefetchNeighbours(scene);
+    else prefetchScenePreviews(scene);
   }
   // Walking through a door: the camera moves towards it while the picture dims.
   function goToScene(name, via = null) {

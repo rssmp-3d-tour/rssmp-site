@@ -736,18 +736,24 @@ if (HAS_TILES) {
 // T22 engine: Photo Sphere Viewer from the site itself (no CDN), WebGL 2; with tiles only the visible ones load
 {
   const tileRequests = new Set();
+  const neighbourTileRequests = new Set();
   const context = await browser.newContext({ viewport: { width: 1366, height: 768 } });
   const page = await context.newPage();
   const errors = [], hosts = new Set();
   page.on('pageerror', e => errors.push(e.message));
-  page.on('request', r => { if (/^https?:/.test(r.url())) hosts.add(new URL(r.url()).host); const m = r.url().match(TILE_RE); if (m && r.url().includes(FIRST_TILES?.base || '#')) tileRequests.add(`${m[1]}/${m[2]}_${m[3]}`); });
+  page.on('request', r => {
+    if (/^https?:/.test(r.url())) hosts.add(new URL(r.url()).host);
+    const m = r.url().match(TILE_RE);
+    if (m && r.url().includes(FIRST_TILES?.base || '#')) tileRequests.add(`${m[1]}/${m[2]}_${m[3]}`);
+    else if (m) neighbourTileRequests.add(r.url());
+  });
   await page.goto(base + '/tours/');
   await page.waitForTimeout(2500);
   const info = await page.evaluate(() => [window.RssmpPSV?.VERSION, Boolean(document.querySelector('[data-tour-viewer] canvas').getContext('webgl2'))]);
   // Real shots have several levels of detail (2048, 4096, 8192 px): count the tiles of all of them.
   const all = (FIRST_TILES?.levels || []).reduce((sum, level) => sum + level.cols * level.rows, 0);
-  const tilesOk = !HAS_TILES || (tileRequests.size > 0 && tileRequests.size < all);
-  check('T22', 'Движок Photo Sphere Viewer 5.15.1 с сайта (без CDN), WebGL 2; грузятся только видимые тайлы', info[0] === '5.15.1' && info[1] && hosts.size === 1 && tilesOk && errors.length === 0, `version=${info[0]} webgl2=${info[1]} hosts=${[...hosts]} tiles=${HAS_TILES ? `${tileRequests.size}/${all}` : 'нет'} errors=${errors}`);
+  const tilesOk = !HAS_TILES || (tileRequests.size > 0 && tileRequests.size < all && neighbourTileRequests.size === 0);
+  check('T22', 'Движок Photo Sphere Viewer 5.15.1 с сайта (без CDN), WebGL 2; грузятся только видимые тайлы текущей сцены', info[0] === '5.15.1' && info[1] && hosts.size === 1 && tilesOk && errors.length === 0, `version=${info[0]} webgl2=${info[1]} hosts=${[...hosts]} tiles=${HAS_TILES ? `${tileRequests.size}/${all}, соседние=${neighbourTileRequests.size}` : 'нет'} errors=${errors}`);
   await context.close();
 }
 
