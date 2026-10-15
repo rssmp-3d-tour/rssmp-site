@@ -1615,6 +1615,8 @@ a[href^="tel:"] {
   --tour-overlay: #06130fdb;
   --tour-light: #f4f8f5;
   --tour-light-ink: #082018;
+  --tour-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --tour-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   background: var(--tour-bg);
   color: var(--tour-text);
   overflow: hidden;
@@ -1929,22 +1931,35 @@ a[href^="tel:"] {
   min-width: 42px;
   padding: 0 14px;
   border: 1px solid var(--tour-line-strong);
-  border-radius: 3px;
+  border-radius: 10px;
   background: var(--tour-overlay);
   color: #fff;
   font-size: 13px;
   line-height: 1;
   transition:
-    background 0.2s,
-    border-color 0.2s,
-    color 0.2s,
-    max-width 0.25s ease;
+    background 0.14s var(--tour-ease-out),
+    border-color 0.14s var(--tour-ease-out),
+    color 0.14s var(--tour-ease-out),
+    transform 0.14s var(--tour-ease-out);
 }
-.tour-hud-actions button:hover,
-.tour-controls button:hover,
-.tour-zoom button:hover {
+.tour-hud-actions button:focus-visible,
+.tour-controls button:focus-visible,
+.tour-zoom button:focus-visible {
   border-color: #ffffff66;
   background: #10362a;
+}
+.tour-hud-actions button:active,
+.tour-controls button:active,
+.tour-zoom button:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tour-hud-actions button:hover,
+  .tour-controls button:hover,
+  .tour-zoom button:hover {
+    border-color: #ffffff66;
+    background: #10362a;
+  }
 }
 .tour-hud-actions [data-share],
 .tour-hud-actions [data-fullscreen],
@@ -1962,22 +1977,52 @@ a[href^="tel:"] {
   gap: 8px;
   transform: translateY(-50%);
 }
-.tour-controls button {
+.tour-controls > [data-more] {
+  position: relative;
+  padding: 0 12px;
+}
+.tour-controls > [data-more].has-active::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #082018;
+  border-radius: 50%;
+  background: var(--tour-accent);
+}
+.tour-more-menu {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  display: grid;
+  gap: 4px;
+  width: 226px;
+  padding: 6px;
+  border: 1px solid var(--tour-line-strong);
+  border-radius: 14px;
+  background: #06130ff2;
+  box-shadow: 0 18px 48px #0008;
+  transform: translateY(-50%);
+  transform-origin: left center;
+  animation: tour-menu-in 0.18s var(--tour-ease-out) both;
+}
+.tour-more-menu[hidden] {
+  display: none;
+}
+.tour-more-menu button {
   justify-content: flex-start;
-  max-width: 42px;
-  padding: 0 10px;
-  overflow: hidden;
+  width: 100%;
+  padding: 0 12px;
+  border-color: transparent;
+  background: transparent;
   white-space: nowrap;
 }
-.tour-controls svg {
+.tour-more-menu svg {
   flex: none;
 }
-.tour-controls button:hover,
-.tour-controls button:focus-visible {
-  max-width: 260px;
-  padding-right: 14px;
-}
-.tour-controls button[aria-pressed="true"] {
+.tour-more-menu button[aria-pressed="true"] {
   border-color: var(--tour-light);
   background: var(--tour-light);
   color: var(--tour-light-ink);
@@ -2007,7 +2052,7 @@ a[href^="tel:"] {
   gap: 6px;
   padding: 6px;
   border: 1px solid var(--tour-line-strong);
-  border-radius: 4px;
+  border-radius: 14px;
   background: var(--tour-overlay);
   transform: translateX(-50%);
 }
@@ -2017,7 +2062,7 @@ a[href^="tel:"] {
   gap: 12px;
   padding: 6px 18px 6px 6px;
   border: 0;
-  border-radius: 3px;
+  border-radius: 10px;
   background: transparent;
   color: #cad6d0;
   font-size: 14px;
@@ -2118,8 +2163,12 @@ a[href^="tel:"] {
   pointer-events: none;
   transition: opacity 0.25s;
 }
+.tour-viewport.is-approaching .tour-hotspots-layer,
 .tour-viewport.is-switching .tour-hotspots-layer {
   opacity: 0;
+}
+.tour-viewport.is-approaching .tour-hotspot {
+  pointer-events: none;
 }
 .tour-hotspot {
   position: absolute;
@@ -2161,7 +2210,7 @@ a[href^="tel:"] {
   top: 50%;
   padding: 7px 11px;
   border: 1px solid var(--tour-line-strong);
-  border-radius: 3px;
+  border-radius: 10px;
   background: var(--tour-overlay);
   font-size: 12px;
   font-weight: 600;
@@ -2218,11 +2267,11 @@ a[href^="tel:"] {
   max-height: calc(100% - 200px);
   overflow: auto;
   padding: 20px 24px 22px;
-  border-radius: 4px;
+  border-radius: 18px;
   background: #f7faf8;
   color: #0b2b24;
   box-shadow: 0 18px 50px #0000004d;
-  animation: tour-card-in 0.3s ease-out;
+  animation: tour-card-in 0.24s var(--tour-ease-out);
 }
 .tour-card-head {
   display: flex;
@@ -2246,7 +2295,7 @@ a[href^="tel:"] {
   height: 36px;
   margin: -8px -10px -8px 0;
   border: 0;
-  border-radius: 3px;
+  border-radius: 50%;
   background: transparent;
   color: #36574d;
 }
@@ -2275,7 +2324,7 @@ a[href^="tel:"] {
   min-height: 38px;
   padding: 8px 14px;
   border: 1px solid #cbd8d0;
-  border-radius: 3px;
+  border-radius: 10px;
   background: #fff;
   color: #12382e;
   font-size: 13px;
@@ -2542,6 +2591,12 @@ a[href^="tel:"] {
     transform: translateY(8px);
   }
 }
+@keyframes tour-menu-in {
+  from {
+    opacity: 0;
+    transform: translate(-6px, -50%) scale(0.97);
+  }
+}
 @keyframes tour-dwell {
   to {
     transform: scaleX(1);
@@ -2628,10 +2683,13 @@ a[href^="tel:"] {
   .tour-controls {
     left: 12px;
   }
-  .tour-controls button:hover,
-  .tour-controls button:focus-visible {
-    max-width: 42px;
-    padding-right: 10px;
+  .tour-controls > [data-more] {
+    height: 40px;
+    min-width: 40px;
+  }
+  .tour-more-menu {
+    left: calc(100% + 8px);
+    width: min(226px, calc(100vw - 76px));
   }
   .tour-zoom,
   .tour-drag-hint {
@@ -2718,6 +2776,16 @@ a[href^="tel:"] {
 @media (prefers-reduced-motion: reduce) {
   .tour-presence {
     display: none;
+  }
+  .tour-more-menu {
+    animation-name: tour-menu-fade;
+    animation-duration: 0.12s;
+  }
+}
+
+@keyframes tour-menu-fade {
+  from {
+    opacity: 0;
   }
 }
 
