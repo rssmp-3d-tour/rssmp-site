@@ -187,6 +187,7 @@ ICONS = {
     'auto': icon('M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5'),
     'gyro': icon('M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2'),
     'presence': icon('M4 10v4h3.5L12 18V6L7.5 10H4zM15.5 9.5a3.5 3.5 0 0 1 0 5M18 7a7 7 0 0 1 0 10'),
+    'more': icon('M5 12h.01M12 12h.01M19 12h.01'),
     'share': icon('M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1'),
     'fullscreen': icon('M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'),
     'plus': icon('M12 5v14M5 12h14'),
@@ -258,11 +259,14 @@ def tour_page(mode):
   <div class="tour-presence" aria-hidden="true"><i></i><i></i></div>
   <div class="tour-hotspots-layer" data-hotspots></div>
   <div class="tour-hud-top"><div class="tour-hud-title"><span data-scene-index>01 / {len(views):02d}</span><b data-scene-name>{scene_name}</b></div><div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div></div>
-  <div class="tour-controls" role="group" aria-label="Управление обзором">
-    <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
-    <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
-    <button type="button" data-gyro aria-pressed="false" hidden>{ICONS['gyro']}<span>Гироскоп</span></button>
-    <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
+  <div class="tour-controls">
+    <button type="button" data-more aria-expanded="false" aria-controls="tour-more-menu" aria-label="Дополнительные функции">{ICONS['more']}<span>Ещё</span></button>
+    <div class="tour-more-menu" id="tour-more-menu" data-more-menu role="group" aria-label="Дополнительные функции тура" hidden>
+      <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
+      <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
+      <button type="button" data-gyro aria-pressed="false" hidden>{ICONS['gyro']}<span>Гироскоп</span></button>
+      <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
+    </div>
   </div>
   <div class="tour-zoom" role="group" aria-label="Масштаб"><button type="button" data-zoom="in" aria-label="Приблизить">{ICONS['plus']}</button><button type="button" data-zoom="out" aria-label="Отдалить">{ICONS['minus']}</button></div>
   <div class="tour-scene-tabs" role="tablist" aria-label="{"Сцены тура" if TOUR_YARD else "Вид автомобиля"}">{tabs}</div>
