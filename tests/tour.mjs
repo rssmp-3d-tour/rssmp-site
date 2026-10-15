@@ -91,8 +91,11 @@ const sceneState = page => page.evaluate(() => ({
   vehicle: document.querySelector('[data-vehicle][aria-selected="true"]')?.dataset.vehicle
 }));
 // Loading time varies with software rendering: wait for the scene itself (at most 6 s), then for the picture to settle.
-const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h && !document.querySelector('[data-tour-viewer]').matches('.is-loading, .is-switching') && document.querySelectorAll('.tour-hotspot').length > 0, hash, { timeout: 6000 })
+const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h && !document.querySelector('[data-tour-viewer]').matches('.is-loading, .is-switching, .is-approaching') && document.querySelectorAll('.tour-hotspot').length > 0, hash, { timeout: 6000 })
   .catch(() => {}).then(() => page.waitForTimeout(500));
+const openMore = async page => {
+  if (await page.getAttribute('[data-more]', 'aria-expanded') !== 'true') await page.click('[data-more]');
+};
 
 // T1 initial render, not black, no errors
 {
@@ -212,7 +215,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
 {
   const page = await open('/tours/');
   const hasList = await page.locator('[data-hotspot-list] button').count() > 0;
-  let opened = 0, visibleWhenOpened = 0, total = 0;
+  let opened = 0, visibleWhenOpened = 0, total = 0, transitions = 0;
   const problems = [];
   const titlesByScene = {};
   if (hasList) {
@@ -225,6 +228,12 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
       for (let i = 0; i < n; i++) {
         const btn = page.locator('[data-hotspot-list] button').nth(i);
         const label = await btn.textContent();
+        const transition = await btn.evaluate(button => button.closest('li')?.classList.contains('is-transition'));
+        if (transition) {
+          transitions++;
+          if (!/Перейти|Выйти|Подойти/.test(label)) problems.push(`transition label: ${label}`);
+          continue;
+        }
         await btn.click();
         await page.waitForTimeout(FLIGHT);
         const card = await page.evaluate(() => ({ hidden: document.querySelector('[data-tour-card]').hidden, title: document.querySelector('[data-card-title]').textContent, text: document.querySelector('[data-card-text]').textContent }));
@@ -239,8 +248,8 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
     // Old markup has no list: count the hotspots that exist per scene.
     for (const scene of Object.keys(expected)) { await page.evaluate(s => { location.hash = s; }, scene); }
   }
-  check('T6a', `Все точки тура (${TOTAL}) доступны списком, открываются, текст не пустой`, hasList && total === TOTAL && opened === TOTAL, hasList ? `total=${total} opened=${opened} ${problems.join('; ')}` : 'списка точек нет — точки вне кадра недоступны с клавиатуры и для screen reader');
-  check('T6b', 'При выборе точки камера поворачивается к ней (точка видна в кадре)', hasList && visibleWhenOpened === TOTAL, `visible=${visibleWhenOpened}/${TOTAL}`);
+  check('T6a', `Все точки тура (${TOTAL}) доступны списком; информационные открывают текст`, hasList && total === TOTAL && opened === TOTAL - transitions && problems.length === 0, hasList ? `total=${total} info=${opened} transitions=${transitions} ${problems.join('; ')}` : 'списка точек нет — точки вне кадра недоступны с клавиатуры и для screen reader');
+  check('T6b', 'При выборе информационной точки камера поворачивается к ней (точка видна в кадре)', hasList && visibleWhenOpened === TOTAL - transitions, `visible=${visibleWhenOpened}/${TOTAL - transitions}`);
   if (MODE === 'vehicles') {
     const required = {
       ...(HAS_YARD ? {
@@ -257,7 +266,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
       .map(title => `${scene}: ${title}`));
     check('T6e', 'Учебные точки дверей, ступеней, кабин и отдельных сумок присутствуют', missing.length === 0, missing.join('; '));
   }
-  // transitions via card action
+  // Transitions are navigation controls: one click, no description card.
   await page.goto(base + '/tours/#' + EXT);
   await page.waitForTimeout(1500);
   const enter = page.locator('.tour-hotspot', { hasText: MODE === 'demo' ? 'Автомобиль скорой помощи' : 'Автомобиль класса B' });
@@ -266,15 +275,16 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
     // The walk to the door, the dip and the loading take ~1.5 s with software rendering; wait for the scene itself.
     const sceneIs = hash => page.waitForFunction(h => location.hash === h && !document.querySelector('[data-tour-viewer]').classList.contains('is-switching'), hash, { timeout: 6000 }).catch(() => {});
     await enter.click();
-    await page.click('[data-card-action]');
     await sceneIs('#' + INT);
     const st1 = await sceneState(page);
-    const exit = page.locator('[data-hotspot-list] button', { hasText: 'Выход наружу' });
-    if (await exit.count()) { await exit.click(); await page.click('[data-card-action]'); await sceneIs('#' + EXT); }
+    const cardAfterEnter = await page.locator('[data-tour-card]').isHidden();
+    const exit = page.locator('[data-hotspot-list] button', { hasText: 'Выйти наружу' });
+    if (await exit.count()) { await exit.click(); await sceneIs('#' + EXT); }
     const st2 = await sceneState(page);
-    transition = `${st1.hash}->${st2.hash} errors=${page.errors.length}`;
-    check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»', st1.hash === '#' + INT && st2.hash === '#' + EXT && page.errors.length === 0, transition);
-  } else check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»', false, transition);
+    const cardAfterExit = await page.locator('[data-tour-card]').isHidden();
+    transition = `${st1.hash}->${st2.hash} cards hidden=${cardAfterEnter},${cardAfterExit} errors=${page.errors.length}`;
+    check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
+  } else check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: одно нажатие, без карточки', false, transition);
   // speak button
   const speak = await page.evaluate(() => { const b = document.querySelector('[data-card-speak]'); return b && !b.hidden; });
   check('T6d', 'Кнопка «Озвучить» доступна при наличии Speech Synthesis', speak, '');
@@ -285,6 +295,11 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
 {
   const page = await open('/tours/');
   const vp = page.locator('[data-tour-viewer]');
+  const menuClosed = await page.locator('[data-more-menu]').isHidden();
+  await openMore(page);
+  const menuOpened = await page.getAttribute('[data-more]', 'aria-expanded') === 'true' && await page.locator('[data-more-menu]').isVisible();
+  await page.keyboard.press('Escape');
+  const menuEscaped = await page.getAttribute('[data-more]', 'aria-expanded') === 'false' && await page.locator('[data-more-menu]').isHidden();
   await vp.hover();
   let a = await canvasShot(page);
   await vp.focus();
@@ -308,10 +323,11 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   await page.mouse.up();
   await page.waitForTimeout(250);
   const drag = !b.equals(await canvasShot(page));
+  await openMore(page);
   await page.click('[data-auto]');
   const s1 = await canvasShot(page); await page.waitForTimeout(900); const s2 = await canvasShot(page);
   const auto = !s1.equals(s2) && await page.getAttribute('[data-auto]', 'aria-pressed') === 'true';
-  check('T7', 'Клавиши, +/−, колесо, мышь и автообзор', keys && plus && wheel && drag && auto && page.errors.length === 0, `keys=${keys} plus=${plus} wheel=${wheel} drag=${drag} auto=${auto}`);
+  check('T7', 'Меню «Ещё», клавиши, +/−, колесо, мышь и автообзор', menuClosed && menuOpened && menuEscaped && keys && plus && wheel && drag && auto && page.errors.length === 0, `menu=${menuClosed},${menuOpened},${menuEscaped} keys=${keys} plus=${plus} wheel=${wheel} drag=${drag} auto=${auto}`);
   await page.context().close();
 }
 
@@ -364,6 +380,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   };
   const page = await open('/tours/', { init });
   const audioState = () => page.evaluate(() => window.__audio.map(c => c.state).join(','));
+  await openMore(page);
   await page.click('[data-presence]');
   await page.waitForTimeout(500);
   const on = await page.evaluate(() => [document.querySelector('[data-presence]').getAttribute('aria-pressed'), document.querySelector('[data-tour-viewer]').classList.contains('presence-on')]);
@@ -394,12 +411,14 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
   const phone = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
   const pHidden = await phone.evaluate(() => document.querySelector('[data-gyro]').hidden);
   // Sensor that never sends data → honest message and button returns to off
+  await openMore(phone);
   await phone.click('[data-gyro]');
   await phone.waitForTimeout(1900);
   const msg = await phone.evaluate(() => [document.querySelector('[data-gyro]').getAttribute('aria-pressed'), document.querySelector('[data-vr-status]').textContent]);
   await phone.context().close();
   // Sensor data on a fresh page: portrait upright, then landscape upright (beta 0, gamma -90)
   const phone2 = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
+  await openMore(phone2);
   await phone2.click('[data-gyro]');
   const res = await phone2.evaluate(async () => {
     const fire = (alpha, beta, gamma) => window.dispatchEvent(Object.assign(new Event('deviceorientation'), { alpha, beta, gamma }));
@@ -538,6 +557,7 @@ const sceneReady = (page, hash) => page.waitForFunction(h => location.hash === h
       .replace(/<section class="tour-points"[\s\S]*?<\/section>/, '').replace('<p class="sr-only" data-tour-announce aria-live="polite"></p>', '').replace('<button type="button" data-tour-retry hidden>Повторить загрузку</button>', '');
     await route.fulfill({ response: res, body: html });
   }]] });
+  await openMore(page);
   await page.click('[data-sound]');
   await page.waitForTimeout(300);
   const st = await page.evaluate(() => [document.querySelector('[data-effects]').getAttribute('aria-pressed'), document.querySelector('[data-sound]').getAttribute('aria-pressed')]);
@@ -727,7 +747,9 @@ if (HAS_TILES) {
   await page.goto(base + '/tours/', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1200);
   const early = await page.evaluate(() => { const v = document.querySelector('[data-tour-viewer]'); return [v.classList.contains('is-loading'), v.classList.contains('is-sharpening'), document.querySelectorAll('.tour-hotspot').length]; });
-  await page.waitForTimeout(2600);
+  // Decoding time varies on software-rendered CI. Wait for the real completion
+  // state instead of assuming that the delayed request and decode fit in 2.6 s.
+  await page.waitForFunction(() => !document.querySelector('[data-tour-viewer]').classList.contains('is-sharpening'), null, { timeout: 8000 }).catch(() => {});
   const late = await page.evaluate(() => document.querySelector('[data-tour-viewer]').classList.contains('is-sharpening'));
   check('T21', 'Превью показывается сразу (точки активны), полное качество подгружается следом', !early[0] && early[1] && early[2] === expected[FIRST] && !late && errors.length === 0, `loading=${early[0]} sharpening=${early[1]} hotspots=${early[2]} → sharpening later=${late} errors=${errors}`);
   await context.close();
@@ -761,6 +783,7 @@ if (HAS_TILES) {
 {
   const page = await open('/tours/');
   await page.locator('[data-tour-viewer]').scrollIntoViewIfNeeded();
+  await openMore(page);
   await page.click('[data-guide]');
   await page.waitForTimeout(FLIGHT + 300);
   const first = await page.evaluate(() => [document.querySelector('[data-guide]').getAttribute('aria-pressed'), document.querySelector('[data-tour-card]').hidden, document.querySelector('[data-card-index]').textContent]);
@@ -782,6 +805,7 @@ if (HAS_TILES) {
 {
   const page = await open('/tours/', { init: () => { const native = window.setTimeout; window.setTimeout = (fn, ms, ...a) => native(fn, ms > 2000 ? 60 : ms, ...a); } });
   await page.locator('[data-tour-viewer]').scrollIntoViewIfNeeded();
+  await openMore(page);
   await page.click('[data-guide]');
   let hash = '';
   for (let i = 0; i < 40 && hash !== '#' + INT; i++) { await page.waitForTimeout(500); hash = await page.evaluate(() => location.hash); }
