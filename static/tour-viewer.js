@@ -37,7 +37,7 @@
     fallback.querySelector('span').textContent = text;
     const retry = fallback.querySelector('[data-tour-retry]');
     if (retry) retry.hidden = !canRetry;
-    root.classList.remove('is-loading', 'is-switching', 'is-sharpening');
+    root.classList.remove('is-loading', 'is-switching', 'is-approaching', 'is-sharpening');
     root.removeAttribute('aria-busy');
     announce(`${title} ${text}`);
   }
@@ -390,10 +390,40 @@
   const nextButton = infoCard.querySelector('[data-card-next]');
   const guideTimer = infoCard.querySelector('.tour-guide-timer');
   const speakButton = infoCard.querySelector('[data-card-speak]');
+  const moreButton = root.querySelector('[data-more]');
+  const moreMenu = root.querySelector('[data-more-menu]');
+  const moreControls = moreMenu ? [...moreMenu.querySelectorAll('button[aria-pressed]')] : [];
   const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
   if (speakButton) speakButton.hidden = !canSpeak;
   let activeHotspot = null, cardOpener = null, placedHotspots = [];
   const infoSpots = scene => scene.hotspots.filter(spot => !spot.next);
+
+  function syncMoreButton() {
+    if (!moreButton) return;
+    const hasActive = moreControls.some(button => !button.hidden && button.getAttribute('aria-pressed') === 'true');
+    moreButton.classList.toggle('has-active', hasActive);
+    moreButton.setAttribute('aria-label', hasActive ? 'Дополнительные функции, есть активные' : 'Дополнительные функции');
+  }
+  function setMoreOpen(open, restoreFocus = false) {
+    if (!moreButton || !moreMenu) return;
+    moreMenu.hidden = !open;
+    moreButton.setAttribute('aria-expanded', String(open));
+    if (!open && restoreFocus) moreButton.focus({ preventScroll: true });
+  }
+  moreButton?.addEventListener('click', () => setMoreOpen(moreMenu.hidden));
+  document.addEventListener('pointerdown', event => {
+    if (!moreMenu?.hidden && !root.querySelector('.tour-controls')?.contains(event.target)) setMoreOpen(false);
+  });
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !moreMenu?.hidden) {
+      event.preventDefault();
+      setMoreOpen(false, true);
+    }
+  });
+  if (moreControls.length && 'MutationObserver' in window) {
+    new MutationObserver(syncMoreButton).observe(moreMenu, { subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'hidden'] });
+  }
+  syncMoreButton();
 
   function chevron() {
     const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), path = document.createElementNS(ns, 'path');
@@ -428,7 +458,11 @@
         action.textContent = spot.action;
         button.append(action);
       }
-      button.addEventListener('click', () => { stopGuide(); openHotspot(spot, button); });
+      button.addEventListener('click', () => {
+        stopGuide();
+        if (spot.next) goToScene(spot.next, spot);
+        else openHotspot(spot, button);
+      });
       hotspotsLayer.append(button);
       placedHotspots.push({ spot, button });
       if (hotspotList) {
@@ -436,12 +470,15 @@
         if (spot.next) item.className = 'is-transition';
         const listButton = document.createElement('button');
         listButton.type = 'button';
-        listButton.textContent = spot.next ? `${spot.title} · ${spot.action}` : spot.title;
+        listButton.textContent = spot.next ? spot.action : spot.title;
         listButton.addEventListener('click', () => {
           stopGuide();
-          flyTo(framing(spot));
           root.scrollIntoView({ block: 'nearest' });
-          openHotspot(spot, listButton);
+          if (spot.next) goToScene(spot.next, spot);
+          else {
+            flyTo(framing(spot));
+            openHotspot(spot, listButton);
+          }
         });
         item.append(listButton);
         hotspotList.append(item);
@@ -615,6 +652,7 @@
   }
   async function loadScene(name, fromUser = false, view = null) {
     if (!own(scenes, name)) return;
+    root.classList.remove('is-approaching');
     const scene = scenes[name], loadId = ++sceneLoadId, intro = firstLoad;
     const walking = root.classList.contains('is-switching');
     const target = view || { yaw: scene.yaw, pitch: scene.pitch, fov: DEFAULT_FOV };
@@ -647,7 +685,7 @@
         position: { yaw: target.yaw, pitch: target.pitch },
         zoom: zoomOf(reveal ? clampFov(target.fov + 0.3) : target.fov),
         showLoader: false,
-        transition: intro || reducedMotion() ? false : { speed: walking ? 700 : 450, effect: 'black', rotation: false }
+        transition: intro || reducedMotion() ? false : { speed: walking ? 180 : 450, effect: 'black', rotation: false }
       });
     } catch (error) {
       if (loadId !== sceneLoadId || isAbort(error)) return;
@@ -672,13 +710,20 @@
   // Walking through a door: the camera moves towards it while the picture dims.
   function goToScene(name, via = null) {
     if (!own(scenes, name)) return;
+    setMoreOpen(false);
     closeCard(false);
     if (via && fallback.hidden && !document.hidden && !state.gyro && !reducedMotion()) {
-      root.classList.add('is-switching');
+      root.classList.add('is-approaching');
       const token = sceneLoadId;
-      flyTo({ yaw: via.yaw, pitch: via.pitch, fov: MIN_FOV + 0.12 }, null, { duration: 700 }).then(() => {
+      const currentFov = currentView().fov;
+      const approachFov = Math.max(MIN_FOV + 0.3, currentFov - 0.28);
+      flyTo({ yaw: via.yaw, pitch: via.pitch, fov: approachFov }, null, { duration: 520 }).then(() => {
+        root.classList.remove('is-approaching');
         // A tab chosen during the walk wins over the door.
-        if (token === sceneLoadId) loadScene(name, true);
+        if (token === sceneLoadId) {
+          root.classList.add('is-switching');
+          loadScene(name, true);
+        }
       });
     } else {
       loadScene(name, true);
@@ -774,9 +819,14 @@
   function guideShow(spot, then) {
     flyTo(framing(spot), () => {
       if (!guide) return;
-      openHotspot(spot, null, { focus: false });
-      announce(spot.title);
-      const dwell = spot.next ? 3000 : dwellTime(spot);
+      if (spot.next) {
+        closeCard(false);
+        announce(spot.action || spot.title);
+      } else {
+        openHotspot(spot, null, { focus: false });
+        announce(spot.title);
+      }
+      const dwell = spot.next ? 650 : dwellTime(spot);
       runGuideTimer(dwell);
       guide.timer = setTimeout(then, dwell);
     });
