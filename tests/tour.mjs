@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 7 : 6, 'b-interior': HAS_YARD ? 23 : 22,
-      ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 7 : 6, 'c-interior': HAS_YARD ? 22 : 21 };
+  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 9 : 8, 'b-interior': HAS_YARD ? 23 : 22,
+      ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 9 : 8, 'c-interior': HAS_YARD ? 22 : 21 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -258,9 +258,9 @@ const openMore = async page => {
         'b-yard': ['Автомобиль класса B', 'Ступень бокового входа', 'Кабина водителя'],
         'c-yard': ['Реанимобиль класса C', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
-      'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором'],
+      'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором', 'Иммобилизационное оснащение', 'Сиденья медицинского салона'],
       'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Бордовая сумка', 'Чёрная сумка', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Сумка в нижнем отсеке', 'Аппарат в нижнем отсеке', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
-      'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон'],
+      'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон', 'Иммобилизационное оснащение', 'Сиденья медицинского салона'],
       'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
