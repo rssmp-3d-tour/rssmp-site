@@ -92,7 +92,8 @@
         { yaw: -1.16, pitch: 0.82, title: 'Светозвуковая сигнализация', text: 'На крыше расположены элементы светозвуковой сигнализации автомобиля скорой медицинской помощи.' },
         { yaw: -1.55, pitch: -0.27, title: 'Доступ в медицинский салон', text: 'Задний вход ведёт в медицинский салон и к зоне размещения носилок.' },
         { yaw: -2.42, pitch: 0.25, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -0.62, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' }
+        { yaw: -0.62, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' },
+        { yaw: -1.3, pitch: -0.56, title: 'Двор станции', text: 'Вернуться во двор станции и осмотреть автомобиль сбоку.', next: 'b-yard', action: 'Вернуться во двор' }
       ]
     },
     'b-interior': {
@@ -146,7 +147,8 @@
         { yaw: -1.32, pitch: 0.67, title: 'Светозвуковая сигнализация', text: 'На крыше расположены элементы светозвуковой сигнализации автомобиля скорой медицинской помощи.' },
         { yaw: -1.59, pitch: -0.27, title: 'Зона размещения носилок', text: 'Задний вход ведёт к системе установки и фиксации носилок.' },
         { yaw: -2.18, pitch: 0.39, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -0.7, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' }
+        { yaw: -0.7, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' },
+        { yaw: -1.4, pitch: -0.6, title: 'Двор станции', text: 'Вернуться во двор станции и осмотреть автомобиль сбоку.', next: 'c-yard', action: 'Вернуться во двор' }
       ]
     },
     'c-interior': {
@@ -415,6 +417,8 @@
   const scenesButton = root.querySelector('[data-scenes-toggle]');
   const scenesCurrent = root.querySelector('[data-scenes-current]');
   const scenesMenu = root.querySelector('.tour-scene-tabs');
+  const backButton = root.querySelector('[data-back]');
+  const backLabel = backButton?.querySelector('[data-back-label]');
   const compactScenes = matchMedia('(max-width: 800px), (max-height: 520px) and (pointer: coarse)');
   const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
   if (speakButton) speakButton.hidden = !canSpeak;
@@ -461,6 +465,24 @@
     if (scenesCurrent) scenesCurrent.textContent = label;
     scenesButton.setAttribute('aria-label', `Выбрать сцену. Текущая сцена: ${label}`);
   }
+  // «Назад» leads one step out: from the cabin to the outside view, from there to the yard.
+  const BACK = { interior: ['exterior', 'Наружу', 'Выйти наружу'], exterior: ['yard', 'Во двор', 'Вернуться во двор станции'] };
+  let backScene = null;
+  function syncBackButton(scene = scenes[state.scene]) {
+    if (!backButton || !scene) return;
+    const back = BACK[scene.view], name = back && `${state.scene.split('-')[0]}-${back[0]}`;
+    backScene = name && own(scenes, name) ? name : null;
+    backButton.hidden = !backScene;
+    root.classList.toggle('has-back', Boolean(backScene));
+    if (!backScene) return;
+    if (backLabel) backLabel.textContent = back[1];
+    backButton.setAttribute('aria-label', back[2]);
+  }
+  backButton?.addEventListener('click', () => {
+    if (!backScene) return;
+    stopGuide();
+    goToScene(backScene);
+  });
   function setScenesOpen(open, restoreFocus = false) {
     if (!scenesButton || !scenesMenu) return;
     const expanded = Boolean(open && compactScenes.matches);
@@ -573,6 +595,8 @@
       if (viewer.dataHelper.isPointVisible(position)) {
         point = viewer.dataHelper.sphericalCoordsToViewerCoords(position);
         if (point.x < -0.075 * w || point.x > 1.075 * w || point.y < -0.075 * h || point.y > 1.075 * h) point = null;
+        // Phones: a point under the top row of buttons waits until the panorama is turned.
+        else if (compactScenes.matches && point.y < TOP_BAR - 4) point = null;
       }
       button.hidden = !point;
       if (!point) continue;
@@ -759,6 +783,7 @@
     if (intro) busy(); else slowTimer = setTimeout(busy, 350);
     if (sceneName) sceneName.textContent = scene.title;
     syncScenesButton(scene);
+    syncBackButton(scene);
     if (sceneIndex) sceneIndex.textContent = `${String(views.indexOf(scene.view) + 1).padStart(2, '0')} / ${String(views.length).padStart(2, '0')}`;
     syncTabs(viewTabs, tab => tab.dataset.view === scene.view);
     syncTabs(vehicleTabs, tab => tab.dataset.vehicle === scene.vehicle);

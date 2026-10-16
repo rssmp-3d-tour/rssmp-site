@@ -198,7 +198,7 @@ ICONS = {
     'down': icon('M6 9l6 6 6-6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
-TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 56) if TOUR_YARD else (4, 46)}
+TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 58) if TOUR_YARD else (4, 46)}
 
 
 def plural(n, one, few, many):
@@ -260,6 +260,7 @@ def tour_page(mode):
   <div class="tour-presence" aria-hidden="true"><i></i><i></i></div>
   <div class="tour-hotspots-layer" data-hotspots></div>
   <div class="tour-hud-top">
+    <button type="button" class="tour-back" data-back hidden>{ICONS['prev']}<span data-back-label>Назад</span></button>
     <button type="button" class="tour-scenes-toggle" data-scenes-toggle aria-expanded="false" aria-controls="tour-scene-tabs"><span>Сцены</span><b data-scenes-current>{scene_name}</b>{ICONS['down']}</button>
     <div class="tour-hud-title"><span data-scene-index>01 / {len(views):02d}</span><b data-scene-name>{scene_name}</b></div>
     <div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button>

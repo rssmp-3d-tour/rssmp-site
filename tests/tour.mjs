@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 17,
-      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 19 };
+  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': HAS_YARD ? 6 : 5, 'b-interior': 17,
+      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': HAS_YARD ? 6 : 5, 'c-interior': 19 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -256,9 +256,9 @@ const openMore = async page => {
         'b-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя'],
         'c-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
-      'b-exterior': ['Задняя дверь медицинского салона'],
+      'b-exterior': ['Задняя дверь медицинского салона', ...(HAS_YARD ? ['Двор станции'] : [])],
       'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
-      'c-exterior': ['Задняя дверь медицинского салона'],
+      'c-exterior': ['Задняя дверь медицинского салона', ...(HAS_YARD ? ['Двор станции'] : [])],
       'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
@@ -312,6 +312,25 @@ const openMore = async page => {
       detail = `label before=${before} first tap=${JSON.stringify(afterFirst)} hidden after tap elsewhere=${hiddenAgain} second tap -> ${hash} errors=${phone.errors}`;
     }
     check('T6f', 'Сенсорный экран: у перехода только значок; первое касание показывает подпись, второе — переходит', ok, detail);
+    await phone.context().close();
+  }
+  // T6g «Назад» in the top row: one step out — from the cabin to the outside view, from there to the yard.
+  {
+    const phone = await open('/tours/#' + INT, { viewport: { width: 390, height: 844 }, mobile: true });
+    await sceneReady(phone, '#' + INT);
+    const back = phone.locator('[data-back]');
+    const steps = [];
+    const label = async () => (await back.isVisible()) ? `${await back.textContent()}|${await back.getAttribute('aria-label')}` : 'hidden';
+    steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    if (await back.isVisible()) { await back.tap(); await sceneReady(phone, '#' + EXT).catch(() => {}); }
+    steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    if (HAS_YARD && await back.isVisible()) { await back.tap(); await sceneReady(phone, '#b-yard').catch(() => {}); }
+    steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    const expectedSteps = HAS_YARD
+      ? [`#${INT}:Наружу|Выйти наружу`, `#${EXT}:Во двор|Вернуться во двор станции`, '#b-yard:hidden']
+      : [`#${INT}:Наружу|Выйти наружу`, `#${EXT}:hidden`, `#${EXT}:hidden`];
+    const inside = await phone.evaluate(() => { const r = document.querySelector('[data-tour-viewer]').getBoundingClientRect(), s = document.querySelector('.tour-scenes-toggle').getBoundingClientRect(); return s.left >= r.left && s.right <= r.right; });
+    check('T6g', 'Кнопка «Назад»: из салона наружу, снаружи во двор, во дворе её нет', steps.join(' ') === expectedSteps.join(' ') && inside && phone.errors.length === 0, `${steps.join(' → ')} errors=${phone.errors}`);
     await phone.context().close();
   }
   // speak button
