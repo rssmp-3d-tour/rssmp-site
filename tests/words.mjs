@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 const base = process.argv[2];
 const b = await chromium.launch();
 const routes = ['/', '/about/', '/patients/', '/news/', '/tours/', '/gallery/', '/contacts/', '/privacy/', '/404.html'];
-for (const [w, h] of [[360, 800], [390, 844], [430, 932], [768, 1024], [1024, 768], [1366, 768], [1920, 1080]]) {
+for (const [w, h] of [[320, 568], [360, 800], [390, 844], [430, 932], [768, 1024], [844, 390], [1024, 768], [1366, 768], [1920, 1080]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: w < 800 });
   const p = await ctx.newPage();
   const found = [];
