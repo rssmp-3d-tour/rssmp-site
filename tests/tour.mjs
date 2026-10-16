@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 12,
-      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 14 };
+  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 17,
+      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 19 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -257,14 +257,14 @@ const openMore = async page => {
         'c-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
       'b-exterior': ['Задняя дверь медицинского салона'],
-      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери'],
+      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
       'c-exterior': ['Задняя дверь медицинского салона'],
-      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери']
+      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
       .filter(title => !titlesByScene[scene]?.has(title))
       .map(title => `${scene}: ${title}`));
-    check('T6e', 'Учебные точки дверей, ступеней, кабин и отдельных сумок присутствуют', missing.length === 0, missing.join('; '));
+    check('T6e', 'Учебные точки дверей, ступеней, кабин, сумок и оборудования салона присутствуют', missing.length === 0, missing.join('; '));
   }
   // Transitions are navigation controls: one click, no description card.
   await page.goto(base + '/tours/#' + EXT);
