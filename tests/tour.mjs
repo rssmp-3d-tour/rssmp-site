@@ -980,6 +980,50 @@ if (HAS_TILES) {
   await context.close();
 }
 
+// T28 sharpness: on a dense phone screen the tiles come from a more detailed level
+{
+  const levels = FIRST_TILES?.levels || [];
+  if (HAS_TILES && levels.length > 1) {
+    const topLevel = async dpr => {
+      const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: dpr });
+      const page = await context.newPage();
+      const seen = new Set(), errors = [];
+      page.on('pageerror', e => errors.push(e.message));
+      page.on('request', r => { const m = r.url().match(TILE_RE); if (m && r.url().includes(FIRST_TILES.base)) seen.add(Number(m[1])); });
+      await page.goto(base + '/tours/');
+      await page.waitForTimeout(3000);
+      await context.close();
+      return [Math.max(-1, ...seen), errors];
+    };
+    const [one, e1] = await topLevel(1), [two, e2] = await topLevel(2);
+    const ok = one >= 0 && two >= one && (two > one || one === levels.length - 1) && e1.length + e2.length === 0;
+    check('T28', 'Чёткость: на плотном экране телефона тайлы берутся с более детального уровня', ok, `плотность 1: ${levels[one]?.width}, плотность 2: ${levels[two]?.width} errors=${[...e1, ...e2]}`);
+  } else check('T28', 'Чёткость на плотном экране (один уровень тайлов — проверка не применяется)', true, 'n/a');
+}
+
+// T29 wheel and touchpad: zoom follows the scroll amount, small touchpad steps zoom only a little
+{
+  const page = await open('/tours/#' + INT);
+  await page.locator('[data-tour-viewer]').scrollIntoViewIfNeeded();
+  const box = await page.locator('[data-tour-viewer] canvas').boundingBox();
+  // A point over the panorama itself, not over a mark.
+  const spot = await page.evaluate(b => [[0.3, 0.7], [0.7, 0.3], [0.5, 0.85], [0.15, 0.5], [0.85, 0.5]].map(([x, y]) => [b.x + b.width * x, b.y + b.height * y]).find(([x, y]) => document.elementFromPoint(x, y)?.tagName === 'CANVAS'), box);
+  // Distance of the marks from the centre shrinks as the view widens.
+  const spread = () => page.evaluate(b => Object.fromEntries([...document.querySelectorAll('.tour-hotspot')].filter(el => !el.hidden).map(el => [el.getAttribute('aria-label'), (el.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)$/) || []).slice(1).map(Number)]).filter(([, p]) => p.length).map(([label, [x, y]]) => [label, Math.hypot(x - b.width / 2, y - b.height / 2)])), box);
+  await page.mouse.move(...spot);
+  const s0 = await spread();
+  for (let i = 0; i < 3; i++) { await page.mouse.wheel(0, 3); await page.waitForTimeout(30); }
+  await page.waitForTimeout(1500);
+  const s1 = await spread();
+  await page.mouse.wheel(0, 100);
+  await page.waitForTimeout(1500);
+  const s2 = await spread();
+  const label = Object.keys(s0).filter(l => l in s1 && l in s2).sort((a, b) => s0[b] - s0[a])[0];
+  const small = label ? 1 - s1[label] / s0[label] : NaN, notch = label ? 1 - s2[label] / s1[label] : NaN;
+  check('T29', 'Колесо и тачпад: масштаб меняется пропорционально прокрутке, мелкие шаги тачпада — плавно', small >= 0 && small < 0.03 && notch > 0.03 && page.errors.length === 0, `тачпад 3×3 px: ${(small * 100).toFixed(1)}%, щелчок колеса: ${(notch * 100).toFixed(1)}% errors=${page.errors}`);
+  await page.context().close();
+}
+
 await browser.close();
 let failed = 0;
 for (const r of results) { if (!r.ok) failed++; console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.id.padEnd(5)} ${r.name}${r.detail ? ' :: ' + r.detail : ''}`); }

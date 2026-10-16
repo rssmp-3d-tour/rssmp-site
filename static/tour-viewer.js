@@ -334,6 +334,19 @@
     }
     return;
   }
+  // Smooth turning: the panorama follows the finger or the mouse with a short easing
+  // and glides a little after release. The engine applies the easing once per frame,
+  // so on 90–144 Hz screens the factor is raised to keep the same feel in time.
+  const INERTIA_60HZ = 0.82;
+  let frameMs = 1000 / 60;
+  const moveInertia = () => reducedMotion() ? 0 : Math.pow(INERTIA_60HZ, Math.min(2, Math.max(0.4, frameMs * 60 / 1000)));
+  // Sharpness: the engine picks the tile level by CSS pixels; on dense screens
+  // (phones, Retina) it is asked for up to two device pixels per CSS pixel.
+  // Data saving and devices with little memory keep the usual level.
+  const tileDensity = () => {
+    if (navigator.connection?.saveData || (navigator.deviceMemory && navigator.deviceMemory <= 2)) return 1;
+    return Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+  };
   let viewer = null;
   try {
     const config = {
@@ -345,17 +358,27 @@
       maxFov: toDegrees(MAX_FOV),
       defaultZoomLvl: zoomOf(DEFAULT_FOV),
       // Прямое управление: перетаскивание мышью или одним пальцем вращает
-      // панораму, обычное колесо меняет масштаб.
-      mousewheel: true,
-      mousewheelCtrlKey: false,
+      // панораму 1:1, колесо и тачпад меняют масштаб (обработчик ниже).
+      mousewheel: false,
       touchmoveTwoFingers: false,
       keyboard: false,
-      moveInertia: !reducedMotion(),
+      moveSpeed: 1,
+      moveInertia: moveInertia(),
       canvasBackground: '#040d0a',
       lang: { loading: 'Загрузка…', loadError: 'Не удалось загрузить панораму', webglError: 'Не удалось запустить 3D-графику', twoFingers: 'Перемещайте панораму двумя пальцами', ctrlZoom: 'Масштаб — Ctrl и колесо мыши' }
     };
     // Tiles: the small preview appears at once, then only the visible parts load at the needed detail.
-    if (tilesMode) config.adapter = [PSV.EquirectangularTilesAdapter, { showErrorTile: false, baseBlur: true }];
+    if (tilesMode) {
+      class SharpTilesAdapter extends PSV.EquirectangularTilesAdapter {
+        __refresh() {
+          const state = this.viewer.state, size = state.size, k = tileDensity();
+          if (k <= 1 || !size) return super.__refresh();
+          state.size = { width: size.width * k, height: size.height * k };
+          try { return super.__refresh(); } finally { state.size = size; }
+        }
+      }
+      config.adapter = [SharpTilesAdapter, { showErrorTile: false, baseBlur: true }];
+    }
     viewer = new PSV.Viewer(config);
   } catch {
     stage.hidden = true;
@@ -615,10 +638,12 @@
     });
   }
   // Marks follow the picture: the engine reports every redraw.
+  // The size comes from the engine (no layout read per frame); styles are written only when they change.
   function updateHotspots() {
     if (!placedHotspots.length) return;
-    const w = root.clientWidth, h = root.clientHeight;
-    for (const { spot, button } of placedHotspots) {
+    const { width: w, height: h } = viewer.state.size || { width: root.clientWidth, height: root.clientHeight };
+    for (const placed of placedHotspots) {
+      const { spot, button } = placed;
       const position = { yaw: spot.yaw, pitch: spot.pitch };
       let point = null;
       if (viewer.dataHelper.isPointVisible(position)) {
@@ -627,9 +652,13 @@
         // Phones: a point under the top row of buttons waits until the panorama is turned.
         else if (compactScenes.matches && point.y < TOP_BAR - 4) point = null;
       }
-      button.hidden = !point;
+      if (button.hidden !== !point) button.hidden = !point;
       if (!point) continue;
-      button.style.transform = `translate(-50%,-50%) translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
+      const transform = `translate(-50%,-50%) translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
+      if (placed.transform !== transform) {
+        button.style.transform = transform;
+        placed.transform = transform;
+      }
       button.classList.toggle('is-flipped', point.x > w * 0.58);
     }
   }
@@ -1041,9 +1070,41 @@
     stopGuide();
     root.classList.add('has-interacted');
   }
-  stage.addEventListener('pointerdown', () => { takeControl(); state.dragging = true; }, true);
+  stage.addEventListener('pointerdown', () => {
+    takeControl();
+    state.dragging = true;
+    // The site's «less motion» setting may have changed since the last drag.
+    viewer.setOption('moveInertia', moveInertia());
+  }, true);
   for (const type of ['pointerup', 'pointercancel']) window.addEventListener(type, () => { state.dragging = false; }, true);
-  stage.addEventListener('wheel', takeControl, { capture: true, passive: true });
+  // Wheel and touchpad zoom in proportion to the scroll: a mouse notch is one
+  // smooth step, a touchpad swipe or pinch zooms gradually instead of jumping.
+  // Over a mark the wheel zooms too instead of scrolling the page.
+  function wheelZoom(event) {
+    takeControl();
+    if (!event.deltaY) return;
+    event.preventDefault();
+    const pixels = event.deltaY * (event.deltaMode === 1 ? 33 : event.deltaMode === 2 ? 400 : 1);
+    const step = Math.max(-8, Math.min(8, -pixels * (event.ctrlKey ? 0.25 : 0.05)));
+    if (viewer.dynamics?.zoom) viewer.dynamics.zoom.step(step, 5);
+    else viewer.zoom(viewer.getZoomLevel() + step);
+  }
+  for (const surface of [stage, hotspotsLayer]) surface?.addEventListener('wheel', wheelZoom, { passive: false });
+  // The screen's frame rate (median of 30 frames) sets the per-frame easing.
+  {
+    const times = [];
+    const tick = now => {
+      times.push(now);
+      if (times.length <= 30) { requestAnimationFrame(tick); return; }
+      const gaps = times.slice(1).map((time, i) => time - times[i]).sort((a, b) => a - b);
+      const median = gaps[gaps.length >> 1];
+      if (median > 4 && median < 40) {
+        frameMs = median;
+        viewer.setOption('moveInertia', moveInertia());
+      }
+    };
+    requestAnimationFrame(tick);
+  }
   // Keys and the zoom buttons move smoothly; repeated presses add up.
   let keyTarget = null;
   function nudge(dYaw, dPitch, dFov) {
