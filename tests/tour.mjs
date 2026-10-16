@@ -238,6 +238,8 @@ const openMore = async page => {
         await page.waitForTimeout(FLIGHT);
         const card = await page.evaluate(() => ({ hidden: document.querySelector('[data-tour-card]').hidden, title: document.querySelector('[data-card-title]').textContent, text: document.querySelector('[data-card-text]').textContent }));
         titlesByScene[scene].add(card.title);
+        // A long turn can outlast FLIGHT with software rendering: wait for the camera to arrive (at most 2 s more).
+        await page.waitForFunction(t => [...document.querySelectorAll('.tour-hotspot')].some(b => !b.hidden && b.getAttribute('aria-label') === t), card.title, { timeout: 2000 }).catch(() => {});
         const visible = await page.evaluate(t => [...document.querySelectorAll('.tour-hotspot')].some(b => !b.hidden && b.getAttribute('aria-label') === t), card.title);
         if (!card.hidden && card.text.length > 20 && label.startsWith(card.title)) opened++; else problems.push(label);
         if (visible) visibleWhenOpened++; else problems.push(`not visible: ${card.title}`);
@@ -641,7 +643,7 @@ const openMore = async page => {
   await page.click('[data-view="exterior"]');
   await sceneReady(page, '#' + EXT);
   const scene = await sceneState(page);
-  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === expected[FIRST] && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
+  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === expected[EXT] && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
   await page.context().close();
 }
 
@@ -948,7 +950,7 @@ if (HAS_TILES) {
   await page.waitForTimeout(500);
   const zoomed = !a.equals(await glShot(page));
   const markers = await page.evaluate(() => [...document.querySelectorAll('.tour-hotspot:not(.is-transition) > span')].map(s => s.textContent).join(','));
-  const infoCount = expected[FIRST] - 1;
+  const infoCount = expected[FIRST] - await page.evaluate(() => document.querySelectorAll('.tour-hotspot.is-transition').length);
   const numbered = markers === Array.from({ length: infoCount }, (_, i) => i + 1).join(',');
   check('T26', 'Цифры во вводной части совпадают с туром; кнопки масштаба; точки пронумерованы', nums[0] === String(Object.keys(expected).length) && nums[1] === String(TOTAL) && zoomed && numbered && page.errors.length === 0, `stats=${nums} zoom=${zoomed} markers=${markers}`);
   await page.context().close();

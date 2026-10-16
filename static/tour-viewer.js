@@ -788,10 +788,11 @@
     const scene = scenes[name], loadId = ++sceneLoadId, intro = firstLoad;
     const walking = root.classList.contains('is-switching');
     const target = view || { yaw: scene.yaw, pitch: scene.pitch, fov: DEFAULT_FOV };
-    // The cabin remembers its entrance, so «Назад» returns there.
+    // The cabin remembers the door the visitor came in through, so «Назад» returns there.
+    // Opened by a link (not by the visitor's move), the cabin has no entrance.
     if (scene.view === 'interior') {
       const from = scenes[state.scene];
-      cabinEntrance = from && state.scene !== name && from.vehicle === scene.vehicle && from.view !== 'interior' ? state.scene : null;
+      cabinEntrance = fromUser && from && state.scene !== name && from.vehicle === scene.vehicle && from.view !== 'interior' ? state.scene : null;
     }
     state.scene = name; state.vehicle = scene.vehicle;
     if (state.gyro) gyroYawOffset = null;
