@@ -109,8 +109,6 @@ TOUR_PANORAMAS = {
     'c-exterior': 'tour-c-exterior.jpg',
     'c-interior': 'tour-c-interior.jpg',
 }
-# Оба автомобиля сняты на станции 9 октября 2026 года (BEGET.md, раздел о панорамах).
-TOUR_SHOT = '9 октября 2026 года'
 DEMO_PANORAMAS = {'tour-exterior-demo.jpg', 'tour-interior-demo.jpg'}
 
 
@@ -237,8 +235,9 @@ def tour_page(mode):
         selector = ('<div class="tour-vehicle-selector" role="tablist" aria-label="Выбор автомобиля"><button type="button" role="tab" id="tour-tab-b" data-vehicle="b" aria-selected="true" aria-controls="tour-viewport"><small>Автомобиль скорой помощи</small><strong>Класс B</strong><span>Выездная бригада</span></button>'
                     '<button type="button" role="tab" id="tour-tab-c" data-vehicle="c" aria-selected="false" aria-controls="tour-viewport" tabindex="-1"><small>Реанимобиль</small><strong>Класс C</strong><span>Специализированная бригада</span></button></div>\n')
         scene_name = VIEW_LABELS['yard'] if TOUR_YARD else 'Автомобиль класса B · сзади'
-        disclaimer = (f'Панорамная съёмка выполнена на территории станции {TOUR_SHOT}. '
-                      'Марки автомобилей, модели оборудования и состав медицинских укладок будут указаны только после подтверждения РССМП.')
+        disclaimer = ''
+    # The demo mode labels its panoramas; the station's own shots need no note.
+    disclaimer_html = f'<p class="tour-disclaimer">{disclaimer}</p>' if disclaimer else ''
     tabs = ''
     for i, view in enumerate(views):
         label = VIEW_LABELS[view]
@@ -283,7 +282,7 @@ def tour_page(mode):
 <section class="tour-points" aria-labelledby="tour-points-title"><h2 id="tour-points-title">Точки на этой сцене</h2><ul data-hotspot-list></ul></section>
 </section>
 <section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами. Значок со стрелкой ведёт в другую сцену: на телефоне первое касание показывает подпись, второе — выполняет переход.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, эффект присутствия (пункт «Эффекты»), ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Эффект присутствия включает звуки двора и салона, звуки дверей и шагов, световые акценты, виброотклик и на телефоне — поворот панорамы движением телефона. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции. На iPhone виброотклик из браузера работает не во всех версиях iOS.</p></div></div>
-<p class="tour-disclaimer">{disclaimer}</p></div></section>
+{disclaimer_html}</div></section>
 </div><link rel="stylesheet" href="/vendor/psv.css"><script src="/vendor/psv.js" defer></script><script src="/tour-viewer.js" defer></script>'''
 
 
