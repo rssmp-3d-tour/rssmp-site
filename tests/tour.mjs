@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': HAS_YARD ? 6 : 5, 'b-interior': HAS_YARD ? 18 : 17,
-      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': HAS_YARD ? 6 : 5, 'c-interior': HAS_YARD ? 20 : 19 };
+  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 7 : 6, 'b-interior': HAS_YARD ? 21 : 20,
+      ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 7 : 6, 'c-interior': HAS_YARD ? 21 : 20 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -231,7 +231,7 @@ const openMore = async page => {
         const transition = await btn.evaluate(button => button.closest('li')?.classList.contains('is-transition'));
         if (transition) {
           transitions++;
-          if (!/Перейти|Выйти|Подойти/.test(label)) problems.push(`transition label: ${label}`);
+          if (!/Перейти|Выйти|Подойти|Войти|Вернуться|Обойти/.test(label)) problems.push(`transition label: ${label}`);
           continue;
         }
         await btn.click();
@@ -253,13 +253,13 @@ const openMore = async page => {
   if (MODE === 'vehicles') {
     const required = {
       ...(HAS_YARD ? {
-        'b-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя'],
-        'c-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя']
+        'b-yard': ['Автомобиль класса B', 'Ступень бокового входа', 'Кабина водителя'],
+        'c-yard': ['Реанимобиль класса C', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
-      'b-exterior': ['Задняя дверь медицинского салона', ...(HAS_YARD ? ['Двор станции'] : [])],
-      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель', 'Задние двери', ...(HAS_YARD ? ['Боковая дверь'] : [])],
-      'c-exterior': ['Задняя дверь медицинского салона', ...(HAS_YARD ? ['Двор станции'] : [])],
-      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель', 'Задние двери', ...(HAS_YARD ? ['Боковая дверь'] : [])]
+      'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором'],
+      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Сумка в нижнем отсеке', 'Аппарат в нижнем отсеке', 'Сейф', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
+      'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон'],
+      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Сейф', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
       .filter(title => !titlesByScene[scene]?.has(title))
@@ -270,7 +270,7 @@ const openMore = async page => {
   // so one click moves to the scene; on touch screens see T6f.
   await page.goto(base + '/tours/#' + EXT);
   await page.waitForTimeout(1500);
-  const enter = page.locator('.tour-hotspot', { hasText: MODE === 'demo' ? 'Автомобиль скорой помощи' : 'Автомобиль класса B' });
+  const enter = page.locator('.tour-hotspot.is-transition', { hasText: /Войти в салон|Перейти в салон/ });
   let transition = 'no visible entry hotspot';
   if (await enter.count() && await enter.isVisible()) {
     // The walk to the door, the dip and the loading take ~1.5 s with software rendering; wait for the scene itself.
@@ -279,13 +279,13 @@ const openMore = async page => {
     await sceneIs('#' + INT);
     const st1 = await sceneState(page);
     const cardAfterEnter = await page.locator('[data-tour-card]').isHidden();
-    const exit = page.locator('[data-hotspot-list] button', { hasText: 'Выйти наружу' });
+    const exit = page.locator('[data-hotspot-list] button', { hasText: /Выйти через задние двери|Выйти наружу/ });
     if (await exit.count()) { await exit.click(); await sceneIs('#' + EXT); }
     const st2 = await sceneState(page);
     const cardAfterExit = await page.locator('[data-tour-card]').isHidden();
     transition = `${st1.hash}->${st2.hash} cards hidden=${cardAfterEnter},${cardAfterExit} errors=${page.errors.length}`;
-    check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: мышью — одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
-  } else check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: мышью — одно нажатие, без карточки', false, transition);
+    check('T6c', 'Переходы «Войти в салон» / «Выйти через задние двери»: мышью — одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
+  } else check('T6c', 'Переходы «Войти в салон» / «Выйти через задние двери»: мышью — одно нажатие, без карточки', false, transition);
   // T6f touch screens: the transition shows only its sign; the first tap shows the action,
   // the second tap moves to the scene. A tap elsewhere hides the action again.
   {
@@ -326,11 +326,38 @@ const openMore = async page => {
     steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
     if (HAS_YARD && await back.isVisible()) { await back.tap(); await sceneReady(phone, '#b-yard').catch(() => {}); }
     steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    const toExt = MODE === 'demo' ? 'Наружу|Выйти наружу' : 'Задние двери|Выйти к задним дверям';
     const expectedSteps = HAS_YARD
-      ? [`#${INT}:Наружу|Выйти наружу`, `#${EXT}:Во двор|Вернуться во двор станции`, '#b-yard:hidden']
-      : [`#${INT}:Наружу|Выйти наружу`, `#${EXT}:hidden`, `#${EXT}:hidden`];
+      ? [`#${INT}:${toExt}`, `#${EXT}:Во двор|Вернуться во двор станции`, '#b-yard:hidden']
+      : [`#${INT}:${toExt}`, `#${EXT}:hidden`, `#${EXT}:hidden`];
     const inside = await phone.evaluate(() => { const r = document.querySelector('[data-tour-viewer]').getBoundingClientRect(), s = document.querySelector('.tour-scenes-toggle').getBoundingClientRect(); return s.left >= r.left && s.right <= r.right; });
-    check('T6g', 'Кнопка «Назад»: из салона наружу, снаружи во двор, во дворе её нет', steps.join(' ') === expectedSteps.join(' ') && inside && phone.errors.length === 0, `${steps.join(' → ')} errors=${phone.errors}`);
+    check('T6g', 'Кнопка «Назад»: из салона к задним дверям, от задних дверей во двор, во дворе её нет', steps.join(' ') === expectedSteps.join(' ') && inside && phone.errors.length === 0, `${steps.join(' → ')} errors=${phone.errors}`);
+    await phone.context().close();
+  }
+  // T6h every door leads where it physically goes: yard — side door into the cabin, rear corner to the
+  // rear doors; rear doors — into the cabin, around the right side to the yard; cabin — side door to the
+  // yard, rear doors outside. «Назад» from the cabin returns through the door the visitor came in.
+  if (HAS_YARD) {
+    const phone = await open('/tours/#b-yard', { viewport: { width: 390, height: 844 }, mobile: true });
+    await sceneReady(phone, '#b-yard');
+    const actions = {};
+    for (const scene of ['b-yard', 'b-exterior', 'b-interior']) {
+      await phone.evaluate(s => { location.hash = s; }, scene);
+      await sceneReady(phone, '#' + scene);
+      actions[scene] = await phone.evaluate(() => [...document.querySelectorAll('[data-hotspot-list] li.is-transition button')].map(b => b.textContent).sort().join(','));
+    }
+    const expectedActions = { 'b-yard': 'Войти в салон,Обойти к задним дверям', 'b-exterior': 'Вернуться во двор,Войти в салон', 'b-interior': 'Выйти через боковую дверь,Выйти через задние двери' };
+    await phone.evaluate(() => { location.hash = 'b-yard'; });
+    await sceneReady(phone, '#b-yard');
+    await phone.locator('[data-hotspot-list] button', { hasText: 'Войти в салон' }).click();
+    await sceneReady(phone, '#b-interior').catch(() => {});
+    const backLabel = await phone.locator('[data-back]').textContent();
+    await phone.locator('[data-back]').tap();
+    await sceneReady(phone, '#b-yard').catch(() => {});
+    const afterBack = await phone.evaluate(() => location.hash);
+    await phone.locator('[data-hotspot-list] button', { hasText: 'Выйти через боковую дверь' }).count();
+    const ok = JSON.stringify(actions) === JSON.stringify(expectedActions) && backLabel === 'Во двор' && afterBack === '#b-yard' && phone.errors.length === 0;
+    check('T6h', 'Двери ведут логично: боковая дверь — двор ⇄ салон, задние двери — задние двери ⇄ салон; «Назад» — через ту дверь, где вошли', ok, `${JSON.stringify(actions)} back from cabin entered by the side door: «${backLabel}» → ${afterBack} errors=${phone.errors}`);
     await phone.context().close();
   }
   // speak button
