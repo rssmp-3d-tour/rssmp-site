@@ -11,7 +11,7 @@ const base = process.argv[2];
 const out = process.argv[3];
 fs.mkdirSync(out, { recursive: true });
 const routes = ['/', '/about/', '/patients/', '/news/', '/tours/', '/gallery/', '/contacts/', '/privacy/', '/404.html'];
-const viewports = [[1920, 1080], [1366, 768], [1024, 768], [768, 1024], [430, 932], [390, 844], [360, 800]];
+const viewports = [[1920, 1080], [1366, 768], [1024, 768], [768, 1024], [844, 390], [430, 932], [390, 844], [360, 800], [320, 568]];
 const shotViewports = new Set(['1366x768', '390x844']);
 const launchArgs = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 const tourPerformanceBudget = {
@@ -33,7 +33,7 @@ async function scrollThrough(page) {
 }
 
 for (const [w, h] of viewports) {
-  const mobile = w < 800;
+  const mobile = w < 800 || h < 500;
   const context = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, isMobile: mobile, hasTouch: mobile, locale: 'ru-RU' });
   for (const route of routes) {
     const page = await context.newPage();
