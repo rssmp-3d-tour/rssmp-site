@@ -491,9 +491,10 @@
     if (!backButton || !scene) return;
     const prefix = state.scene.split('-')[0];
     let name = null;
-    if (scene.view === 'interior') name = cabinEntrance && own(scenes, cabinEntrance) ? cabinEntrance : `${prefix}-exterior`;
+    if (scene.view === 'interior') name = cabinEntrance && tourNames.has(cabinEntrance) ? cabinEntrance : `${prefix}-exterior`;
     else if (scene.view === 'exterior') name = `${prefix}-yard`;
-    backScene = name && own(scenes, name) ? name : null;
+    // Only scenes of this tour: without yard panoramas there is no way back to the yard.
+    backScene = name && tourNames.has(name) ? name : null;
     backButton.hidden = !backScene;
     root.classList.toggle('has-back', Boolean(backScene));
     if (!backScene) return;
