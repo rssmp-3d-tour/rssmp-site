@@ -1761,9 +1761,6 @@ a[href^="tel:"] {
 .tour-viewport .tour-psv:active {
   cursor: grabbing;
 }
-.tour-psv canvas {
-  transition: filter 0.35s;
-}
 .tour-psv .psv-loader-container,
 .tour-psv .psv-overlay,
 .tour-psv .psv-notification {
@@ -2509,32 +2506,32 @@ a[href^="tel:"] {
   overflow: hidden;
   opacity: 0;
   pointer-events: none;
-  mix-blend-mode: screen;
   transition: opacity 0.35s;
 }
+/* Soft edges come from the gradient itself: no blur filter, blend mode or canvas
+   filter, so the panorama keeps its frame rate while it is turned. */
 .tour-presence i {
   position: absolute;
   top: -15%;
   width: 32%;
   height: 130%;
-  filter: blur(55px);
-  opacity: 0.13;
-  animation: presence-sweep 5.5s ease-in-out infinite alternate;
+  opacity: 0.16;
+  animation: presence-sweep 5.5s ease-in-out infinite alternate paused;
 }
 .tour-presence i:first-child {
   left: -34%;
-  background: #216dff;
+  background: radial-gradient(closest-side, #216dff, #216dff00);
 }
 .tour-presence i:last-child {
   right: -34%;
-  background: #e7372d;
+  background: radial-gradient(closest-side, #e7372d, #e7372d00);
   animation-delay: -2.75s;
 }
 .tour-viewport.presence-on .tour-presence {
   opacity: 1;
 }
-.tour-viewport.presence-on canvas {
-  filter: saturate(1.08) contrast(1.03);
+.tour-viewport.presence-on .tour-presence i {
+  animation-play-state: running;
 }
 
 /* Full screen; iPhone Safari gets a fixed layer over the page */

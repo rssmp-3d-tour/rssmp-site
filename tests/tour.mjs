@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 7 : 6, 'b-interior': HAS_YARD ? 23 : 22,
-      ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 7 : 6, 'c-interior': HAS_YARD ? 22 : 21 };
+  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 9 : 8, 'b-interior': HAS_YARD ? 23 : 22,
+      ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 9 : 8, 'c-interior': HAS_YARD ? 22 : 21 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -258,9 +258,9 @@ const openMore = async page => {
         'b-yard': ['Автомобиль класса B', 'Ступень бокового входа', 'Кабина водителя'],
         'c-yard': ['Реанимобиль класса C', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
-      'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором'],
+      'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором', 'Иммобилизационное оснащение', 'Сиденья медицинского салона'],
       'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Бордовая сумка', 'Чёрная сумка', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Сумка в нижнем отсеке', 'Аппарат в нижнем отсеке', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
-      'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон'],
+      'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон', 'Иммобилизационное оснащение', 'Сиденья медицинского салона'],
       'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
@@ -978,6 +978,50 @@ if (HAS_TILES) {
   const visible = await page.evaluate(t => [...document.querySelectorAll('.tour-hotspot')].some(b => !b.hidden && b.getAttribute('aria-label') === t), title);
   check('T27', 'Уменьшение движения: без анимации камеры, точка сразу в кадре', visible, `title=${title} visible=${visible}`);
   await context.close();
+}
+
+// T28 sharpness: on a dense phone screen the tiles come from a more detailed level
+{
+  const levels = FIRST_TILES?.levels || [];
+  if (HAS_TILES && levels.length > 1) {
+    const topLevel = async dpr => {
+      const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: dpr });
+      const page = await context.newPage();
+      const seen = new Set(), errors = [];
+      page.on('pageerror', e => errors.push(e.message));
+      page.on('request', r => { const m = r.url().match(TILE_RE); if (m && r.url().includes(FIRST_TILES.base)) seen.add(Number(m[1])); });
+      await page.goto(base + '/tours/');
+      await page.waitForTimeout(3000);
+      await context.close();
+      return [Math.max(-1, ...seen), errors];
+    };
+    const [one, e1] = await topLevel(1), [two, e2] = await topLevel(2);
+    const ok = one >= 0 && two >= one && (two > one || one === levels.length - 1) && e1.length + e2.length === 0;
+    check('T28', 'Чёткость: на плотном экране телефона тайлы берутся с более детального уровня', ok, `плотность 1: ${levels[one]?.width}, плотность 2: ${levels[two]?.width} errors=${[...e1, ...e2]}`);
+  } else check('T28', 'Чёткость на плотном экране (один уровень тайлов — проверка не применяется)', true, 'n/a');
+}
+
+// T29 wheel and touchpad: zoom follows the scroll amount, small touchpad steps zoom only a little
+{
+  const page = await open('/tours/#' + INT);
+  await page.locator('[data-tour-viewer]').scrollIntoViewIfNeeded();
+  const box = await page.locator('[data-tour-viewer] canvas').boundingBox();
+  // A point over the panorama itself, not over a mark.
+  const spot = await page.evaluate(b => [[0.3, 0.7], [0.7, 0.3], [0.5, 0.85], [0.15, 0.5], [0.85, 0.5]].map(([x, y]) => [b.x + b.width * x, b.y + b.height * y]).find(([x, y]) => document.elementFromPoint(x, y)?.tagName === 'CANVAS'), box);
+  // Distance of the marks from the centre shrinks as the view widens.
+  const spread = () => page.evaluate(b => Object.fromEntries([...document.querySelectorAll('.tour-hotspot')].filter(el => !el.hidden).map(el => [el.getAttribute('aria-label'), (el.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)$/) || []).slice(1).map(Number)]).filter(([, p]) => p.length).map(([label, [x, y]]) => [label, Math.hypot(x - b.width / 2, y - b.height / 2)])), box);
+  await page.mouse.move(...spot);
+  const s0 = await spread();
+  for (let i = 0; i < 3; i++) { await page.mouse.wheel(0, 3); await page.waitForTimeout(30); }
+  await page.waitForTimeout(1500);
+  const s1 = await spread();
+  await page.mouse.wheel(0, 100);
+  await page.waitForTimeout(1500);
+  const s2 = await spread();
+  const label = Object.keys(s0).filter(l => l in s1 && l in s2).sort((a, b) => s0[b] - s0[a])[0];
+  const small = label ? 1 - s1[label] / s0[label] : NaN, notch = label ? 1 - s2[label] / s1[label] : NaN;
+  check('T29', 'Колесо и тачпад: масштаб меняется пропорционально прокрутке, мелкие шаги тачпада — плавно', small >= 0 && small < 0.03 && notch > 0.03 && page.errors.length === 0, `тачпад 3×3 px: ${(small * 100).toFixed(1)}%, щелчок колеса: ${(notch * 100).toFixed(1)}% errors=${page.errors}`);
+  await page.context().close();
 }
 
 await browser.close();
