@@ -266,7 +266,8 @@ const openMore = async page => {
       .map(title => `${scene}: ${title}`));
     check('T6e', 'Учебные точки дверей, ступеней, кабин, сумок и оборудования салона присутствуют', missing.length === 0, missing.join('; '));
   }
-  // Transitions are navigation controls: one click, no description card.
+  // Transitions are navigation controls without a description card. With a mouse the action shows on hover,
+  // so one click moves to the scene; on touch screens see T6f.
   await page.goto(base + '/tours/#' + EXT);
   await page.waitForTimeout(1500);
   const enter = page.locator('.tour-hotspot', { hasText: MODE === 'demo' ? 'Автомобиль скорой помощи' : 'Автомобиль класса B' });
@@ -283,8 +284,36 @@ const openMore = async page => {
     const st2 = await sceneState(page);
     const cardAfterExit = await page.locator('[data-tour-card]').isHidden();
     transition = `${st1.hash}->${st2.hash} cards hidden=${cardAfterEnter},${cardAfterExit} errors=${page.errors.length}`;
-    check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
-  } else check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: одно нажатие, без карточки', false, transition);
+    check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: мышью — одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
+  } else check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: мышью — одно нажатие, без карточки', false, transition);
+  // T6f touch screens: the transition shows only its sign; the first tap shows the action,
+  // the second tap moves to the scene. A tap elsewhere hides the action again.
+  {
+    const phone = await open('/tours/#' + EXT, { viewport: { width: 390, height: 844 }, mobile: true });
+    await sceneReady(phone, '#' + EXT);
+    const door = phone.locator('.tour-hotspot.is-transition').first();
+    let detail = 'no visible transition sign';
+    let ok = false;
+    if (await door.count() && await door.isVisible()) {
+      const labelShown = () => door.evaluate(b => getComputedStyle(b.querySelector('small')).visibility === 'visible');
+      const before = await labelShown();
+      await door.tap();
+      await phone.waitForTimeout(400);
+      const afterFirst = { hash: await phone.evaluate(() => location.hash), shown: await labelShown(), card: await phone.locator('[data-tour-card]').isHidden() };
+      await phone.locator('[data-tour-viewer]').tap({ position: { x: 20, y: 300 } });
+      await phone.waitForTimeout(300);
+      const hiddenAgain = !(await labelShown());
+      await door.tap();
+      await phone.waitForTimeout(300);
+      await door.tap();
+      await sceneReady(phone, '#' + INT).catch(() => {});
+      const hash = await phone.evaluate(() => location.hash);
+      ok = !before && afterFirst.hash === '#' + EXT && afterFirst.shown && afterFirst.card && hiddenAgain && hash === '#' + INT && await phone.locator('[data-tour-card]').isHidden() && phone.errors.length === 0;
+      detail = `label before=${before} first tap=${JSON.stringify(afterFirst)} hidden after tap elsewhere=${hiddenAgain} second tap -> ${hash} errors=${phone.errors}`;
+    }
+    check('T6f', 'Сенсорный экран: у перехода только значок; первое касание показывает подпись, второе — переходит', ok, detail);
+    await phone.context().close();
+  }
   // speak button
   const speak = await page.evaluate(() => { const b = document.querySelector('[data-card-speak]'); return b && !b.hidden; });
   check('T6d', 'Кнопка «Озвучить» доступна при наличии Speech Synthesis', speak, '');

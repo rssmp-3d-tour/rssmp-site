@@ -195,6 +195,7 @@ ICONS = {
     'close': icon('M6 6l12 12M18 6 6 18'),
     'prev': icon('M15 6l-6 6 6 6'),
     'next': icon('M9 6l6 6-6 6'),
+    'down': icon('M6 9l6 6 6-6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
 TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 56) if TOUR_YARD else (4, 46)}
@@ -258,18 +259,21 @@ def tour_page(mode):
   <p class="tour-sharpen" aria-hidden="true">Загрузка полного качества</p>
   <div class="tour-presence" aria-hidden="true"><i></i><i></i></div>
   <div class="tour-hotspots-layer" data-hotspots></div>
-  <div class="tour-hud-top"><div class="tour-hud-title"><span data-scene-index>01 / {len(views):02d}</span><b data-scene-name>{scene_name}</b></div><div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div></div>
-  <div class="tour-controls">
-    <button type="button" data-more aria-expanded="false" aria-controls="tour-more-menu" aria-label="Дополнительные функции">{ICONS['more']}<span>Ещё</span></button>
-    <div class="tour-more-menu" id="tour-more-menu" data-more-menu role="group" aria-label="Дополнительные функции тура" hidden>
-      <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
-      <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
-      <button type="button" data-gyro aria-pressed="false" hidden>{ICONS['gyro']}<span>Гироскоп</span></button>
-      <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
-    </div>
+  <div class="tour-hud-top">
+    <button type="button" class="tour-scenes-toggle" data-scenes-toggle aria-expanded="false" aria-controls="tour-scene-tabs"><span>Сцены</span><b data-scenes-current>{scene_name}</b>{ICONS['down']}</button>
+    <div class="tour-hud-title"><span data-scene-index>01 / {len(views):02d}</span><b data-scene-name>{scene_name}</b></div>
+    <div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button>
+      <div class="tour-controls">
+        <button type="button" data-more aria-expanded="false" aria-controls="tour-more-menu" aria-label="Дополнительные функции">{ICONS['more']}<span>Ещё</span></button>
+        <div class="tour-more-menu" id="tour-more-menu" data-more-menu role="group" aria-label="Дополнительные функции тура" hidden>
+          <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
+          <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
+          <button type="button" data-gyro aria-pressed="false" hidden>{ICONS['gyro']}<span>Гироскоп</span></button>
+          <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
+        </div>
+      </div><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div>
   </div>
   <div class="tour-zoom" role="group" aria-label="Масштаб"><button type="button" data-zoom="in" aria-label="Приблизить">{ICONS['plus']}</button><button type="button" data-zoom="out" aria-label="Отдалить">{ICONS['minus']}</button></div>
-  <button type="button" class="tour-scenes-toggle" data-scenes-toggle aria-expanded="false" aria-controls="tour-scene-tabs"><span>Сцены</span><b data-scenes-current>{scene_name}</b></button>
   <div class="tour-scene-tabs" id="tour-scene-tabs" role="tablist" aria-label="{"Сцены тура" if TOUR_YARD else "Вид автомобиля"}">{tabs}</div>
   <p class="tour-drag-hint">Мышь или один палец — вращать · колесо или щипок — масштаб</p>
   <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
@@ -278,7 +282,7 @@ def tour_page(mode):
 </div>
 <section class="tour-points" aria-labelledby="tour-points-title"><h2 id="tour-points-title">Точки на этой сцене</h2><ul data-hotspot-list></ul></section>
 </section>
-<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции.</p></div></div>
+<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами. Значок со стрелкой ведёт в другую сцену: на телефоне первое касание показывает подпись, второе — выполняет переход.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции.</p></div></div>
 <p class="tour-disclaimer">{disclaimer}</p></div></section>
 </div><link rel="stylesheet" href="/vendor/psv.css"><script src="/vendor/psv.js" defer></script><script src="/tour-viewer.js" defer></script>'''
 

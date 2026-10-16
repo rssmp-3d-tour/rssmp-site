@@ -1880,10 +1880,10 @@ a[href^="tel:"] {
   font-size: 13px;
 }
 
-/* Controls over the panorama */
+/* Controls over the panorama. The row is above the description card, so its menus open over it. */
 .tour-hud-top {
   position: absolute;
-  z-index: 6;
+  z-index: 9;
   top: 22px;
   left: 24px;
   right: 24px;
@@ -1968,14 +1968,8 @@ a[href^="tel:"] {
   padding: 0;
 }
 .tour-controls {
-  position: absolute;
-  z-index: 6;
-  left: 24px;
-  top: 50%;
-  display: grid;
-  justify-items: start;
-  gap: 8px;
-  transform: translateY(-50%);
+  position: relative;
+  display: flex;
 }
 .tour-controls > [data-more] {
   position: relative;
@@ -1994,8 +1988,8 @@ a[href^="tel:"] {
 }
 .tour-more-menu {
   position: absolute;
-  left: calc(100% + 10px);
-  top: 50%;
+  right: 0;
+  top: calc(100% + 8px);
   display: grid;
   gap: 4px;
   width: 226px;
@@ -2004,8 +1998,7 @@ a[href^="tel:"] {
   border-radius: 14px;
   background: #06130ff2;
   box-shadow: 0 18px 48px #0008;
-  transform: translateY(-50%);
-  transform-origin: left center;
+  transform-origin: right top;
   animation: tour-menu-in 0.18s var(--tour-ease-out) both;
 }
 .tour-more-menu[hidden] {
@@ -2044,14 +2037,12 @@ a[href^="tel:"] {
   border-top-right-radius: 0;
 }
 .tour-scenes-toggle {
-  position: absolute;
-  z-index: 7;
-  right: 12px;
-  bottom: 12px;
+  position: relative;
   display: none;
+  flex: 0 1 auto;
   align-items: center;
   gap: 9px;
-  max-width: calc(100% - 24px);
+  min-width: 0;
   min-height: 42px;
   padding: 0 13px;
   border: 1px solid var(--tour-line-strong);
@@ -2060,10 +2051,22 @@ a[href^="tel:"] {
   color: #fff;
   text-align: left;
   box-shadow: 0 8px 24px #0006;
+  pointer-events: auto;
   transition:
     background 0.14s var(--tour-ease-out),
     border-color 0.14s var(--tour-ease-out),
     transform 0.14s var(--tour-ease-out);
+}
+.tour-scenes-toggle svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: -2px;
+  color: var(--tour-accent);
+  transition: transform 0.18s var(--tour-ease-out);
+}
+.tour-scenes-toggle[aria-expanded="true"] svg {
+  transform: rotate(180deg);
 }
 .tour-scenes-toggle span {
   color: var(--tour-accent);
@@ -2300,10 +2303,51 @@ a[href^="tel:"] {
 .tour-hotspot.is-transition > b {
   display: none;
 }
+.tour-hotspot.is-transition > span {
+  box-shadow:
+    0 0 0 5px #a9d18a40,
+    0 2px 10px #0006;
+}
 .tour-hotspot.is-transition > small {
   border-color: var(--tour-light);
   background: var(--tour-light);
   color: var(--tour-light-ink);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-4px, -50%);
+  transition:
+    opacity 0.18s var(--tour-ease-out),
+    transform 0.18s var(--tour-ease-out),
+    visibility 0s 0.18s;
+}
+.tour-hotspot.is-transition.is-armed > small,
+.tour-hotspot.is-transition:focus-visible > small {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+  transition-delay: 0s;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tour-hotspot.is-transition:hover > small {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(0, -50%);
+    transition-delay: 0s;
+  }
+}
+.tour-hotspot.is-flipped > b,
+.tour-hotspot.is-flipped > small {
+  left: auto;
+  right: calc(100% + 10px);
+}
+.tour-hotspot.is-transition.is-flipped > small {
+  transform: translate(4px, -50%);
+}
+.tour-hotspot.is-transition.is-flipped.is-armed > small,
+.tour-hotspot.is-transition.is-flipped:focus-visible > small {
+  transform: translate(0, -50%);
 }
 
 /* Description card */
@@ -2643,7 +2687,7 @@ a[href^="tel:"] {
 @keyframes tour-menu-in {
   from {
     opacity: 0;
-    transform: translate(-6px, -50%) scale(0.97);
+    transform: translateY(-6px) scale(0.97);
   }
 }
 @keyframes tour-dwell {
@@ -2707,14 +2751,19 @@ a[href^="tel:"] {
   .tour-viewport {
     border-radius: 0;
   }
+  /* Все кнопки — в одном ряду у верхнего края: слева «Сцены», справа «Ещё»,
+     ссылка и полный экран. Название сцены показывает кнопка «Сцены». */
   .tour-hud-top {
-    top: 14px;
-    left: 14px;
-    right: 14px;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    gap: 8px;
   }
-  .tour-hud-title b {
-    font-size: 14px;
-    white-space: normal;
+  .tour-hud-title {
+    display: none;
+  }
+  .tour-hud-actions {
+    margin-left: auto;
   }
   .tour-hud-actions button {
     height: 40px;
@@ -2725,35 +2774,40 @@ a[href^="tel:"] {
     width: 40px;
   }
   .tour-sharpen {
-    left: 14px;
-    top: auto;
-    bottom: 66px;
-  }
-  .tour-controls {
     left: 12px;
+    top: auto;
+    bottom: 12px;
   }
   .tour-controls > [data-more] {
+    width: 40px;
     height: 40px;
     min-width: 40px;
+    padding: 0;
+  }
+  .tour-controls > [data-more] span {
+    display: none;
   }
   .tour-more-menu {
-    left: calc(100% + 8px);
-    width: min(226px, calc(100vw - 76px));
+    width: min(226px, calc(100vw - 40px));
   }
   .tour-zoom,
   .tour-drag-hint {
     display: none;
   }
   .tour-scene-tabs {
-    left: auto;
-    right: 12px;
-    bottom: 62px;
+    left: 12px;
+    right: auto;
+    top: 60px;
+    bottom: auto;
     display: none;
     grid-template-columns: 1fr;
     width: min(270px, calc(100% - 24px));
+    z-index: 9;
+    max-height: calc(100% - 72px);
+    overflow: auto;
     padding: 6px;
     transform: none;
-    transform-origin: right bottom;
+    transform-origin: left top;
   }
   .tour-scene-tabs.is-open {
     display: grid;
@@ -2767,6 +2821,10 @@ a[href^="tel:"] {
   }
   .tour-scenes-toggle {
     display: inline-flex;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 10px 0 12px;
+    gap: 7px;
   }
   .tour-thumb {
     width: 56px;
@@ -2775,20 +2833,32 @@ a[href^="tel:"] {
   .tour-vr-status {
     top: 70px;
   }
+  /* Карточка — снизу, во всю ширину; кнопки верхнего ряда остаются видны. */
   .tour-info-card {
-    left: 12px;
-    right: 12px;
+    left: 10px;
+    right: 10px;
     top: auto;
-    bottom: 84px;
+    bottom: 10px;
     width: auto;
-    max-height: calc(100% - 160px);
-    padding: 16px 18px 18px;
+    max-height: calc(100% - 66px);
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+  .tour-card-head {
+    margin-bottom: 4px;
   }
   .tour-info-card h2 {
-    font-size: 22px;
+    margin-bottom: 8px;
+    font-size: 19px;
+    line-height: 1.2;
   }
   .tour-info-card p {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .tour-card-actions button {
+    min-height: 36px;
   }
   .tour-points {
     grid-template-columns: 1fr;
@@ -2823,9 +2893,30 @@ a[href^="tel:"] {
     font-size: 12px;
   }
 }
+@media (max-height: 520px) and (pointer: coarse) and (min-width: 560px) {
+  .tour-info-card {
+    left: auto;
+    width: min(360px, 48%);
+    top: 60px;
+    max-height: none;
+  }
+}
+@media (max-width: 800px) {
+  .tour-viewport {
+    height: clamp(420px, 72vh, 720px);
+    height: clamp(420px, 72svh, 720px);
+  }
+}
 @media (max-width: 430px) {
-  .tour-vehicle-selector {
-    grid-template-columns: 1fr;
+  .tour-vehicle-selector button {
+    padding: 10px 12px;
+  }
+  .tour-vehicle-selector button small {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+  .tour-vehicle-selector button strong {
+    font-size: 19px;
   }
   .tour-vehicle-selector button span {
     display: none;
@@ -2856,7 +2947,7 @@ a[href^="tel:"] {
 @keyframes tour-scenes-in {
   from {
     opacity: 0;
-    transform: translateY(6px) scale(0.97);
+    transform: translateY(-6px) scale(0.97);
   }
 }
 
