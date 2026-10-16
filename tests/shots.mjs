@@ -3,7 +3,13 @@ import { chromium } from 'playwright';
 const [base, out] = process.argv.slice(2);
 const args = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 const b = await chromium.launch({ args });
-for (const [w, h, mobile] of [[1366, 768, false], [1920, 1080, false], [390, 844, true]]) {
+for (const [w, h, mobile] of [
+  [1366, 768, false],
+  [1920, 1080, false],
+  [768, 1024, true],
+  [390, 844, true],
+  [844, 390, true],
+]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: mobile, hasTouch: mobile, deviceScaleFactor: 1 });
   const p = await ctx.newPage();
   const errors = [];
@@ -17,7 +23,9 @@ for (const [w, h, mobile] of [[1366, 768, false], [1920, 1080, false], [390, 844
   await p.waitForTimeout(1500);
   await p.locator('[data-tour-viewer]').screenshot({ path: `${out}/card-${w}.png` });
   await p.keyboard.press('Escape');
-  await p.click('[data-view="interior"]');
+  const scenesToggle = p.locator('[data-scenes-toggle]');
+  if (await scenesToggle.isVisible()) await scenesToggle.click();
+  await p.locator('[data-view="interior"]').click();
   await p.waitForTimeout(1600);
   await p.locator('[data-tour-viewer]').hover();
   await p.locator('[data-tour-viewer]').screenshot({ path: `${out}/interior-${w}.png` });

@@ -622,19 +622,38 @@ const openMore = async page => {
 // T19 mobile layout: no horizontal scroll, controls reachable
 {
   const res = [];
-  for (const [w, h] of [[360, 800], [390, 844], [430, 932], [768, 1024], [1024, 768]]) {
-    const page = await open('/tours/', { viewport: { width: w, height: h }, mobile: w < 800 });
+  for (const [w, h] of [[320, 568], [360, 800], [390, 844], [430, 932], [768, 1024], [844, 390], [1024, 768]]) {
+    const compact = w <= 800 || h <= 520;
+    const page = await open('/tours/', { viewport: { width: w, height: h }, mobile: compact });
+    const tabsInitiallyHidden = await page.locator('.tour-scene-tabs').isHidden();
+    if (compact) await page.click('[data-scenes-toggle]');
     const m = await page.evaluate(() => {
       const root = document.querySelector('[data-tour-viewer]').getBoundingClientRect();
       const inside = sel => { const r = document.querySelector(sel).getBoundingClientRect(); return r.left >= root.left - 1 && r.right <= root.right + 1 && r.top >= root.top - 1 && r.bottom <= root.bottom + 1; };
       const tabs = document.querySelector('.tour-scene-tabs').getBoundingClientRect(), hint = document.querySelector('.tour-drag-hint').getBoundingClientRect();
       const overlap = hint.width > 0 && !(hint.right < tabs.left || hint.left > tabs.right || hint.bottom < tabs.top || hint.top > tabs.bottom);
-      return { overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, tabs: inside('.tour-scene-tabs'), controls: inside('.tour-controls'), hud: inside('.tour-hud-actions'), overlap };
+      return { overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, tabs: inside('.tour-scene-tabs'), scenes: inside('.tour-scenes-toggle'), controls: inside('.tour-controls'), hud: inside('.tour-hud-actions'), overlap };
     });
-    res.push(`${w}:${!m.overflow && m.tabs && m.controls && m.hud && !m.overlap ? 'ok' : JSON.stringify(m)}`);
+    const scenesOk = compact ? tabsInitiallyHidden && m.scenes && await page.getAttribute('[data-scenes-toggle]', 'aria-expanded') === 'true' : !tabsInitiallyHidden;
+    res.push(`${w}:${!m.overflow && m.tabs && m.controls && m.hud && !m.overlap && scenesOk ? 'ok' : JSON.stringify({ ...m, tabsInitiallyHidden, scenesOk })}`);
     await page.context().close();
   }
-  check('T19', 'Тур на 360–1024 px: без горизонтального скролла, элементы внутри окна, подсказка не перекрыта', res.every(r => r.endsWith('ok')), res.join(' '));
+  check('T19', 'Тур на 320–1024 px и в альбомной ориентации: без горизонтального скролла; сцены раскрываются кнопкой', res.every(r => r.endsWith('ok')), res.join(' '));
+}
+
+// T19b compact scene picker updates the scene and closes after selection
+{
+  const page = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
+  await page.click('[data-scenes-toggle]');
+  await page.click('[data-view="interior"]');
+  await sceneReady(page, '#' + INT);
+  const state = await page.evaluate(() => [
+    document.querySelector('[data-scenes-toggle]').getAttribute('aria-expanded'),
+    document.querySelector('[data-scenes-current]').textContent,
+    getComputedStyle(document.querySelector('.tour-scene-tabs')).display
+  ]);
+  check('T19b', 'Компактный выбор сцен: переход выполняется, меню закрывается, подпись обновляется', state[0] === 'false' && state[1] === 'Салон' && state[2] === 'none' && page.errors.length === 0, `${state} errors=${page.errors}`);
+  await page.context().close();
 }
 
 // T20 honest presentation of the mode and the presence effect label

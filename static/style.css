@@ -2043,6 +2043,55 @@ a[href^="tel:"] {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+.tour-scenes-toggle {
+  position: absolute;
+  z-index: 7;
+  right: 12px;
+  bottom: 12px;
+  display: none;
+  align-items: center;
+  gap: 9px;
+  max-width: calc(100% - 24px);
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--tour-line-strong);
+  border-radius: 10px;
+  background: #06130ff2;
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 8px 24px #0006;
+  transition:
+    background 0.14s var(--tour-ease-out),
+    border-color 0.14s var(--tour-ease-out),
+    transform 0.14s var(--tour-ease-out);
+}
+.tour-scenes-toggle span {
+  color: var(--tour-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tour-scenes-toggle b {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tour-scenes-toggle:focus-visible {
+  border-color: #ffffff66;
+  background: #10362a;
+}
+.tour-scenes-toggle:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tour-scenes-toggle:hover {
+    border-color: #ffffff66;
+    background: #10362a;
+  }
+}
 .tour-scene-tabs {
   position: absolute;
   z-index: 6;
@@ -2617,7 +2666,7 @@ a[href^="tel:"] {
     display: none;
   }
 }
-@media (max-width: 800px) {
+@media (max-width: 800px), (max-height: 520px) and (pointer: coarse) {
   .tour-intro {
     padding: 18px 0 14px;
   }
@@ -2678,7 +2727,7 @@ a[href^="tel:"] {
   .tour-sharpen {
     left: 14px;
     top: auto;
-    bottom: 92px;
+    bottom: 66px;
   }
   .tour-controls {
     left: 12px;
@@ -2696,16 +2745,28 @@ a[href^="tel:"] {
     display: none;
   }
   .tour-scene-tabs {
-    left: 12px;
+    left: auto;
     right: 12px;
-    bottom: 12px;
+    bottom: 62px;
+    display: none;
+    grid-template-columns: 1fr;
+    width: min(270px, calc(100% - 24px));
+    padding: 6px;
     transform: none;
+    transform-origin: right bottom;
+  }
+  .tour-scene-tabs.is-open {
+    display: grid;
+    animation: tour-scenes-in 0.18s var(--tour-ease-out) both;
   }
   .tour-scene-tabs button {
-    flex: 1;
+    width: 100%;
     min-width: 0;
-    padding-right: 10px;
+    padding: 6px 12px 6px 6px;
     font-size: 13px;
+  }
+  .tour-scenes-toggle {
+    display: inline-flex;
   }
   .tour-thumb {
     width: 56px;
@@ -2781,11 +2842,21 @@ a[href^="tel:"] {
     animation-name: tour-menu-fade;
     animation-duration: 0.12s;
   }
+  .tour-scene-tabs.is-open {
+    animation-name: tour-menu-fade;
+    animation-duration: 0.12s;
+  }
 }
 
 @keyframes tour-menu-fade {
   from {
     opacity: 0;
+  }
+}
+@keyframes tour-scenes-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
   }
 }
 
