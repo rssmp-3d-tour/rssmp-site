@@ -109,8 +109,6 @@ TOUR_PANORAMAS = {
     'c-exterior': 'tour-c-exterior.jpg',
     'c-interior': 'tour-c-interior.jpg',
 }
-# Оба автомобиля сняты на станции 9 октября 2026 года (BEGET.md, раздел о панорамах).
-TOUR_SHOT = '9 октября 2026 года'
 DEMO_PANORAMAS = {'tour-exterior-demo.jpg', 'tour-interior-demo.jpg'}
 
 
@@ -142,11 +140,11 @@ def tour_mode():
 
 
 TOUR_MODE = tour_mode()
-VIEW_LABELS = {'yard': 'Двор станции', 'exterior': 'Снаружи', 'interior': 'Салон'}
+VIEW_LABELS = {'yard': 'Двор станции', 'exterior': 'Снаружи' if TOUR_MODE == 'demo' else 'Сзади', 'interior': 'Салон'}
 # Сцены автомобиля по порядку обхода; двор — если его панорама задана у обоих классов.
 TOUR_YARD = TOUR_MODE == 'vehicles' and {'b-yard', 'c-yard'} <= TOUR_PANORAMAS.keys()
 TOUR_VIEWS = (['yard'] if TOUR_YARD else []) + ['exterior', 'interior']
-TOUR_SCOPE = 'двор станции, вид снаружи, медицинский салон' if TOUR_YARD else 'внешний вид и медицинский салон'
+TOUR_SCOPE = 'двор станции, вид сзади и медицинский салон' if TOUR_YARD else 'вид сзади и медицинский салон'
 TOUR_SUMMARY = {'demo': 'Демонстрационный обзор: внешний вид и медицинский салон',
                 'vehicles': f'Классы B и C: {TOUR_SCOPE}'}[TOUR_MODE]
 
@@ -198,7 +196,7 @@ ICONS = {
     'down': icon('M6 9l6 6 6-6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
-TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 56) if TOUR_YARD else (4, 46)}
+TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 71) if TOUR_YARD else (4, 55)}
 
 
 def plural(n, one, few, many):
@@ -232,13 +230,14 @@ def tour_page(mode):
                       'Описания оборудования публикуются после согласования с РССМП.')
     else:
         intro = ('Выберите автомобиль класса B или C. '
-                 + ('Тур включает двор станции, внешний осмотр и медицинский салон. ' if TOUR_YARD else 'Тур включает внешний осмотр и медицинский салон. ')
+                 + ('Тур включает двор станции, вид сзади и медицинский салон. Войти в салон можно через боковую или задние двери. ' if TOUR_YARD else 'Тур включает вид сзади и медицинский салон. ')
                  + 'Информация об объектах открывается по интерактивным точкам.')
         selector = ('<div class="tour-vehicle-selector" role="tablist" aria-label="Выбор автомобиля"><button type="button" role="tab" id="tour-tab-b" data-vehicle="b" aria-selected="true" aria-controls="tour-viewport"><small>Автомобиль скорой помощи</small><strong>Класс B</strong><span>Выездная бригада</span></button>'
                     '<button type="button" role="tab" id="tour-tab-c" data-vehicle="c" aria-selected="false" aria-controls="tour-viewport" tabindex="-1"><small>Реанимобиль</small><strong>Класс C</strong><span>Специализированная бригада</span></button></div>\n')
-        scene_name = VIEW_LABELS['yard'] if TOUR_YARD else 'Автомобиль класса B · снаружи'
-        disclaimer = (f'Панорамная съёмка выполнена на территории станции {TOUR_SHOT}. '
-                      'Марки автомобилей, модели оборудования и состав медицинских укладок будут указаны только после подтверждения РССМП.')
+        scene_name = VIEW_LABELS['yard'] if TOUR_YARD else 'Автомобиль класса B · сзади'
+        disclaimer = ''
+    # The demo mode labels its panoramas; the station's own shots need no note.
+    disclaimer_html = f'<p class="tour-disclaimer">{disclaimer}</p>' if disclaimer else ''
     tabs = ''
     for i, view in enumerate(views):
         label = VIEW_LABELS[view]
@@ -260,6 +259,7 @@ def tour_page(mode):
   <div class="tour-presence" aria-hidden="true"><i></i><i></i></div>
   <div class="tour-hotspots-layer" data-hotspots></div>
   <div class="tour-hud-top">
+    <button type="button" class="tour-back" data-back hidden>{ICONS['prev']}<span data-back-label>Назад</span></button>
     <button type="button" class="tour-scenes-toggle" data-scenes-toggle aria-expanded="false" aria-controls="tour-scene-tabs"><span>Сцены</span><b data-scenes-current>{scene_name}</b>{ICONS['down']}</button>
     <div class="tour-hud-title"><span data-scene-index>01 / {len(views):02d}</span><b data-scene-name>{scene_name}</b></div>
     <div class="tour-hud-actions"><button type="button" data-vr hidden>Войти в VR</button>
@@ -268,8 +268,7 @@ def tour_page(mode):
         <div class="tour-more-menu" id="tour-more-menu" data-more-menu role="group" aria-label="Дополнительные функции тура" hidden>
           <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
           <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
-          <button type="button" data-gyro aria-pressed="false" hidden>{ICONS['gyro']}<span>Гироскоп</span></button>
-          <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
+          <button type="button" data-presence aria-pressed="false" aria-label="Эффект присутствия: звук, свет, вибрация и гироскоп" title="Эффект присутствия: звук, световые акценты, виброотклик и на телефоне — поворот панорамы движением телефона">{ICONS['presence']}<span>Эффекты</span></button>
         </div>
       </div><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div>
   </div>
@@ -282,8 +281,8 @@ def tour_page(mode):
 </div>
 <section class="tour-points" aria-labelledby="tour-points-title"><h2 id="tour-points-title">Точки на этой сцене</h2><ul data-hotspot-list></ul></section>
 </section>
-<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами. Значок со стрелкой ведёт в другую сцену: на телефоне первое касание показывает подпись, второе — выполняет переход.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции.</p></div></div>
-<p class="tour-disclaimer">{disclaimer}</p></div></section>
+<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами. Значок со стрелкой ведёт в другую сцену: на телефоне первое касание показывает подпись, второе — выполняет переход.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, эффект присутствия (пункт «Эффекты»), ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Эффект присутствия включает звуки двора и салона, звуки дверей и шагов, световые акценты, виброотклик и на телефоне — поворот панорамы движением телефона. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции. На iPhone виброотклик из браузера работает не во всех версиях iOS.</p></div></div>
+{disclaimer_html}</div></section>
 </div><link rel="stylesheet" href="/vendor/psv.css"><script src="/vendor/psv.js" defer></script><script src="/tour-viewer.js" defer></script>'''
 
 

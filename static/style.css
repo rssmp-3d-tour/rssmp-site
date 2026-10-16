@@ -2057,6 +2057,42 @@ a[href^="tel:"] {
     border-color 0.14s var(--tour-ease-out),
     transform 0.14s var(--tour-ease-out);
 }
+.tour-back {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: 42px;
+  padding: 0 14px 0 8px;
+  border: 1px solid var(--tour-line-strong);
+  border-radius: 10px;
+  background: var(--tour-overlay);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: auto;
+  transition:
+    background 0.14s var(--tour-ease-out),
+    border-color 0.14s var(--tour-ease-out),
+    transform 0.14s var(--tour-ease-out);
+}
+.tour-back[hidden] {
+  display: none;
+}
+.tour-back:focus-visible {
+  border-color: #ffffff66;
+  background: #10362a;
+}
+.tour-back:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tour-back:hover {
+    border-color: #ffffff66;
+    background: #10362a;
+  }
+}
 .tour-scenes-toggle svg {
   flex: none;
   width: 16px;
@@ -2826,6 +2862,10 @@ a[href^="tel:"] {
     padding: 0 10px 0 12px;
     gap: 7px;
   }
+  .tour-back {
+    height: 40px;
+    padding: 0 12px 0 6px;
+  }
   .tour-thumb {
     width: 56px;
     height: 36px;
@@ -2908,6 +2948,10 @@ a[href^="tel:"] {
   }
 }
 @media (max-width: 430px) {
+  /* With «Назад» in the row the scene button shows only the scene name. */
+  .tour-viewport.has-back .tour-scenes-toggle span {
+    display: none;
+  }
   .tour-vehicle-selector button {
     padding: 10px 12px;
   }
@@ -2922,6 +2966,39 @@ a[href^="tel:"] {
     display: none;
   }
   .tour-facts {
+    display: none;
+  }
+}
+@media (max-width: 370px) {
+  .tour-hud-top {
+    left: 10px;
+    right: 10px;
+    gap: 6px;
+  }
+  .tour-hud-actions {
+    gap: 6px;
+  }
+  .tour-hud-actions button,
+  .tour-hud-actions [data-share],
+  .tour-hud-actions [data-fullscreen],
+  .tour-controls > [data-more],
+  .tour-scenes-toggle {
+    height: 38px;
+    min-height: 38px;
+  }
+  .tour-hud-actions [data-share],
+  .tour-hud-actions [data-fullscreen],
+  .tour-controls > [data-more] {
+    width: 38px;
+    min-width: 38px;
+  }
+  .tour-back {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+  .tour-back span {
     display: none;
   }
 }

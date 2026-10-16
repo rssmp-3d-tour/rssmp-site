@@ -20,8 +20,8 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 5 } : {}), 'b-exterior': 5, 'b-interior': 17,
-      ...(HAS_YARD ? { 'c-yard': 5 } : {}), 'c-exterior': 5, 'c-interior': 19 };
+  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 7 : 6, 'b-interior': HAS_YARD ? 23 : 22,
+      ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 7 : 6, 'c-interior': HAS_YARD ? 22 : 21 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
 // The scene the tour opens with: the yard when the tour has it, otherwise the exterior.
@@ -231,13 +231,15 @@ const openMore = async page => {
         const transition = await btn.evaluate(button => button.closest('li')?.classList.contains('is-transition'));
         if (transition) {
           transitions++;
-          if (!/Перейти|Выйти|Подойти/.test(label)) problems.push(`transition label: ${label}`);
+          if (!/Перейти|Выйти|Подойти|Войти|Вернуться|Обойти/.test(label)) problems.push(`transition label: ${label}`);
           continue;
         }
         await btn.click();
         await page.waitForTimeout(FLIGHT);
         const card = await page.evaluate(() => ({ hidden: document.querySelector('[data-tour-card]').hidden, title: document.querySelector('[data-card-title]').textContent, text: document.querySelector('[data-card-text]').textContent }));
         titlesByScene[scene].add(card.title);
+        // A long turn can outlast FLIGHT with software rendering: wait for the camera to arrive (at most 2 s more).
+        await page.waitForFunction(t => [...document.querySelectorAll('.tour-hotspot')].some(b => !b.hidden && b.getAttribute('aria-label') === t), card.title, { timeout: 2000 }).catch(() => {});
         const visible = await page.evaluate(t => [...document.querySelectorAll('.tour-hotspot')].some(b => !b.hidden && b.getAttribute('aria-label') === t), card.title);
         if (!card.hidden && card.text.length > 20 && label.startsWith(card.title)) opened++; else problems.push(label);
         if (visible) visibleWhenOpened++; else problems.push(`not visible: ${card.title}`);
@@ -253,13 +255,13 @@ const openMore = async page => {
   if (MODE === 'vehicles') {
     const required = {
       ...(HAS_YARD ? {
-        'b-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя'],
-        'c-yard': ['Боковая дверь медицинского салона', 'Ступень бокового входа', 'Кабина водителя']
+        'b-yard': ['Автомобиль класса B', 'Ступень бокового входа', 'Кабина водителя'],
+        'c-yard': ['Реанимобиль класса C', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
-      'b-exterior': ['Задняя дверь медицинского салона'],
-      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Дополнительная сумка оснащения', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
-      'c-exterior': ['Задняя дверь медицинского салона'],
-      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
+      'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором'],
+      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Бордовая сумка', 'Чёрная сумка', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Сумка в нижнем отсеке', 'Аппарат в нижнем отсеке', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
+      'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон'],
+      'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
     const missing = Object.entries(required).flatMap(([scene, titles]) => titles
       .filter(title => !titlesByScene[scene]?.has(title))
@@ -270,7 +272,7 @@ const openMore = async page => {
   // so one click moves to the scene; on touch screens see T6f.
   await page.goto(base + '/tours/#' + EXT);
   await page.waitForTimeout(1500);
-  const enter = page.locator('.tour-hotspot', { hasText: MODE === 'demo' ? 'Автомобиль скорой помощи' : 'Автомобиль класса B' });
+  const enter = page.locator('.tour-hotspot.is-transition', { hasText: /Войти в салон|Перейти в салон/ });
   let transition = 'no visible entry hotspot';
   if (await enter.count() && await enter.isVisible()) {
     // The walk to the door, the dip and the loading take ~1.5 s with software rendering; wait for the scene itself.
@@ -279,13 +281,13 @@ const openMore = async page => {
     await sceneIs('#' + INT);
     const st1 = await sceneState(page);
     const cardAfterEnter = await page.locator('[data-tour-card]').isHidden();
-    const exit = page.locator('[data-hotspot-list] button', { hasText: 'Выйти наружу' });
+    const exit = page.locator('[data-hotspot-list] button', { hasText: /Выйти через задние двери|Выйти наружу/ });
     if (await exit.count()) { await exit.click(); await sceneIs('#' + EXT); }
     const st2 = await sceneState(page);
     const cardAfterExit = await page.locator('[data-tour-card]').isHidden();
     transition = `${st1.hash}->${st2.hash} cards hidden=${cardAfterEnter},${cardAfterExit} errors=${page.errors.length}`;
-    check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: мышью — одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
-  } else check('T6c', 'Переходы «Перейти в салон» / «Выйти наружу»: мышью — одно нажатие, без карточки', false, transition);
+    check('T6c', 'Переходы «Войти в салон» / «Выйти через задние двери»: мышью — одно нажатие, без карточки', st1.hash === '#' + INT && st2.hash === '#' + EXT && cardAfterEnter && cardAfterExit && page.errors.length === 0, transition);
+  } else check('T6c', 'Переходы «Войти в салон» / «Выйти через задние двери»: мышью — одно нажатие, без карточки', false, transition);
   // T6f touch screens: the transition shows only its sign; the first tap shows the action,
   // the second tap moves to the scene. A tap elsewhere hides the action again.
   {
@@ -312,6 +314,52 @@ const openMore = async page => {
       detail = `label before=${before} first tap=${JSON.stringify(afterFirst)} hidden after tap elsewhere=${hiddenAgain} second tap -> ${hash} errors=${phone.errors}`;
     }
     check('T6f', 'Сенсорный экран: у перехода только значок; первое касание показывает подпись, второе — переходит', ok, detail);
+    await phone.context().close();
+  }
+  // T6g «Назад» in the top row: one step out — from the cabin to the outside view, from there to the yard.
+  {
+    const phone = await open('/tours/#' + INT, { viewport: { width: 390, height: 844 }, mobile: true });
+    await sceneReady(phone, '#' + INT);
+    const back = phone.locator('[data-back]');
+    const steps = [];
+    const label = async () => (await back.isVisible()) ? `${await back.textContent()}|${await back.getAttribute('aria-label')}` : 'hidden';
+    steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    if (await back.isVisible()) { await back.tap(); await sceneReady(phone, '#' + EXT).catch(() => {}); }
+    steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    if (HAS_YARD && await back.isVisible()) { await back.tap(); await sceneReady(phone, '#b-yard').catch(() => {}); }
+    steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
+    const toExt = MODE === 'demo' ? 'Наружу|Выйти наружу' : 'Сзади|Выйти к задним дверям';
+    const expectedSteps = HAS_YARD
+      ? [`#${INT}:${toExt}`, `#${EXT}:Во двор|Вернуться во двор станции`, '#b-yard:hidden']
+      : [`#${INT}:${toExt}`, `#${EXT}:hidden`, `#${EXT}:hidden`];
+    const inside = await phone.evaluate(() => { const r = document.querySelector('[data-tour-viewer]').getBoundingClientRect(), s = document.querySelector('.tour-scenes-toggle').getBoundingClientRect(); return s.left >= r.left && s.right <= r.right; });
+    check('T6g', 'Кнопка «Назад»: из салона к задним дверям, от задних дверей во двор, во дворе её нет', steps.join(' ') === expectedSteps.join(' ') && inside && phone.errors.length === 0, `${steps.join(' → ')} errors=${phone.errors}`);
+    await phone.context().close();
+  }
+  // T6h every door leads where it physically goes: yard — side door into the cabin, rear corner to the
+  // rear doors; rear doors — into the cabin, around the right side to the yard; cabin — side door to the
+  // yard, rear doors outside. «Назад» from the cabin returns through the door the visitor came in.
+  if (HAS_YARD) {
+    const phone = await open('/tours/#b-yard', { viewport: { width: 390, height: 844 }, mobile: true });
+    await sceneReady(phone, '#b-yard');
+    const actions = {};
+    for (const scene of ['b-yard', 'b-exterior', 'b-interior']) {
+      await phone.evaluate(s => { location.hash = s; }, scene);
+      await sceneReady(phone, '#' + scene);
+      actions[scene] = await phone.evaluate(() => [...document.querySelectorAll('[data-hotspot-list] li.is-transition button')].map(b => b.textContent).sort().join(','));
+    }
+    const expectedActions = { 'b-yard': 'Войти в салон,Обойти к задним дверям', 'b-exterior': 'Вернуться во двор,Войти в салон', 'b-interior': 'Выйти через боковую дверь,Выйти через задние двери' };
+    await phone.evaluate(() => { location.hash = 'b-yard'; });
+    await sceneReady(phone, '#b-yard');
+    await phone.locator('[data-hotspot-list] button', { hasText: 'Войти в салон' }).click();
+    await sceneReady(phone, '#b-interior').catch(() => {});
+    const backLabel = await phone.locator('[data-back]').textContent();
+    await phone.locator('[data-back]').tap();
+    await sceneReady(phone, '#b-yard').catch(() => {});
+    const afterBack = await phone.evaluate(() => location.hash);
+    await phone.locator('[data-hotspot-list] button', { hasText: 'Выйти через боковую дверь' }).count();
+    const ok = JSON.stringify(actions) === JSON.stringify(expectedActions) && backLabel === 'Во двор' && afterBack === '#b-yard' && phone.errors.length === 0;
+    check('T6h', 'Двери ведут логично: боковая дверь — двор ⇄ салон, задние двери — задние двери ⇄ салон; «Назад» — через ту дверь, где вошли', ok, `${JSON.stringify(actions)} back from cabin entered by the side door: «${backLabel}» → ${afterBack} errors=${phone.errors}`);
     await phone.context().close();
   }
   // speak button
@@ -414,6 +462,11 @@ const openMore = async page => {
   await page.waitForTimeout(500);
   const on = await page.evaluate(() => [document.querySelector('[data-presence]').getAttribute('aria-pressed'), document.querySelector('[data-tour-viewer]').classList.contains('presence-on')]);
   const s1 = await audioState();
+  // A move with the effect on plays the door sound and switches the sound to the cabin.
+  await page.click('[data-view="interior"]');
+  await sceneReady(page, '#' + INT).catch(() => {});
+  const moved = await audioState();
+  await openMore(page);
   await page.click('[data-presence]');
   await page.waitForTimeout(700);
   const s2 = await audioState();
@@ -425,30 +478,33 @@ const openMore = async page => {
   await page.waitForTimeout(800);
   const hiddenState = await audioState();
   const contexts = await page.evaluate(() => window.__audio.length);
-  check('T10a', 'Эффект присутствия: включение (aria-pressed, свет) и запуск звука', on[0] === 'true' && on[1] && s1 === 'running', `pressed=${on} audio=${s1}`);
+  check('T10a', 'Эффект присутствия: включение (aria-pressed, свет), запуск звука, переход со звуком двери', on[0] === 'true' && on[1] && s1 === 'running' && moved === 'running' && page.errors.length === 0, `pressed=${on} audio=${s1} after move=${moved} errors=${page.errors}`);
   check('T10b', 'Эффект присутствия: выключение останавливает звук', s2 === 'suspended', `audio=${s2}`);
   check('T10c', 'Эффект присутствия: 7 быстрых нажатий — состояние согласовано, один AudioContext', rapid[0] === 'true' && rapid[1] && rapid[2] === 'running' && contexts === 1, `${rapid} contexts=${contexts}`);
   check('T10d', 'Эффект присутствия: звук останавливается при уходе вкладки в фон', hiddenState === 'suspended' && page.errors.length === 0, `audio=${hiddenState} errors=${page.errors}`);
   await page.context().close();
 }
 
-// T11 gyroscope button only where sensors can exist
+// T11 gyroscope: part of «Эффект присутствия» on touch devices, no separate button
 {
   const desktop = await open('/tours/');
-  const dHidden = await desktop.evaluate(() => document.querySelector('[data-gyro]').hidden);
+  const gyroButtons = await desktop.locator('[data-gyro]').count();
+  await openMore(desktop);
+  await desktop.click('[data-presence]');
+  await desktop.waitForTimeout(1900);
+  const dStatus = await desktop.evaluate(() => document.querySelector('[data-vr-status]').textContent);
   await desktop.context().close();
   const phone = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
-  const pHidden = await phone.evaluate(() => document.querySelector('[data-gyro]').hidden);
-  // Sensor that never sends data → honest message and button returns to off
+  // Sensor that never sends data → honest message; sound and light stay on
   await openMore(phone);
-  await phone.click('[data-gyro]');
+  await phone.click('[data-presence]');
   await phone.waitForTimeout(1900);
-  const msg = await phone.evaluate(() => [document.querySelector('[data-gyro]').getAttribute('aria-pressed'), document.querySelector('[data-vr-status]').textContent]);
+  const msg = await phone.evaluate(() => [document.querySelector('[data-presence]').getAttribute('aria-pressed'), document.querySelector('[data-vr-status]').textContent]);
   await phone.context().close();
   // Sensor data on a fresh page: portrait upright, then landscape upright (beta 0, gamma -90)
   const phone2 = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
   await openMore(phone2);
-  await phone2.click('[data-gyro]');
+  await phone2.click('[data-presence]');
   const res = await phone2.evaluate(async () => {
     const fire = (alpha, beta, gamma) => window.dispatchEvent(Object.assign(new Event('deviceorientation'), { alpha, beta, gamma }));
     const frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
@@ -458,11 +514,11 @@ const openMore = async page => {
     // The same heading held upright in landscape: with beta 0 and gamma -90 the compass angle is alpha 90.
     fire(90, 0, -90); await frames();
     const landscape = visible();
-    return [document.querySelector('[data-gyro]').getAttribute('aria-pressed'), portrait, landscape];
+    return [document.querySelector('[data-presence]').getAttribute('aria-pressed'), portrait, landscape];
   });
-  check('T11a', 'Кнопка «Гироскоп» скрыта на ПК без датчиков, показана на телефоне', dHidden && !pHidden, `desktop hidden=${dHidden} phone hidden=${pHidden}`);
-  check('T11b', 'Гироскоп без данных датчика: честное сообщение, кнопка выключается', msg[0] === 'false' && msg[1].length > 10, `${msg}`);
-  check('T11c', 'Гироскоп: портрет и ландшафт держат взгляд у горизонта (точки видны)', res[0] === 'true' && res[1] > 0 && res[2] > 0 && phone2.errors.length === 0, `pressed=${res[0]} visible portrait=${res[1]} landscape=${res[2]} errors=${phone2.errors}`);
+  check('T11a', 'Гироскоп входит в «Эффект присутствия»: отдельной кнопки нет; на ПК без датчиков эффект включается без сообщений', gyroButtons === 0 && dStatus === '', `gyro buttons=${gyroButtons} desktop status="${dStatus}"`);
+  check('T11b', 'Телефон без данных датчика: честное сообщение, эффект присутствия остаётся включённым', msg[0] === 'true' && /датчик|HTTPS/i.test(msg[1]), `${msg}`);
+  check('T11c', 'Гироскоп в эффекте присутствия: портрет и ландшафт держат взгляд у горизонта (точки видны)', res[0] === 'true' && res[1] > 0 && res[2] > 0 && phone2.errors.length === 0, `pressed=${res[0]} visible portrait=${res[1]} landscape=${res[2]} errors=${phone2.errors}`);
   await phone2.context().close();
 }
 
@@ -595,7 +651,7 @@ const openMore = async page => {
   await page.click('[data-view="exterior"]');
   await sceneReady(page, '#' + EXT);
   const scene = await sceneState(page);
-  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === expected[FIRST] && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
+  check('T16', 'Старая разметка (data-effects, data-sound, без новых блоков) не ломает тур', st[0] === 'true' && st[1] === 'true' && scene.hotspots === expected[EXT] && page.errors.length === 0, `pressed=${st} hotspots=${scene.hotspots} errors=${page.errors}`);
   await page.context().close();
 }
 
@@ -696,10 +752,11 @@ const openMore = async page => {
     else if (/\/assets\/tour-/.test(url)) requested.push(url.split('/').pop().replace(/-preview(?=\.)/, '').replace(/\.[a-z]+$/, ''));
   });
   const text = await page.evaluate(() => document.body.innerText);
-  const presenceLabel = (await page.locator('[data-presence]').textContent()).trim();
+  // The menu item is one word («Эффекты»); its accessible name keeps the mode name.
+  const presenceLabel = `${(await page.locator('[data-presence]').textContent()).trim()}|${await page.getAttribute('[data-presence]', 'aria-label')}`;
   const home = await (await fetch(base + '/')).text();
   const search = await (await fetch(base + '/search-index.json')).text();
-  const common = /^◎?Эффект присутствия$/.test(presenceLabel) && !/5D/.test(text) && !/5D/.test(home) && !/5D/.test(search);
+  const common = /^◎?Эффекты\|Эффект присутствия:/.test(presenceLabel) && !/5D/.test(text) && !/5D/.test(home) && !/5D/.test(search);
   if (MODE === 'demo') {
     const labels = [];
     for (const scene of Object.keys(expected)) {
@@ -902,7 +959,7 @@ if (HAS_TILES) {
   await page.waitForTimeout(500);
   const zoomed = !a.equals(await glShot(page));
   const markers = await page.evaluate(() => [...document.querySelectorAll('.tour-hotspot:not(.is-transition) > span')].map(s => s.textContent).join(','));
-  const infoCount = expected[FIRST] - 1;
+  const infoCount = expected[FIRST] - await page.evaluate(() => document.querySelectorAll('.tour-hotspot.is-transition').length);
   const numbered = markers === Array.from({ length: infoCount }, (_, i) => i + 1).join(',');
   check('T26', 'Цифры во вводной части совпадают с туром; кнопки масштаба; точки пронумерованы', nums[0] === String(Object.keys(expected).length) && nums[1] === String(TOTAL) && zoomed && numbered && page.errors.length === 0, `stats=${nums} zoom=${zoomed} markers=${markers}`);
   await page.context().close();

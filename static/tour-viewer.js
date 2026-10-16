@@ -75,24 +75,27 @@
       pitch: 0.02,
       hotspots: [
         { yaw: 0.2, pitch: 0.27, title: 'Здание станции', text: 'Здание Республиканской станции скорой медицинской помощи в Грозном.' },
-        { yaw: -1.57, pitch: 0.04, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'b-exterior', action: 'Подойти к автомобилю' },
-        { yaw: -1.92, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковая дверь обеспечивает отдельный доступ к рабочей зоне медицинского салона.' },
-        { yaw: -1.92, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень у бокового входа облегчает вход в медицинский салон и выход из него.' },
-        { yaw: -1.4, pitch: 0.01, title: 'Кабина водителя', text: 'Кабина отделена от медицинского салона. Здесь расположены органы управления автомобилем и средствами связи.' }
+        { yaw: -1.57, pitch: 0.04, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Марка, модель и комплектация будут указаны после подтверждения станцией.' },
+        { yaw: -1.4, pitch: 0.01, title: 'Кабина водителя', text: 'Кабина отделена от медицинского салона. Здесь расположены органы управления автомобилем и средствами связи.' },
+        { yaw: -1.78, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень у бокового входа облегчает вход в медицинский салон и выход из него.' },
+        { yaw: -2.16, pitch: 0.0, title: 'Задние двери', text: 'Обойти автомобиль и подойти к задним дверям медицинского салона.', next: 'b-exterior', action: 'Обойти к задним дверям' },
+        { yaw: -1.78, pitch: 0.05, title: 'Боковая дверь медицинского салона', text: 'Войти в медицинский салон через боковую дверь.', next: 'b-interior', action: 'Войти в салон' }
       ]
     },
     'b-exterior': {
       vehicle: 'b', view: 'exterior',
-      title: 'Автомобиль класса B · снаружи',
+      title: 'Автомобиль класса B · сзади',
       image: '/assets/tour-b-exterior.jpg',
       yaw: -1.45,
       pitch: 0.02,
       hotspots: [
-        { yaw: -1.55, pitch: 0.08, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Марка, модель и фактическая комплектация будут указаны после подтверждения станцией.', next: 'b-interior', action: 'Перейти в салон' },
+        { yaw: -1.55, pitch: 0.08, title: 'Медицинский салон', text: 'Войти в медицинский салон через задние двери.', next: 'b-interior', action: 'Войти в салон' },
         { yaw: -1.16, pitch: 0.82, title: 'Светозвуковая сигнализация', text: 'На крыше расположены элементы светозвуковой сигнализации автомобиля скорой медицинской помощи.' },
         { yaw: -1.55, pitch: -0.27, title: 'Доступ в медицинский салон', text: 'Задний вход ведёт в медицинский салон и к зоне размещения носилок.' },
+        { yaw: -1.94, pitch: 0.24, title: 'Баллон с редуктором', text: 'В шкафу у задних дверей закреплён баллон. Сверху видны вентиль баллона и редуктор с манометром, от редуктора отходит шланг. Манометр показывает давление в баллоне, редуктор понижает его до рабочего. Корпус баллона закрыт панелью шкафа: вероятно, это кислородный баллон, как в реанимобиле класса C. Тип газа, объём баллона и модель редуктора будут указаны после подтверждения станцией.' },
         { yaw: -2.42, pitch: 0.25, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -0.62, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' }
+        { yaw: -0.62, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' },
+        { yaw: -0.87, pitch: -0.63, title: 'Двор станции', text: 'Обойти автомобиль справа и вернуться во двор станции, к боковой двери.', next: 'b-yard', action: 'Вернуться во двор' }
       ]
     },
     'b-interior': {
@@ -109,7 +112,11 @@
         { yaw: -1.8, pitch: 0.08, title: 'Медицинская укладка на верхней полке', text: 'Переносная укладка хранится в закреплённой зоне верхней полки.' },
         { yaw: -1.66, pitch: -0.13, title: 'Дополнительная медицинская укладка', text: 'Компактная переносная сумка размещена рядом с основной укладкой.' },
         { yaw: -1.38, pitch: -0.3, title: 'Медицинская укладка у рабочего места', text: 'Переносная сумка расположена под стационарным оборудованием.' },
-        { yaw: -1.15, pitch: -0.21, title: 'Дополнительная сумка оснащения', text: 'Отдельная переносная сумка хранится на открытой полке для быстрого доступа.' },
+        { yaw: -1.57, pitch: -0.42, title: 'Сумка в нижнем отсеке', text: 'Мягкая тёмно-синяя сумка хранится в нижнем отсеке под рабочей полкой.' },
+        { yaw: -1.42, pitch: -0.49, title: 'Аппарат в нижнем отсеке', text: 'Рядом с сумкой стоит переносной аппарат в светлом корпусе с прозрачными трубками. На снимке он частично закрыт ремнём и шлангом, поэтому тип и модель не определить. Назначение будет указано после подтверждения станцией.' },
+        { yaw: -1.2, pitch: -0.63, title: 'Сейф', text: 'Металлический сейф с надписью «SECURITY 11» закреплён в нижнем отсеке у носилок.' },
+        { yaw: -1.134, pitch: -0.297, title: 'Бордовая сумка', text: 'Переносная бордовая сумка стоит на открытой полке для быстрого доступа. Лекарственные препараты и медицинские изделия бригада хранит в укладках и наборах, состав которых утверждает Минздрав России. Какая укладка в этой сумке, будет указано после подтверждения станцией.' },
+        { yaw: -0.977, pitch: -0.183, title: 'Чёрная сумка', text: 'Чёрная сумка с оранжевой молнией лежит на бордовой. Лекарственные препараты и медицинские изделия бригада хранит в укладках и наборах, состав которых утверждает Минздрав России. Какая укладка в этой сумке, будет указано после подтверждения станцией.' },
         { yaw: -1.77, pitch: -0.39, title: 'Укладка на нижней полке', text: 'Крупная мягкая укладка закреплена в нижней зоне стеллажа.' },
         { yaw: 0.37, pitch: -1.05, title: 'Жёсткий ящик у боковой двери', text: 'Жёсткий защитный ящик размещён на полу у боковой двери медицинского салона.' },
         { yaw: -2.77, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
@@ -118,35 +125,40 @@
         { yaw: -1.3, pitch: 0.47, title: 'Аварийный молоток', text: 'Закреплён над рабочим местом. Им разбивают стекло, если выйти из салона через двери невозможно.' },
         { yaw: -1.06, pitch: 0.18, title: 'Электрические розетки', text: 'Розетки 220 В и 12 В на панели рабочего места — для питания медицинского оборудования.' },
         { yaw: -0.4, pitch: -0.7, title: 'Огнетушитель', text: 'Закреплён у кресла медицинского салона. Место отмечено знаком на стене.' },
-        { yaw: 1.96, pitch: -0.27, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру автомобиля класса B.', next: 'b-exterior', action: 'Выйти наружу' }
+        { yaw: -2.13, pitch: -0.02, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
+        { yaw: -2.42, pitch: -0.03, title: 'Задние двери', text: 'Выйти через задние двери к внешнему осмотру автомобиля класса B.', next: 'b-exterior', action: 'Выйти через задние двери' },
+        { yaw: 1.96, pitch: -0.27, title: 'Боковая дверь', text: 'Выйти через боковую дверь во двор станции.', next: 'b-yard', action: 'Выйти через боковую дверь' }
       ]
     },
     'c-yard': {
       vehicle: 'c', view: 'yard',
       title: 'Двор станции',
       image: '/assets/tour-c-yard.jpg',
-      yaw: -1.1,
+      yaw: -1.45,
       pitch: 0.02,
       hotspots: [
         { yaw: 0.24, pitch: 0.27, title: 'Здание станции', text: 'Здание Республиканской станции скорой медицинской помощи в Грозном.' },
-        { yaw: -1.4, pitch: -0.14, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'c-exterior', action: 'Подойти к автомобилю' },
-        { yaw: -1.75, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковая дверь обеспечивает отдельный доступ к рабочей зоне медицинского салона.' },
-        { yaw: -1.75, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень у бокового входа облегчает вход в медицинский салон и выход из него.' },
-        { yaw: -1.2, pitch: 0.01, title: 'Кабина водителя', text: 'В кабине расположены органы управления автомобилем и средствами связи.' }
+        { yaw: -1.4, pitch: -0.14, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Марка, модель и комплектация будут указаны после подтверждения станцией.' },
+        { yaw: -1.2, pitch: 0.01, title: 'Кабина водителя', text: 'В кабине расположены органы управления автомобилем и средствами связи.' },
+        { yaw: -1.83, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень у бокового входа облегчает вход в медицинский салон и выход из него.' },
+        { yaw: -2.22, pitch: 0.0, title: 'Задние двери', text: 'Обойти автомобиль и подойти к задним дверям медицинского салона.', next: 'c-exterior', action: 'Обойти к задним дверям' },
+        { yaw: -1.83, pitch: 0.05, title: 'Боковая дверь медицинского салона', text: 'Войти в медицинский салон через боковую дверь.', next: 'c-interior', action: 'Войти в салон' }
       ]
     },
     'c-exterior': {
       vehicle: 'c', view: 'exterior',
-      title: 'Реанимобиль класса C · снаружи',
+      title: 'Реанимобиль класса C · сзади',
       image: '/assets/tour-c-exterior.jpg',
       yaw: -1.5,
       pitch: 0.02,
       hotspots: [
-        { yaw: -1.6, pitch: 0.12, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Марка, модель и фактическая комплектация будут указаны после подтверждения станцией.', next: 'c-interior', action: 'Перейти в салон' },
+        { yaw: -1.6, pitch: 0.12, title: 'Медицинский салон', text: 'Войти в медицинский салон через задние двери.', next: 'c-interior', action: 'Войти в салон' },
         { yaw: -1.32, pitch: 0.67, title: 'Светозвуковая сигнализация', text: 'На крыше расположены элементы светозвуковой сигнализации автомобиля скорой медицинской помощи.' },
         { yaw: -1.59, pitch: -0.27, title: 'Зона размещения носилок', text: 'Задний вход ведёт к системе установки и фиксации носилок.' },
+        { yaw: -1.9, pitch: 0.23, title: 'Кислородный баллон', text: 'В шкафу у задних дверей стоит баллон голубого цвета — так маркируют баллоны с медицинским кислородом. Сверху видны вентиль баллона и редуктор с манометром, от редуктора отходит шланг. Манометр показывает давление в баллоне, редуктор понижает его до рабочего. Объём баллона и модель редуктора будут указаны после подтверждения станцией.' },
         { yaw: -2.18, pitch: 0.39, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -0.7, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' }
+        { yaw: -0.7, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' },
+        { yaw: -0.96, pitch: -0.52, title: 'Двор станции', text: 'Обойти автомобиль справа и вернуться во двор станции, к боковой двери.', next: 'c-yard', action: 'Вернуться во двор' }
       ]
     },
     'c-interior': {
@@ -168,13 +180,16 @@
         { yaw: -0.58, pitch: -0.14, title: 'Дополнительная медицинская сумка', text: 'Отдельная переносная сумка размещена за креслом медицинского салона.' },
         { yaw: 0.47, pitch: -1.05, title: 'Жёсткий ящик у боковой двери', text: 'Жёсткий защитный ящик с маркировкой «44-2» размещён на полу у боковой двери.' },
         { yaw: -1.47, pitch: -0.48, title: 'Аспиратор', text: 'Предназначен для удаления жидкостей из дыхательных путей. Модель будет указана после подтверждения станцией.' },
+        { yaw: -1.18, pitch: -0.65, title: 'Сейф', text: 'Металлический сейф в нижнем отсеке, частично закрыт носилками.' },
         { yaw: -2.85, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
         { yaw: 0.42, pitch: 0.53, title: 'Панель управления отопителем', text: 'Блок управления с надписью «ОТОПИТЕЛЬ» и клавишные переключатели оборудования медицинского салона.' },
         { yaw: -1.39, pitch: 0.92, title: 'Аварийный люк', text: 'Люк в крыше с надписью «ЗАПАСНЫЙ ВЫХОД» — дополнительный путь эвакуации из медицинского салона.' },
         { yaw: -1.32, pitch: 0.48, title: 'Аварийный молоток', text: 'Закреплён над рабочим местом. Им разбивают стекло, если выйти из салона через двери невозможно.' },
         { yaw: -1.07, pitch: 0.17, title: 'Электрические розетки', text: 'Розетки 220 В и 12 В на панели рабочего места — для питания медицинского оборудования.' },
         { yaw: -0.4, pitch: -0.7, title: 'Огнетушитель', text: 'Закреплён у кресла медицинского салона. Место отмечено знаком на стене.' },
-        { yaw: 1.96, pitch: -0.27, title: 'Выход наружу', text: 'Вернуться к внешнему осмотру реанимобиля класса C.', next: 'c-exterior', action: 'Выйти наружу' }
+        { yaw: -2.14, pitch: -0.03, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
+        { yaw: -2.45, pitch: -0.05, title: 'Задние двери', text: 'Выйти через задние двери к внешнему осмотру реанимобиля класса C.', next: 'c-exterior', action: 'Выйти через задние двери' },
+        { yaw: 1.96, pitch: -0.27, title: 'Боковая дверь', text: 'Выйти через боковую дверь во двор станции.', next: 'c-yard', action: 'Выйти через боковую дверь' }
       ]
     }
   };
@@ -415,6 +430,8 @@
   const scenesButton = root.querySelector('[data-scenes-toggle]');
   const scenesCurrent = root.querySelector('[data-scenes-current]');
   const scenesMenu = root.querySelector('.tour-scene-tabs');
+  const backButton = root.querySelector('[data-back]');
+  const backLabel = backButton?.querySelector('[data-back-label]');
   const compactScenes = matchMedia('(max-width: 800px), (max-height: 520px) and (pointer: coarse)');
   const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
   if (speakButton) speakButton.hidden = !canSpeak;
@@ -437,6 +454,8 @@
     button.classList.add('is-armed');
     armTimer = setTimeout(disarm, 6000);
     announce(`${spot.action}. Нажмите ещё раз, чтобы перейти.`);
+    haptic(10);
+    playSound('arm');
   }
   document.addEventListener('pointerdown', event => {
     if (armedHotspot && !armedHotspot.contains(event.target)) disarm();
@@ -456,11 +475,39 @@
   }
   function syncScenesButton(scene = scenes[state.scene]) {
     if (!scenesButton || !scene) return;
-    const labels = { yard: 'Двор станции', exterior: 'Снаружи', interior: 'Салон' };
+    const labels = { yard: 'Двор станции', exterior: scene.vehicle === 'demo' ? 'Снаружи' : 'Сзади', interior: 'Салон' };
     const label = labels[scene.view] || scene.title;
     if (scenesCurrent) scenesCurrent.textContent = label;
     scenesButton.setAttribute('aria-label', `Выбрать сцену. Текущая сцена: ${label}`);
   }
+  // «Назад» leads one step out. From the cabin — back where the visitor came in (the yard through
+  // the side door or the rear doors); opened by a link — to the rear doors. From the rear doors — to the yard.
+  const BACK_LABELS = {
+    yard: ['Во двор', 'Вернуться во двор станции'],
+    exterior: ['Наружу', 'Выйти наружу']
+  };
+  let backScene = null, cabinEntrance = null;
+  function syncBackButton(scene = scenes[state.scene]) {
+    if (!backButton || !scene) return;
+    const prefix = state.scene.split('-')[0];
+    let name = null;
+    if (scene.view === 'interior') name = cabinEntrance && tourNames.has(cabinEntrance) ? cabinEntrance : `${prefix}-exterior`;
+    else if (scene.view === 'exterior') name = `${prefix}-yard`;
+    // Only scenes of this tour: without yard panoramas there is no way back to the yard.
+    backScene = name && tourNames.has(name) ? name : null;
+    backButton.hidden = !backScene;
+    root.classList.toggle('has-back', Boolean(backScene));
+    if (!backScene) return;
+    const view = scenes[backScene].view;
+    const [label, aria] = view === 'exterior' && scenes[backScene].vehicle !== 'demo' ? ['Сзади', 'Выйти к задним дверям'] : BACK_LABELS[view];
+    if (backLabel) backLabel.textContent = label;
+    backButton.setAttribute('aria-label', aria);
+  }
+  backButton?.addEventListener('click', () => {
+    if (!backScene) return;
+    stopGuide();
+    goToScene(backScene);
+  });
   function setScenesOpen(open, restoreFocus = false) {
     if (!scenesButton || !scenesMenu) return;
     const expanded = Boolean(open && compactScenes.matches);
@@ -573,6 +620,8 @@
       if (viewer.dataHelper.isPointVisible(position)) {
         point = viewer.dataHelper.sphericalCoordsToViewerCoords(position);
         if (point.x < -0.075 * w || point.x > 1.075 * w || point.y < -0.075 * h || point.y > 1.075 * h) point = null;
+        // Phones: a point under the top row of buttons waits until the panorama is turned.
+        else if (compactScenes.matches && point.y < TOP_BAR - 4) point = null;
       }
       button.hidden = !point;
       if (!point) continue;
@@ -606,7 +655,8 @@
     infoCard.hidden = false;
     if (focus) infoCard.focus({ preventScroll: true });
     markActive();
-    if (state.presence && navigator.vibrate) navigator.vibrate(35);
+    haptic(20);
+    playSound('point');
   }
   function closeCard(restoreFocus = true) {
     if (infoCard.hidden) return;
@@ -742,7 +792,14 @@
     const scene = scenes[name], loadId = ++sceneLoadId, intro = firstLoad;
     const walking = root.classList.contains('is-switching');
     const target = view || { yaw: scene.yaw, pitch: scene.pitch, fov: DEFAULT_FOV };
+    // The cabin remembers the door the visitor came in through, so «Назад» returns there.
+    // Opened by a link (not by the visitor's move), the cabin has no entrance.
+    if (scene.view === 'interior') {
+      const from = scenes[state.scene];
+      cabinEntrance = fromUser && from && state.scene !== name && from.vehicle === scene.vehicle && from.view !== 'interior' ? state.scene : null;
+    }
     state.scene = name; state.vehicle = scene.vehicle;
+    setSoundScene(scene.view);
     if (state.gyro) gyroYawOffset = null;
     closeCard(false);
     clearHotspots();
@@ -759,6 +816,7 @@
     if (intro) busy(); else slowTimer = setTimeout(busy, 350);
     if (sceneName) sceneName.textContent = scene.title;
     syncScenesButton(scene);
+    syncBackButton(scene);
     if (sceneIndex) sceneIndex.textContent = `${String(views.indexOf(scene.view) + 1).padStart(2, '0')} / ${String(views.length).padStart(2, '0')}`;
     syncTabs(viewTabs, tab => tab.dataset.view === scene.view);
     syncTabs(vehicleTabs, tab => tab.dataset.vehicle === scene.vehicle);
@@ -797,6 +855,7 @@
   // Walking through a door: the camera moves towards it while the picture dims.
   function goToScene(name, via = null) {
     if (!own(scenes, name)) return;
+    moveFeedback(state.scene, name);
     setMoreOpen(false);
     setScenesOpen(false);
     closeCard(false);
@@ -823,6 +882,7 @@
     if (name === state.scene && fallback.hidden) return;
     stopGuide();
     setScenesOpen(false);
+    moveFeedback(state.scene, name);
     loadScene(name, true);
   }));
   vehicleTabs.forEach(button => button.addEventListener('click', () => {
@@ -1042,7 +1102,7 @@
   document.addEventListener('fullscreenchange', syncFullscreenButton);
   document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
 
-  // Gyroscope: offered only on touch devices, where orientation sensors exist.
+  // Gyroscope: part of the presence effect on touch devices, where orientation sensors exist.
   const gyroButton = root.querySelector('[data-gyro]');
   const canGyro = 'DeviceOrientationEvent' in window && matchMedia('(pointer: coarse)').matches;
   if (gyroButton) gyroButton.hidden = !canGyro;
@@ -1106,37 +1166,159 @@
     viewer.rotate({ yaw: sensor.yaw + gyroYawOffset, pitch: clampPitch(sensor.pitch) });
   });
 
-  // Presence effect («Эффект присутствия»): synthesized spatial sound, red/blue light accents,
-  // vibration and, on phones, the gyroscope. Everything stops when it is off
-  // or when the tab is hidden.
+  // Presence effect («Эффект присутствия»): sound, red/blue light accents, vibration and, on
+  // phones, the gyroscope. The sound is synthesized in the browser, without audio files:
+  // outdoors — wind and distant traffic, in the cabin — ventilation and electrical hum; doors,
+  // steps and a soft click accompany moves and points. Everything stops when the effect is off
+  // or the tab is hidden.
   const presenceButton = root.querySelector('[data-presence], [data-effects]');
   const legacySoundButton = root.querySelector('[data-sound]');
   let suspendTimer = 0, ambient = null;
   function createAmbientSound() {
     const Context = window.AudioContext || window.webkitAudioContext;
     if (!Context) return null;
+    // iPhone: play like a video on the page, also with the ring/silent switch off.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
     const context = new Context();
-    const master = context.createGain();
-    const filter = context.createBiquadFilter();
-    const panner = context.createStereoPanner ? context.createStereoPanner() : null;
-    const low = context.createOscillator();
-    const high = context.createOscillator();
-    low.type = 'sine'; low.frequency.value = 92;
-    high.type = 'sine'; high.frequency.value = 138;
-    filter.type = 'lowpass'; filter.frequency.value = 420;
-    master.gain.value = 0;
-    low.connect(filter); high.connect(filter);
-    if (panner) filter.connect(panner).connect(master); else filter.connect(master);
+    const gain = value => { const node = context.createGain(); node.gain.value = value; return node; };
+    const filter = (type, frequency, q = 0.7) => {
+      const node = context.createBiquadFilter();
+      node.type = type; node.frequency.value = frequency; node.Q.value = q;
+      return node;
+    };
+    const noise = brown => {
+      const buffer = context.createBuffer(1, context.sampleRate * 3, context.sampleRate), data = buffer.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < data.length; i++) {
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.02 * white) / 1.02;
+        data[i] = brown ? last * 3.5 : white;
+      }
+      return buffer;
+    };
+    const loop = (buffer, ...chain) => {
+      const source = context.createBufferSource();
+      source.buffer = buffer; source.loop = true;
+      let node = source;
+      for (const next of chain) node = node.connect(next);
+      source.start(0, Math.random() * 2);
+      return node;
+    };
+    const master = gain(0);
     master.connect(context.destination);
-    low.start(); high.start();
-    return { context, master, panner };
+    const panner = context.createStereoPanner ? context.createStereoPanner() : null;
+    if (panner) panner.connect(master);
+    const bed = panner || master;
+    const white = noise(false), brown = noise(true);
+    // Outdoors: wind (band-passed noise that slowly swells) and distant traffic (low rumble).
+    const outdoor = gain(0);
+    outdoor.connect(bed);
+    const wind = gain(0.5);
+    loop(white, filter('bandpass', 520, 0.5), wind).connect(outdoor);
+    const swell = context.createOscillator();
+    swell.frequency.value = 0.07;
+    swell.connect(gain(0.35)).connect(wind.gain);
+    swell.start();
+    loop(brown, filter('lowpass', 160), gain(0.9)).connect(outdoor);
+    // Cabin: ventilation fan (band-passed noise) and a faint electrical hum.
+    const cabin = gain(0);
+    cabin.connect(bed);
+    loop(white, filter('bandpass', 750, 0.9), filter('lowpass', 2400), gain(0.32)).connect(cabin);
+    loop(brown, filter('lowpass', 220), gain(0.5)).connect(cabin);
+    for (const [frequency, level] of [[100, 0.05], [200, 0.02]]) {
+      const hum = context.createOscillator();
+      hum.frequency.value = frequency;
+      hum.connect(gain(level)).connect(cabin);
+      hum.start();
+    }
+    return { context, master, panner, outdoor, cabin, white, brown };
+  }
+  function setSoundScene(view) {
+    if (!ambient) return;
+    const { context, outdoor, cabin } = ambient, now = context.currentTime, inside = view === 'interior';
+    outdoor.gain.setTargetAtTime(inside ? 0 : 1, now, 0.35);
+    cabin.gain.setTargetAtTime(inside ? 1 : 0, now, 0.35);
+  }
+  // Short sounds: a click for a point, a tick for a transition sign, a sliding side door,
+  // a rear door, steps around the vehicle.
+  function playSound(name) {
+    if (!state.presence || !ambient || document.hidden) return;
+    const { context, master, white, brown } = ambient, start = context.currentTime + 0.01;
+    const envelope = (node, at, level, length) => {
+      node.gain.setValueAtTime(0.0001, at);
+      node.gain.exponentialRampToValueAtTime(level, at + 0.01);
+      node.gain.exponentialRampToValueAtTime(0.0001, at + length);
+    };
+    const burst = (offset, { buffer = white, type = 'lowpass', from = 800, to = from, q = 0.7, length = 0.2, level = 0.5 }) => {
+      const at = start + offset, source = context.createBufferSource(), shape = context.createBiquadFilter(), volume = context.createGain();
+      source.buffer = buffer; shape.type = type; shape.Q.value = q;
+      shape.frequency.setValueAtTime(from, at);
+      if (to !== from) shape.frequency.exponentialRampToValueAtTime(to, at + length);
+      envelope(volume, at, level, length);
+      source.connect(shape).connect(volume).connect(master);
+      source.start(at, Math.random() * 2);
+      source.stop(at + length + 0.05);
+    };
+    const thump = (offset, { from = 95, to = 45, length = 0.18, level = 0.7 } = {}) => {
+      const at = start + offset, tone = context.createOscillator(), volume = context.createGain();
+      tone.frequency.setValueAtTime(from, at);
+      tone.frequency.exponentialRampToValueAtTime(to, at + length);
+      envelope(volume, at, level, length);
+      tone.connect(volume).connect(master);
+      tone.start(at);
+      tone.stop(at + length + 0.05);
+    };
+    if (name === 'point') thump(0, { from: 1700, to: 1100, length: 0.06, level: 0.12 });
+    else if (name === 'arm') thump(0, { from: 1200, to: 900, length: 0.04, level: 0.08 });
+    else if (name === 'slide') {
+      burst(0, { type: 'bandpass', from: 380, to: 1300, q: 1.1, length: 0.55, level: 0.35 });
+      thump(0.5, { from: 120, to: 50, level: 0.8 });
+      burst(0.5, { from: 300, length: 0.12, level: 0.4 });
+    } else if (name === 'swing') {
+      burst(0, { type: 'bandpass', from: 900, to: 500, q: 2, length: 0.35, level: 0.2 });
+      thump(0.3, { from: 90, to: 42, level: 0.9 });
+      burst(0.3, { from: 260, length: 0.14, level: 0.45 });
+    } else if (name === 'steps') {
+      for (let i = 0; i < 4; i++) {
+        burst(i * 0.3, { buffer: brown, from: 700, length: 0.09, level: 0.5 });
+        thump(i * 0.3, { from: 75, to: 40, length: 0.08, level: 0.35 });
+      }
+    }
+  }
+  // Vibration: Android and other browsers with navigator.vibrate. Safari on iPhone has no
+  // vibration API; iOS 17.4–26.4 give a system tap when a switch control toggles, so a hidden
+  // one is toggled inside the visitor's tap (Apple closed this in iOS 26.5).
+  const appleTouch = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function haptic(pattern = 25) {
+    if (!state.presence) return;
+    if (typeof navigator.vibrate === 'function') { navigator.vibrate(pattern); return; }
+    if (!appleTouch) return;
+    try {
+      const label = document.createElement('label'), input = document.createElement('input');
+      input.type = 'checkbox'; input.setAttribute('switch', ''); input.tabIndex = -1;
+      label.setAttribute('aria-hidden', 'true'); label.style.display = 'none';
+      label.append(input); document.body.append(label);
+      label.click();
+      label.remove();
+    } catch { /* no haptics */ }
+  }
+  // A move between scenes sounds like the way it is made: the side door, the rear doors or steps around the vehicle.
+  function moveFeedback(from, to) {
+    const a = scenes[from]?.view, b = scenes[to]?.view;
+    if (!state.presence || !a || !b || a === b) return;
+    const pair = [a, b].sort().join('-');
+    playSound(pair === 'interior-yard' ? 'slide' : pair === 'exterior-interior' ? 'swing' : 'steps');
+    haptic([20, 40, 20]);
   }
   viewer.addEventListener('position-updated', event => {
     if (ambient?.panner) ambient.panner.pan.value = Math.sin(event.position.yaw) * 0.7;
   });
   async function updateAmbient() {
     try {
-      if (state.presence && !ambient) ambient = createAmbientSound();
+      if (state.presence && !ambient) {
+        ambient = createAmbientSound();
+        setSoundScene(scenes[state.scene]?.view);
+      }
       if (!ambient) {
         if (state.presence) setStatus('Звук недоступен, остальные эффекты продолжают работать.');
         return;
@@ -1146,7 +1328,7 @@
       clearTimeout(suspendTimer);
       if (play) await context.resume();
       master.gain.cancelScheduledValues(context.currentTime);
-      master.gain.setTargetAtTime(play ? 0.018 : 0, context.currentTime, 0.08);
+      master.gain.setTargetAtTime(play ? 0.4 : 0, context.currentTime, 0.08);
       if (!play) suspendTimer = setTimeout(() => { if (!state.presence || document.hidden) context.suspend(); }, 350);
     } catch {
       setStatus('Звук недоступен, остальные эффекты продолжают работать.');
@@ -1161,7 +1343,7 @@
     legacySoundButton?.setAttribute('aria-pressed', String(on));
     setStatus('');
     announce(on ? 'Эффект присутствия включён.' : 'Эффект присутствия выключен.');
-    if (on && navigator.vibrate) navigator.vibrate([25, 35, 25]);
+    haptic([25, 35, 25]);
     // Sound and the iOS sensor permission both need the click itself, so both start before any await.
     const sound = updateAmbient();
     const gyro = on && canGyro && !state.gyro ? enableGyro() : Promise.resolve(false);
