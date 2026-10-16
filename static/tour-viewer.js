@@ -129,7 +129,7 @@
       pitch: 0.02,
       hotspots: [
         { yaw: 0.24, pitch: 0.27, title: 'Здание станции', text: 'Здание Республиканской станции скорой медицинской помощи в Грозном.' },
-        { yaw: -1.3, pitch: 0.03, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'c-exterior', action: 'Подойти к автомобилю' },
+        { yaw: -1.4, pitch: -0.14, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'c-exterior', action: 'Подойти к автомобилю' },
         { yaw: -1.75, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковая дверь обеспечивает отдельный доступ к рабочей зоне медицинского салона.' },
         { yaw: -1.75, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень у бокового входа облегчает вход в медицинский салон и выход из него.' },
         { yaw: -1.2, pitch: 0.01, title: 'Кабина водителя', text: 'В кабине расположены органы управления автомобилем и средствами связи.' }
@@ -379,11 +379,20 @@
     });
   }
   // Where to aim at a point so that the description card does not cover it:
-  // left of centre on wide screens (card on the right), above centre on phones (card at the bottom).
+  // left of centre on wide screens (card on the right), above centre on phones (card at the bottom):
+  // in the middle of the free area between the top row of buttons and the card.
   const narrowLayout = matchMedia('(max-width: 800px)');
+  const TOP_BAR = 60;
+  function cardTop() {
+    return infoCard.hidden ? 0 : infoCard.offsetTop;
+  }
   function framing(spot) {
     const fov = Math.min(currentView().fov, DEFAULT_FOV), t = Math.tan(fov / 2), aspect = root.clientWidth / Math.max(1, root.clientHeight);
-    if (narrowLayout.matches) return { yaw: spot.yaw, pitch: spot.pitch - Math.atan(0.42 * t), fov };
+    if (narrowLayout.matches) {
+      const half = root.clientHeight / 2, top = cardTop();
+      const shift = top > TOP_BAR + 40 ? Math.min(0.7, (half - (TOP_BAR + top) / 2) / half) : 0.42;
+      return { yaw: spot.yaw, pitch: spot.pitch - Math.atan(shift * t), fov };
+    }
     return { yaw: spot.yaw + Math.atan(0.3 * t * aspect), pitch: spot.pitch, fov };
   }
 
@@ -411,6 +420,27 @@
   if (speakButton) speakButton.hidden = !canSpeak;
   let activeHotspot = null, cardOpener = null, placedHotspots = [];
   const infoSpots = scene => scene.hotspots.filter(spot => !spot.next);
+  // A transition point shows only its sign. The first tap shows the action («Перейти в салон»),
+  // the second tap (on the sign or on the action) moves to the scene. With a mouse the action
+  // shows on hover and with the keyboard on focus, so one click or Enter is enough there.
+  const hoverPointer = matchMedia('(hover: hover) and (pointer: fine)');
+  let armedHotspot = null, armTimer = 0;
+  const actionShown = button => button.classList.contains('is-armed') || button.matches(':focus-visible') || (hoverPointer.matches && button.matches(':hover'));
+  function disarm() {
+    clearTimeout(armTimer);
+    armedHotspot?.classList.remove('is-armed');
+    armedHotspot = null;
+  }
+  function arm(button, spot) {
+    disarm();
+    armedHotspot = button;
+    button.classList.add('is-armed');
+    armTimer = setTimeout(disarm, 6000);
+    announce(`${spot.action}. Нажмите ещё раз, чтобы перейти.`);
+  }
+  document.addEventListener('pointerdown', event => {
+    if (armedHotspot && !armedHotspot.contains(event.target)) disarm();
+  }, true);
 
   function syncMoreButton() {
     if (!moreButton) return;
@@ -474,6 +504,7 @@
     return svg;
   }
   function clearHotspots() {
+    disarm();
     placedHotspots = [];
     hotspotsLayer.replaceChildren();
     hotspotList?.replaceChildren();
@@ -501,8 +532,14 @@
       }
       button.addEventListener('click', () => {
         stopGuide();
-        if (spot.next) goToScene(spot.next, spot);
-        else openHotspot(spot, button);
+        if (!spot.next) {
+          disarm();
+          openHotspot(spot, button);
+          keepInView(spot);
+        } else if (actionShown(button)) {
+          disarm();
+          goToScene(spot.next, spot);
+        } else arm(button, spot);
       });
       hotspotsLayer.append(button);
       placedHotspots.push({ spot, button });
@@ -517,8 +554,8 @@
           root.scrollIntoView({ block: 'nearest' });
           if (spot.next) goToScene(spot.next, spot);
           else {
-            flyTo(framing(spot));
             openHotspot(spot, listButton);
+            flyTo(framing(spot));
           }
         });
         item.append(listButton);
@@ -538,8 +575,16 @@
         if (point.x < -0.075 * w || point.x > 1.075 * w || point.y < -0.075 * h || point.y > 1.075 * h) point = null;
       }
       button.hidden = !point;
-      if (point) button.style.transform = `translate(-50%,-50%) translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
+      if (!point) continue;
+      button.style.transform = `translate(-50%,-50%) translate(${point.x.toFixed(1)}px, ${point.y.toFixed(1)}px)`;
+      button.classList.toggle('is-flipped', point.x > w * 0.58);
     }
+  }
+  // Phones: a tapped point that ends up under the description card is brought above it.
+  function keepInView(spot) {
+    if (!narrowLayout.matches || infoCard.hidden) return;
+    const point = viewer.dataHelper.sphericalCoordsToViewerCoords({ yaw: spot.yaw, pitch: spot.pitch });
+    if (point.y > cardTop() - 24 || point.y < TOP_BAR) flyTo(framing(spot));
   }
   viewer.addEventListener('render', updateHotspots);
   function markActive() {
@@ -579,8 +624,8 @@
     if (guide && delta > 0) { guideNext(); return; }
     stopGuide();
     const spot = info[(index + delta + info.length) % info.length];
-    flyTo(framing(spot));
     openHotspot(spot, cardOpener, { focus: false });
+    flyTo(framing(spot));
   }
   prevButton?.addEventListener('click', () => stepHotspot(-1));
   nextButton?.addEventListener('click', () => stepHotspot(1));
@@ -866,6 +911,8 @@
       if (!guide) return;
       if (spot.next) {
         closeCard(false);
+        const placed = placedHotspots.find(item => item.spot === spot);
+        if (placed) arm(placed.button, spot);
         announce(spot.action || spot.title);
       } else {
         openHotspot(spot, null, { focus: false });
