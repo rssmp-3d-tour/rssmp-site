@@ -328,7 +328,7 @@ const openMore = async page => {
     steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
     if (HAS_YARD && await back.isVisible()) { await back.tap(); await sceneReady(phone, '#b-yard').catch(() => {}); }
     steps.push(`${await phone.evaluate(() => location.hash)}:${await label()}`);
-    const toExt = MODE === 'demo' ? 'Наружу|Выйти наружу' : 'Задние двери|Выйти к задним дверям';
+    const toExt = MODE === 'demo' ? 'Наружу|Выйти наружу' : 'Сзади|Выйти к задним дверям';
     const expectedSteps = HAS_YARD
       ? [`#${INT}:${toExt}`, `#${EXT}:Во двор|Вернуться во двор станции`, '#b-yard:hidden']
       : [`#${INT}:${toExt}`, `#${EXT}:hidden`, `#${EXT}:hidden`];

@@ -142,11 +142,11 @@ def tour_mode():
 
 
 TOUR_MODE = tour_mode()
-VIEW_LABELS = {'yard': 'Двор станции', 'exterior': 'Снаружи' if TOUR_MODE == 'demo' else 'Задние двери', 'interior': 'Салон'}
+VIEW_LABELS = {'yard': 'Двор станции', 'exterior': 'Снаружи' if TOUR_MODE == 'demo' else 'Сзади', 'interior': 'Салон'}
 # Сцены автомобиля по порядку обхода; двор — если его панорама задана у обоих классов.
 TOUR_YARD = TOUR_MODE == 'vehicles' and {'b-yard', 'c-yard'} <= TOUR_PANORAMAS.keys()
 TOUR_VIEWS = (['yard'] if TOUR_YARD else []) + ['exterior', 'interior']
-TOUR_SCOPE = 'двор станции, задние двери и медицинский салон' if TOUR_YARD else 'задние двери и медицинский салон'
+TOUR_SCOPE = 'двор станции, вид сзади и медицинский салон' if TOUR_YARD else 'вид сзади и медицинский салон'
 TOUR_SUMMARY = {'demo': 'Демонстрационный обзор: внешний вид и медицинский салон',
                 'vehicles': f'Классы B и C: {TOUR_SCOPE}'}[TOUR_MODE]
 
@@ -232,11 +232,11 @@ def tour_page(mode):
                       'Описания оборудования публикуются после согласования с РССМП.')
     else:
         intro = ('Выберите автомобиль класса B или C. '
-                 + ('Тур включает двор станции, задние двери и медицинский салон. Войти в салон можно через боковую или задние двери. ' if TOUR_YARD else 'Тур включает задние двери и медицинский салон. ')
+                 + ('Тур включает двор станции, вид сзади и медицинский салон. Войти в салон можно через боковую или задние двери. ' if TOUR_YARD else 'Тур включает вид сзади и медицинский салон. ')
                  + 'Информация об объектах открывается по интерактивным точкам.')
         selector = ('<div class="tour-vehicle-selector" role="tablist" aria-label="Выбор автомобиля"><button type="button" role="tab" id="tour-tab-b" data-vehicle="b" aria-selected="true" aria-controls="tour-viewport"><small>Автомобиль скорой помощи</small><strong>Класс B</strong><span>Выездная бригада</span></button>'
                     '<button type="button" role="tab" id="tour-tab-c" data-vehicle="c" aria-selected="false" aria-controls="tour-viewport" tabindex="-1"><small>Реанимобиль</small><strong>Класс C</strong><span>Специализированная бригада</span></button></div>\n')
-        scene_name = VIEW_LABELS['yard'] if TOUR_YARD else 'Автомобиль класса B · задние двери'
+        scene_name = VIEW_LABELS['yard'] if TOUR_YARD else 'Автомобиль класса B · сзади'
         disclaimer = (f'Панорамная съёмка выполнена на территории станции {TOUR_SHOT}. '
                       'Марки автомобилей, модели оборудования и состав медицинских укладок будут указаны только после подтверждения РССМП.')
     tabs = ''

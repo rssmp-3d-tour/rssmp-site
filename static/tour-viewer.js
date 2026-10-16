@@ -84,7 +84,7 @@
     },
     'b-exterior': {
       vehicle: 'b', view: 'exterior',
-      title: 'Автомобиль класса B · задние двери',
+      title: 'Автомобиль класса B · сзади',
       image: '/assets/tour-b-exterior.jpg',
       yaw: -1.45,
       pitch: 0.02,
@@ -147,7 +147,7 @@
     },
     'c-exterior': {
       vehicle: 'c', view: 'exterior',
-      title: 'Реанимобиль класса C · задние двери',
+      title: 'Реанимобиль класса C · сзади',
       image: '/assets/tour-c-exterior.jpg',
       yaw: -1.5,
       pitch: 0.02,
@@ -473,7 +473,7 @@
   }
   function syncScenesButton(scene = scenes[state.scene]) {
     if (!scenesButton || !scene) return;
-    const labels = { yard: 'Двор станции', exterior: scene.vehicle === 'demo' ? 'Снаружи' : 'Задние двери', interior: 'Салон' };
+    const labels = { yard: 'Двор станции', exterior: scene.vehicle === 'demo' ? 'Снаружи' : 'Сзади', interior: 'Салон' };
     const label = labels[scene.view] || scene.title;
     if (scenesCurrent) scenesCurrent.textContent = label;
     scenesButton.setAttribute('aria-label', `Выбрать сцену. Текущая сцена: ${label}`);
@@ -496,7 +496,7 @@
     root.classList.toggle('has-back', Boolean(backScene));
     if (!backScene) return;
     const view = scenes[backScene].view;
-    const [label, aria] = view === 'exterior' && scenes[backScene].vehicle !== 'demo' ? ['Задние двери', 'Выйти к задним дверям'] : BACK_LABELS[view];
+    const [label, aria] = view === 'exterior' && scenes[backScene].vehicle !== 'demo' ? ['Сзади', 'Выйти к задним дверям'] : BACK_LABELS[view];
     if (backLabel) backLabel.textContent = label;
     backButton.setAttribute('aria-label', aria);
   }
