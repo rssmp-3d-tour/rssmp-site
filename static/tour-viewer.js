@@ -74,11 +74,11 @@
       yaw: -1.37,
       pitch: 0.02,
       hotspots: [
-        { yaw: 0.2, pitch: 0.27, title: 'Здание станции', text: 'Республиканская станция скорой медицинской помощи. Название станции указано на фасаде здания.' },
+        { yaw: 0.2, pitch: 0.27, title: 'Здание станции', text: 'Главное здание Республиканской станции скорой медицинской помощи в Грозном.' },
         { yaw: -1.57, pitch: 0.04, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'b-exterior', action: 'Подойти к автомобилю' },
-        { yaw: -1.92, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковой вход используется бригадой для доступа в медицинский салон. Перед выездом проход и закрытие двери проверяют по регламенту станции.' },
-        { yaw: -1.92, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень облегчает вход и выход из медицинского салона. Перед началом смены проверяют её исправность, чистоту и отсутствие скользких загрязнений.' },
-        { yaw: -1.4, pitch: 0.01, title: 'Кабина водителя', text: 'Кабина отделена от медицинского салона и предназначена для управления автомобилем и средствами связи. Состав органов управления зависит от модели автомобиля.' }
+        { yaw: -1.92, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковая дверь обеспечивает отдельный доступ к рабочей зоне медицинского салона.' },
+        { yaw: -1.92, pitch: -0.2, title: 'Ступень бокового входа', text: 'Выдвижная ступень облегчает вход в медицинский салон и выход из него.' },
+        { yaw: -1.4, pitch: 0.01, title: 'Кабина водителя', text: 'Кабина отделена от медицинского салона. Здесь расположены органы управления автомобилем и средствами связи.' }
       ]
     },
     'b-exterior': {
@@ -89,10 +89,10 @@
       pitch: 0.02,
       hotspots: [
         { yaw: -1.55, pitch: 0.08, title: 'Автомобиль класса B', text: 'Автомобиль скорой медицинской помощи для работы выездной бригады. Марка, модель и фактическая комплектация будут указаны после подтверждения станцией.', next: 'b-interior', action: 'Перейти в салон' },
-        { yaw: -1.16, pitch: 0.82, title: 'Светозвуковая сигнализация', text: 'Специальные световые и звуковые сигналы применяются при выполнении экстренного вызова в установленном порядке.' },
-        { yaw: -1.55, pitch: -0.27, title: 'Доступ в медицинский салон', text: 'Двери и ступень обеспечивают доступ бригады к медицинскому салону и перемещение пациента.' },
+        { yaw: -1.16, pitch: 0.82, title: 'Светозвуковая сигнализация', text: 'На крыше размещены специальные световые и звуковые сигналы автомобиля скорой медицинской помощи.' },
+        { yaw: -1.55, pitch: -0.27, title: 'Доступ в медицинский салон', text: 'Задний вход ведёт в медицинский салон и к зоне размещения носилок.' },
         { yaw: -2.42, pitch: 0.25, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -0.62, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашная дверь открывает доступ к зоне загрузки. Перед движением автомобиля проверяют закрытие створок и отсутствие предметов в проёме.' }
+        { yaw: -0.62, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' }
       ]
     },
     'b-interior': {
@@ -123,11 +123,11 @@
       yaw: -1.1,
       pitch: 0.02,
       hotspots: [
-        { yaw: 0.24, pitch: 0.27, title: 'Здание станции', text: 'Республиканская станция скорой медицинской помощи. Название станции указано на фасаде здания.' },
+        { yaw: 0.24, pitch: 0.27, title: 'Здание станции', text: 'Главное здание Республиканской станции скорой медицинской помощи в Грозном.' },
         { yaw: -1.3, pitch: 0.03, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Подойдите ближе, чтобы осмотреть его снаружи и заглянуть в медицинский салон.', next: 'c-exterior', action: 'Подойти к автомобилю' },
-        { yaw: -1.75, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковой вход используется бригадой для доступа к рабочей зоне реанимобиля. Перед выездом проход и закрытие двери проверяют по регламенту станции.' },
-        { yaw: -1.75, pitch: -0.2, title: 'Ступень бокового входа', text: 'Ступень облегчает безопасный вход и выход из медицинского салона. Перед сменой проверяют её исправность и отсутствие скользких загрязнений.' },
-        { yaw: -1.2, pitch: 0.01, title: 'Кабина водителя', text: 'Кабина предназначена для управления автомобилем и средствами связи. Конкретные органы управления и оборудование зависят от модели реанимобиля.' }
+        { yaw: -1.75, pitch: 0.17, title: 'Боковая дверь медицинского салона', text: 'Боковая дверь обеспечивает отдельный доступ к рабочей зоне медицинского салона.' },
+        { yaw: -1.75, pitch: -0.2, title: 'Ступень бокового входа', text: 'Выдвижная ступень облегчает вход в медицинский салон и выход из него.' },
+        { yaw: -1.2, pitch: 0.01, title: 'Кабина водителя', text: 'В кабине расположены органы управления автомобилем и средствами связи.' }
       ]
     },
     'c-exterior': {
@@ -138,10 +138,10 @@
       pitch: 0.02,
       hotspots: [
         { yaw: -1.6, pitch: 0.12, title: 'Реанимобиль класса C', text: 'Автомобиль для работы специализированной бригады. Марка, модель и фактическая комплектация будут указаны после подтверждения станцией.', next: 'c-interior', action: 'Перейти в салон' },
-        { yaw: -1.32, pitch: 0.67, title: 'Светозвуковая сигнализация', text: 'Комплекс специальных сигналов делает автомобиль заметным при выполнении экстренного вызова.' },
-        { yaw: -1.59, pitch: -0.27, title: 'Зона загрузки пациента', text: 'Задняя часть автомобиля обеспечивает установку и фиксацию транспортировочной системы.' },
+        { yaw: -1.32, pitch: 0.67, title: 'Светозвуковая сигнализация', text: 'На крыше размещены специальные световые и звуковые сигналы автомобиля скорой медицинской помощи.' },
+        { yaw: -1.59, pitch: -0.27, title: 'Зона размещения носилок', text: 'Задний вход ведёт к системе установки и фиксации носилок.' },
         { yaw: -2.18, pitch: 0.39, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -0.7, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашная дверь открывает доступ к зоне загрузки. Перед движением автомобиля проверяют закрытие створок и отсутствие предметов в проёме.' }
+        { yaw: -0.7, pitch: 0.12, title: 'Задняя дверь медицинского салона', text: 'Распашные створки открывают доступ к зоне размещения и фиксации носилок.' }
       ]
     },
     'c-interior': {
@@ -393,6 +393,10 @@
   const moreButton = root.querySelector('[data-more]');
   const moreMenu = root.querySelector('[data-more-menu]');
   const moreControls = moreMenu ? [...moreMenu.querySelectorAll('button[aria-pressed]')] : [];
+  const scenesButton = root.querySelector('[data-scenes-toggle]');
+  const scenesCurrent = root.querySelector('[data-scenes-current]');
+  const scenesMenu = root.querySelector('.tour-scene-tabs');
+  const compactScenes = matchMedia('(max-width: 800px), (max-height: 520px) and (pointer: coarse)');
   const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
   if (speakButton) speakButton.hidden = !canSpeak;
   let activeHotspot = null, cardOpener = null, placedHotspots = [];
@@ -410,20 +414,47 @@
     moreButton.setAttribute('aria-expanded', String(open));
     if (!open && restoreFocus) moreButton.focus({ preventScroll: true });
   }
-  moreButton?.addEventListener('click', () => setMoreOpen(moreMenu.hidden));
+  function syncScenesButton(scene = scenes[state.scene]) {
+    if (!scenesButton || !scene) return;
+    const labels = { yard: 'Двор станции', exterior: 'Снаружи', interior: 'Салон' };
+    const label = labels[scene.view] || scene.title;
+    if (scenesCurrent) scenesCurrent.textContent = label;
+    scenesButton.setAttribute('aria-label', `Выбрать сцену. Текущая сцена: ${label}`);
+  }
+  function setScenesOpen(open, restoreFocus = false) {
+    if (!scenesButton || !scenesMenu) return;
+    const expanded = Boolean(open && compactScenes.matches);
+    scenesMenu.classList.toggle('is-open', expanded);
+    scenesButton.setAttribute('aria-expanded', String(expanded));
+    if (!expanded && restoreFocus) scenesButton.focus({ preventScroll: true });
+  }
+  moreButton?.addEventListener('click', () => {
+    setScenesOpen(false);
+    setMoreOpen(moreMenu.hidden);
+  });
+  scenesButton?.addEventListener('click', () => {
+    setMoreOpen(false);
+    setScenesOpen(scenesButton.getAttribute('aria-expanded') !== 'true');
+  });
   document.addEventListener('pointerdown', event => {
     if (!moreMenu?.hidden && !root.querySelector('.tour-controls')?.contains(event.target)) setMoreOpen(false);
+    if (scenesButton?.getAttribute('aria-expanded') === 'true' && !scenesButton.contains(event.target) && !scenesMenu?.contains(event.target)) setScenesOpen(false);
   });
   root.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !moreMenu?.hidden) {
       event.preventDefault();
       setMoreOpen(false, true);
+    } else if (event.key === 'Escape' && scenesButton?.getAttribute('aria-expanded') === 'true') {
+      event.preventDefault();
+      setScenesOpen(false, true);
     }
   });
+  compactScenes.addEventListener?.('change', () => setScenesOpen(false));
   if (moreControls.length && 'MutationObserver' in window) {
     new MutationObserver(syncMoreButton).observe(moreMenu, { subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'hidden'] });
   }
   syncMoreButton();
+  syncScenesButton();
 
   function chevron() {
     const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg'), path = document.createElementNS(ns, 'path');
@@ -672,6 +703,7 @@
     };
     if (intro) busy(); else slowTimer = setTimeout(busy, 350);
     if (sceneName) sceneName.textContent = scene.title;
+    syncScenesButton(scene);
     if (sceneIndex) sceneIndex.textContent = `${String(views.indexOf(scene.view) + 1).padStart(2, '0')} / ${String(views.length).padStart(2, '0')}`;
     syncTabs(viewTabs, tab => tab.dataset.view === scene.view);
     syncTabs(vehicleTabs, tab => tab.dataset.vehicle === scene.vehicle);
@@ -711,6 +743,7 @@
   function goToScene(name, via = null) {
     if (!own(scenes, name)) return;
     setMoreOpen(false);
+    setScenesOpen(false);
     closeCard(false);
     if (via && fallback.hidden && !document.hidden && !state.gyro && !reducedMotion()) {
       root.classList.add('is-approaching');
@@ -734,6 +767,7 @@
     const name = `${state.vehicle}-${button.dataset.view}`;
     if (name === state.scene && fallback.hidden) return;
     stopGuide();
+    setScenesOpen(false);
     loadScene(name, true);
   }));
   vehicleTabs.forEach(button => button.addEventListener('click', () => {
@@ -741,6 +775,7 @@
     const name = `${button.dataset.vehicle}-${currentScene}`;
     if (name === state.scene && fallback.hidden) return;
     stopGuide();
+    setScenesOpen(false);
     loadScene(name, true);
   }));
 
