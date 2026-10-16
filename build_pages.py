@@ -269,8 +269,7 @@ def tour_page(mode):
         <div class="tour-more-menu" id="tour-more-menu" data-more-menu role="group" aria-label="Дополнительные функции тура" hidden>
           <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
           <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
-          <button type="button" data-gyro aria-pressed="false" hidden>{ICONS['gyro']}<span>Гироскоп</span></button>
-          <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты и виброотклик">{ICONS['presence']}<span>Эффект присутствия</span></button>
+          <button type="button" data-presence aria-pressed="false" title="Звук, световые акценты, виброотклик и на телефоне — поворот панорамы движением телефона">{ICONS['presence']}<span>Эффект присутствия</span></button>
         </div>
       </div><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div>
   </div>
@@ -283,7 +282,7 @@ def tour_page(mode):
 </div>
 <section class="tour-points" aria-labelledby="tour-points-title"><h2 id="tour-points-title">Точки на этой сцене</h2><ul data-hotspot-list></ul></section>
 </section>
-<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами. Значок со стрелкой ведёт в другую сцену: на телефоне первое касание показывает подпись, второе — выполняет переход.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции.</p></div></div>
+<section class="tour-about" aria-labelledby="tour-about-title"><div class="wrap"><div class="tour-about-head"><h2 id="tour-about-title">О туре</h2><p class="tour-lead">{intro}</p></div><div class="tour-about-grid"><div><h3>Управление</h3><p>Поворачивайте панораму мышью или одним пальцем. Масштаб меняется колесом мыши, жестом двумя пальцами, кнопками «+» и «−» либо клавишами. Значок со стрелкой ведёт в другую сцену: на телефоне первое касание показывает подпись, второе — выполняет переход.</p></div><div><h3>Режимы просмотра</h3><p>Доступны последовательная экскурсия, автоматическое вращение, эффект присутствия, ссылка на выбранный ракурс и просмотр в совместимой VR-гарнитуре. Эффект присутствия включает звуки двора и салона, звуки дверей и шагов, световые акценты, виброотклик и на телефоне — поворот панорамы движением телефона. Дополнительные функции собраны в меню «Ещё».</p></div><div><h3>Совместимость</h3><p>Тур рассчитан на современные телефоны, планшеты и компьютеры. Гироскоп, виброотклик, полноэкранный режим и VR доступны только на устройствах и в браузерах, которые поддерживают эти функции. На iPhone виброотклик из браузера работает не во всех версиях iOS.</p></div></div>
 <p class="tour-disclaimer">{disclaimer}</p></div></section>
 </div><link rel="stylesheet" href="/vendor/psv.css"><script src="/vendor/psv.js" defer></script><script src="/tour-viewer.js" defer></script>'''
 

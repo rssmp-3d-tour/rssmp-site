@@ -462,6 +462,11 @@ const openMore = async page => {
   await page.waitForTimeout(500);
   const on = await page.evaluate(() => [document.querySelector('[data-presence]').getAttribute('aria-pressed'), document.querySelector('[data-tour-viewer]').classList.contains('presence-on')]);
   const s1 = await audioState();
+  // A move with the effect on plays the door sound and switches the sound to the cabin.
+  await page.click('[data-view="interior"]');
+  await sceneReady(page, '#' + INT).catch(() => {});
+  const moved = await audioState();
+  await openMore(page);
   await page.click('[data-presence]');
   await page.waitForTimeout(700);
   const s2 = await audioState();
@@ -473,30 +478,33 @@ const openMore = async page => {
   await page.waitForTimeout(800);
   const hiddenState = await audioState();
   const contexts = await page.evaluate(() => window.__audio.length);
-  check('T10a', 'Эффект присутствия: включение (aria-pressed, свет) и запуск звука', on[0] === 'true' && on[1] && s1 === 'running', `pressed=${on} audio=${s1}`);
+  check('T10a', 'Эффект присутствия: включение (aria-pressed, свет), запуск звука, переход со звуком двери', on[0] === 'true' && on[1] && s1 === 'running' && moved === 'running' && page.errors.length === 0, `pressed=${on} audio=${s1} after move=${moved} errors=${page.errors}`);
   check('T10b', 'Эффект присутствия: выключение останавливает звук', s2 === 'suspended', `audio=${s2}`);
   check('T10c', 'Эффект присутствия: 7 быстрых нажатий — состояние согласовано, один AudioContext', rapid[0] === 'true' && rapid[1] && rapid[2] === 'running' && contexts === 1, `${rapid} contexts=${contexts}`);
   check('T10d', 'Эффект присутствия: звук останавливается при уходе вкладки в фон', hiddenState === 'suspended' && page.errors.length === 0, `audio=${hiddenState} errors=${page.errors}`);
   await page.context().close();
 }
 
-// T11 gyroscope button only where sensors can exist
+// T11 gyroscope: part of «Эффект присутствия» on touch devices, no separate button
 {
   const desktop = await open('/tours/');
-  const dHidden = await desktop.evaluate(() => document.querySelector('[data-gyro]').hidden);
+  const gyroButtons = await desktop.locator('[data-gyro]').count();
+  await openMore(desktop);
+  await desktop.click('[data-presence]');
+  await desktop.waitForTimeout(1900);
+  const dStatus = await desktop.evaluate(() => document.querySelector('[data-vr-status]').textContent);
   await desktop.context().close();
   const phone = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
-  const pHidden = await phone.evaluate(() => document.querySelector('[data-gyro]').hidden);
-  // Sensor that never sends data → honest message and button returns to off
+  // Sensor that never sends data → honest message; sound and light stay on
   await openMore(phone);
-  await phone.click('[data-gyro]');
+  await phone.click('[data-presence]');
   await phone.waitForTimeout(1900);
-  const msg = await phone.evaluate(() => [document.querySelector('[data-gyro]').getAttribute('aria-pressed'), document.querySelector('[data-vr-status]').textContent]);
+  const msg = await phone.evaluate(() => [document.querySelector('[data-presence]').getAttribute('aria-pressed'), document.querySelector('[data-vr-status]').textContent]);
   await phone.context().close();
   // Sensor data on a fresh page: portrait upright, then landscape upright (beta 0, gamma -90)
   const phone2 = await open('/tours/', { viewport: { width: 390, height: 844 }, mobile: true });
   await openMore(phone2);
-  await phone2.click('[data-gyro]');
+  await phone2.click('[data-presence]');
   const res = await phone2.evaluate(async () => {
     const fire = (alpha, beta, gamma) => window.dispatchEvent(Object.assign(new Event('deviceorientation'), { alpha, beta, gamma }));
     const frames = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => r())));
@@ -506,11 +514,11 @@ const openMore = async page => {
     // The same heading held upright in landscape: with beta 0 and gamma -90 the compass angle is alpha 90.
     fire(90, 0, -90); await frames();
     const landscape = visible();
-    return [document.querySelector('[data-gyro]').getAttribute('aria-pressed'), portrait, landscape];
+    return [document.querySelector('[data-presence]').getAttribute('aria-pressed'), portrait, landscape];
   });
-  check('T11a', 'Кнопка «Гироскоп» скрыта на ПК без датчиков, показана на телефоне', dHidden && !pHidden, `desktop hidden=${dHidden} phone hidden=${pHidden}`);
-  check('T11b', 'Гироскоп без данных датчика: честное сообщение, кнопка выключается', msg[0] === 'false' && msg[1].length > 10, `${msg}`);
-  check('T11c', 'Гироскоп: портрет и ландшафт держат взгляд у горизонта (точки видны)', res[0] === 'true' && res[1] > 0 && res[2] > 0 && phone2.errors.length === 0, `pressed=${res[0]} visible portrait=${res[1]} landscape=${res[2]} errors=${phone2.errors}`);
+  check('T11a', 'Гироскоп входит в «Эффект присутствия»: отдельной кнопки нет; на ПК без датчиков эффект включается без сообщений', gyroButtons === 0 && dStatus === '', `gyro buttons=${gyroButtons} desktop status="${dStatus}"`);
+  check('T11b', 'Телефон без данных датчика: честное сообщение, эффект присутствия остаётся включённым', msg[0] === 'true' && /датчик|HTTPS/i.test(msg[1]), `${msg}`);
+  check('T11c', 'Гироскоп в эффекте присутствия: портрет и ландшафт держат взгляд у горизонта (точки видны)', res[0] === 'true' && res[1] > 0 && res[2] > 0 && phone2.errors.length === 0, `pressed=${res[0]} visible portrait=${res[1]} landscape=${res[2]} errors=${phone2.errors}`);
   await phone2.context().close();
 }
 

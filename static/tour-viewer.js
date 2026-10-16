@@ -454,6 +454,8 @@
     button.classList.add('is-armed');
     armTimer = setTimeout(disarm, 6000);
     announce(`${spot.action}. Нажмите ещё раз, чтобы перейти.`);
+    haptic(10);
+    playSound('arm');
   }
   document.addEventListener('pointerdown', event => {
     if (armedHotspot && !armedHotspot.contains(event.target)) disarm();
@@ -652,7 +654,8 @@
     infoCard.hidden = false;
     if (focus) infoCard.focus({ preventScroll: true });
     markActive();
-    if (state.presence && navigator.vibrate) navigator.vibrate(35);
+    haptic(20);
+    playSound('point');
   }
   function closeCard(restoreFocus = true) {
     if (infoCard.hidden) return;
@@ -795,6 +798,7 @@
       cabinEntrance = fromUser && from && state.scene !== name && from.vehicle === scene.vehicle && from.view !== 'interior' ? state.scene : null;
     }
     state.scene = name; state.vehicle = scene.vehicle;
+    setSoundScene(scene.view);
     if (state.gyro) gyroYawOffset = null;
     closeCard(false);
     clearHotspots();
@@ -850,6 +854,7 @@
   // Walking through a door: the camera moves towards it while the picture dims.
   function goToScene(name, via = null) {
     if (!own(scenes, name)) return;
+    moveFeedback(state.scene, name);
     setMoreOpen(false);
     setScenesOpen(false);
     closeCard(false);
@@ -876,6 +881,7 @@
     if (name === state.scene && fallback.hidden) return;
     stopGuide();
     setScenesOpen(false);
+    moveFeedback(state.scene, name);
     loadScene(name, true);
   }));
   vehicleTabs.forEach(button => button.addEventListener('click', () => {
@@ -1095,7 +1101,7 @@
   document.addEventListener('fullscreenchange', syncFullscreenButton);
   document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
 
-  // Gyroscope: offered only on touch devices, where orientation sensors exist.
+  // Gyroscope: part of the presence effect on touch devices, where orientation sensors exist.
   const gyroButton = root.querySelector('[data-gyro]');
   const canGyro = 'DeviceOrientationEvent' in window && matchMedia('(pointer: coarse)').matches;
   if (gyroButton) gyroButton.hidden = !canGyro;
@@ -1159,37 +1165,159 @@
     viewer.rotate({ yaw: sensor.yaw + gyroYawOffset, pitch: clampPitch(sensor.pitch) });
   });
 
-  // Presence effect («Эффект присутствия»): synthesized spatial sound, red/blue light accents,
-  // vibration and, on phones, the gyroscope. Everything stops when it is off
-  // or when the tab is hidden.
+  // Presence effect («Эффект присутствия»): sound, red/blue light accents, vibration and, on
+  // phones, the gyroscope. The sound is synthesized in the browser, without audio files:
+  // outdoors — wind and distant traffic, in the cabin — ventilation and electrical hum; doors,
+  // steps and a soft click accompany moves and points. Everything stops when the effect is off
+  // or the tab is hidden.
   const presenceButton = root.querySelector('[data-presence], [data-effects]');
   const legacySoundButton = root.querySelector('[data-sound]');
   let suspendTimer = 0, ambient = null;
   function createAmbientSound() {
     const Context = window.AudioContext || window.webkitAudioContext;
     if (!Context) return null;
+    // iPhone: play like a video on the page, also with the ring/silent switch off.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* not supported */ }
     const context = new Context();
-    const master = context.createGain();
-    const filter = context.createBiquadFilter();
-    const panner = context.createStereoPanner ? context.createStereoPanner() : null;
-    const low = context.createOscillator();
-    const high = context.createOscillator();
-    low.type = 'sine'; low.frequency.value = 92;
-    high.type = 'sine'; high.frequency.value = 138;
-    filter.type = 'lowpass'; filter.frequency.value = 420;
-    master.gain.value = 0;
-    low.connect(filter); high.connect(filter);
-    if (panner) filter.connect(panner).connect(master); else filter.connect(master);
+    const gain = value => { const node = context.createGain(); node.gain.value = value; return node; };
+    const filter = (type, frequency, q = 0.7) => {
+      const node = context.createBiquadFilter();
+      node.type = type; node.frequency.value = frequency; node.Q.value = q;
+      return node;
+    };
+    const noise = brown => {
+      const buffer = context.createBuffer(1, context.sampleRate * 3, context.sampleRate), data = buffer.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < data.length; i++) {
+        const white = Math.random() * 2 - 1;
+        last = (last + 0.02 * white) / 1.02;
+        data[i] = brown ? last * 3.5 : white;
+      }
+      return buffer;
+    };
+    const loop = (buffer, ...chain) => {
+      const source = context.createBufferSource();
+      source.buffer = buffer; source.loop = true;
+      let node = source;
+      for (const next of chain) node = node.connect(next);
+      source.start(0, Math.random() * 2);
+      return node;
+    };
+    const master = gain(0);
     master.connect(context.destination);
-    low.start(); high.start();
-    return { context, master, panner };
+    const panner = context.createStereoPanner ? context.createStereoPanner() : null;
+    if (panner) panner.connect(master);
+    const bed = panner || master;
+    const white = noise(false), brown = noise(true);
+    // Outdoors: wind (band-passed noise that slowly swells) and distant traffic (low rumble).
+    const outdoor = gain(0);
+    outdoor.connect(bed);
+    const wind = gain(0.5);
+    loop(white, filter('bandpass', 520, 0.5), wind).connect(outdoor);
+    const swell = context.createOscillator();
+    swell.frequency.value = 0.07;
+    swell.connect(gain(0.35)).connect(wind.gain);
+    swell.start();
+    loop(brown, filter('lowpass', 160), gain(0.9)).connect(outdoor);
+    // Cabin: ventilation fan (band-passed noise) and a faint electrical hum.
+    const cabin = gain(0);
+    cabin.connect(bed);
+    loop(white, filter('bandpass', 750, 0.9), filter('lowpass', 2400), gain(0.32)).connect(cabin);
+    loop(brown, filter('lowpass', 220), gain(0.5)).connect(cabin);
+    for (const [frequency, level] of [[100, 0.05], [200, 0.02]]) {
+      const hum = context.createOscillator();
+      hum.frequency.value = frequency;
+      hum.connect(gain(level)).connect(cabin);
+      hum.start();
+    }
+    return { context, master, panner, outdoor, cabin, white, brown };
+  }
+  function setSoundScene(view) {
+    if (!ambient) return;
+    const { context, outdoor, cabin } = ambient, now = context.currentTime, inside = view === 'interior';
+    outdoor.gain.setTargetAtTime(inside ? 0 : 1, now, 0.35);
+    cabin.gain.setTargetAtTime(inside ? 1 : 0, now, 0.35);
+  }
+  // Short sounds: a click for a point, a tick for a transition sign, a sliding side door,
+  // a rear door, steps around the vehicle.
+  function playSound(name) {
+    if (!state.presence || !ambient || document.hidden) return;
+    const { context, master, white, brown } = ambient, start = context.currentTime + 0.01;
+    const envelope = (node, at, level, length) => {
+      node.gain.setValueAtTime(0.0001, at);
+      node.gain.exponentialRampToValueAtTime(level, at + 0.01);
+      node.gain.exponentialRampToValueAtTime(0.0001, at + length);
+    };
+    const burst = (offset, { buffer = white, type = 'lowpass', from = 800, to = from, q = 0.7, length = 0.2, level = 0.5 }) => {
+      const at = start + offset, source = context.createBufferSource(), shape = context.createBiquadFilter(), volume = context.createGain();
+      source.buffer = buffer; shape.type = type; shape.Q.value = q;
+      shape.frequency.setValueAtTime(from, at);
+      if (to !== from) shape.frequency.exponentialRampToValueAtTime(to, at + length);
+      envelope(volume, at, level, length);
+      source.connect(shape).connect(volume).connect(master);
+      source.start(at, Math.random() * 2);
+      source.stop(at + length + 0.05);
+    };
+    const thump = (offset, { from = 95, to = 45, length = 0.18, level = 0.7 } = {}) => {
+      const at = start + offset, tone = context.createOscillator(), volume = context.createGain();
+      tone.frequency.setValueAtTime(from, at);
+      tone.frequency.exponentialRampToValueAtTime(to, at + length);
+      envelope(volume, at, level, length);
+      tone.connect(volume).connect(master);
+      tone.start(at);
+      tone.stop(at + length + 0.05);
+    };
+    if (name === 'point') thump(0, { from: 1700, to: 1100, length: 0.06, level: 0.12 });
+    else if (name === 'arm') thump(0, { from: 1200, to: 900, length: 0.04, level: 0.08 });
+    else if (name === 'slide') {
+      burst(0, { type: 'bandpass', from: 380, to: 1300, q: 1.1, length: 0.55, level: 0.35 });
+      thump(0.5, { from: 120, to: 50, level: 0.8 });
+      burst(0.5, { from: 300, length: 0.12, level: 0.4 });
+    } else if (name === 'swing') {
+      burst(0, { type: 'bandpass', from: 900, to: 500, q: 2, length: 0.35, level: 0.2 });
+      thump(0.3, { from: 90, to: 42, level: 0.9 });
+      burst(0.3, { from: 260, length: 0.14, level: 0.45 });
+    } else if (name === 'steps') {
+      for (let i = 0; i < 4; i++) {
+        burst(i * 0.3, { buffer: brown, from: 700, length: 0.09, level: 0.5 });
+        thump(i * 0.3, { from: 75, to: 40, length: 0.08, level: 0.35 });
+      }
+    }
+  }
+  // Vibration: Android and other browsers with navigator.vibrate. Safari on iPhone has no
+  // vibration API; iOS 17.4–26.4 give a system tap when a switch control toggles, so a hidden
+  // one is toggled inside the visitor's tap (Apple closed this in iOS 26.5).
+  const appleTouch = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function haptic(pattern = 25) {
+    if (!state.presence) return;
+    if (typeof navigator.vibrate === 'function') { navigator.vibrate(pattern); return; }
+    if (!appleTouch) return;
+    try {
+      const label = document.createElement('label'), input = document.createElement('input');
+      input.type = 'checkbox'; input.setAttribute('switch', ''); input.tabIndex = -1;
+      label.setAttribute('aria-hidden', 'true'); label.style.display = 'none';
+      label.append(input); document.body.append(label);
+      label.click();
+      label.remove();
+    } catch { /* no haptics */ }
+  }
+  // A move between scenes sounds like the way it is made: the side door, the rear doors or steps around the vehicle.
+  function moveFeedback(from, to) {
+    const a = scenes[from]?.view, b = scenes[to]?.view;
+    if (!state.presence || !a || !b || a === b) return;
+    const pair = [a, b].sort().join('-');
+    playSound(pair === 'interior-yard' ? 'slide' : pair === 'exterior-interior' ? 'swing' : 'steps');
+    haptic([20, 40, 20]);
   }
   viewer.addEventListener('position-updated', event => {
     if (ambient?.panner) ambient.panner.pan.value = Math.sin(event.position.yaw) * 0.7;
   });
   async function updateAmbient() {
     try {
-      if (state.presence && !ambient) ambient = createAmbientSound();
+      if (state.presence && !ambient) {
+        ambient = createAmbientSound();
+        setSoundScene(scenes[state.scene]?.view);
+      }
       if (!ambient) {
         if (state.presence) setStatus('Звук недоступен, остальные эффекты продолжают работать.');
         return;
@@ -1199,7 +1327,7 @@
       clearTimeout(suspendTimer);
       if (play) await context.resume();
       master.gain.cancelScheduledValues(context.currentTime);
-      master.gain.setTargetAtTime(play ? 0.018 : 0, context.currentTime, 0.08);
+      master.gain.setTargetAtTime(play ? 0.4 : 0, context.currentTime, 0.08);
       if (!play) suspendTimer = setTimeout(() => { if (!state.presence || document.hidden) context.suspend(); }, 350);
     } catch {
       setStatus('Звук недоступен, остальные эффекты продолжают работать.');
@@ -1214,7 +1342,7 @@
     legacySoundButton?.setAttribute('aria-pressed', String(on));
     setStatus('');
     announce(on ? 'Эффект присутствия включён.' : 'Эффект присутствия выключен.');
-    if (on && navigator.vibrate) navigator.vibrate([25, 35, 25]);
+    haptic([25, 35, 25]);
     // Sound and the iOS sensor permission both need the click itself, so both start before any await.
     const sound = updateAmbient();
     const gyro = on && canGyro && !state.gyro ? enableGyro() : Promise.resolve(false);
