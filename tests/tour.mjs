@@ -752,10 +752,11 @@ const openMore = async page => {
     else if (/\/assets\/tour-/.test(url)) requested.push(url.split('/').pop().replace(/-preview(?=\.)/, '').replace(/\.[a-z]+$/, ''));
   });
   const text = await page.evaluate(() => document.body.innerText);
-  const presenceLabel = (await page.locator('[data-presence]').textContent()).trim();
+  // The menu item is one word («Эффекты»); its accessible name keeps the mode name.
+  const presenceLabel = `${(await page.locator('[data-presence]').textContent()).trim()}|${await page.getAttribute('[data-presence]', 'aria-label')}`;
   const home = await (await fetch(base + '/')).text();
   const search = await (await fetch(base + '/search-index.json')).text();
-  const common = /^◎?Эффект присутствия$/.test(presenceLabel) && !/5D/.test(text) && !/5D/.test(home) && !/5D/.test(search);
+  const common = /^◎?Эффекты\|Эффект присутствия:/.test(presenceLabel) && !/5D/.test(text) && !/5D/.test(home) && !/5D/.test(search);
   if (MODE === 'demo') {
     const labels = [];
     for (const scene of Object.keys(expected)) {
