@@ -186,6 +186,7 @@ ICONS = {
     'gyro': icon('M8 3h8a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM11 18h2'),
     'presence': icon('M4 10v4h3.5L12 18V6L7.5 10H4zM15.5 9.5a3.5 3.5 0 0 1 0 5M18 7a7 7 0 0 1 0 10'),
     'more': icon('M5 12h.01M12 12h.01M19 12h.01'),
+    'cards': icon('M4 5h16v14H4zM8 9h8M8 13h6'),
     'share': icon('M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1'),
     'fullscreen': icon('M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5'),
     'plus': icon('M12 5v14M5 12h14'),
@@ -253,7 +254,7 @@ def tour_page(mode):
 {selector}<div class="tour-viewport" id="tour-viewport" data-tour-viewer data-tour-mode="{mode}"{data} tabindex="0" role="region" aria-label="Интерактивный панорамный тур. Перемещайте изображение мышью, пальцем или клавишами со стрелками, клавиши плюс и минус меняют масштаб.">
   <div class="tour-psv" data-tour-stage aria-hidden="true"></div>
   <div class="tour-veil" aria-hidden="true"></div>
-  <div class="tour-fallback" data-tour-fallback hidden><strong>Не удалось запустить 3D-графику.</strong><span>Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.</span><button type="button" data-tour-retry hidden>Повторить загрузку</button></div>
+  <div class="tour-fallback" data-tour-fallback hidden><strong>Не удалось запустить 3D-графику.</strong><span>Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.</span><button type="button" data-tour-retry hidden>Повторить загрузку</button><button type="button" data-fallback-equipment>Карточки оборудования</button></div>
   <div class="tour-loading" aria-hidden="true"><span></span><b>Загрузка панорамы</b></div>
   <p class="tour-sharpen" aria-hidden="true">Загрузка полного качества</p>
   <div class="tour-presence" aria-hidden="true"><i></i><i></i></div>
@@ -269,13 +270,19 @@ def tour_page(mode):
           <button type="button" data-guide aria-pressed="false">{ICONS['guide']}<span>Экскурсия</span></button>
           <button type="button" data-auto aria-pressed="false">{ICONS['auto']}<span>Автообзор</span></button>
           <button type="button" data-presence aria-pressed="false" aria-label="Эффект присутствия: звук, свет, вибрация и гироскоп" title="Эффект присутствия: звук, световые акценты, виброотклик и на телефоне — поворот панорамы движением телефона">{ICONS['presence']}<span>Эффекты</span></button>
+          <button type="button" data-equipment-cards>{ICONS['cards']}<span>Карточки</span></button>
         </div>
       </div><button type="button" data-share aria-label="Поделиться ссылкой на этот вид">{ICONS['share']}</button><button type="button" data-fullscreen aria-label="Открыть на весь экран">{ICONS['fullscreen']}</button></div>
   </div>
   <div class="tour-zoom" role="group" aria-label="Масштаб"><button type="button" data-zoom="in" aria-label="Приблизить">{ICONS['plus']}</button><button type="button" data-zoom="out" aria-label="Отдалить">{ICONS['minus']}</button></div>
   <div class="tour-scene-tabs" id="tour-scene-tabs" role="tablist" aria-label="{"Сцены тура" if TOUR_YARD else "Вид автомобиля"}">{tabs}</div>
   <p class="tour-drag-hint">Мышь или один палец — вращать · колесо или щипок — масштаб</p>
-  <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
+  <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-equipment hidden>Учебная памятка</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
+<dialog class="tour-equipment-dialog" data-equipment-dialog aria-labelledby="tour-equipment-title">
+  <div class="tour-equipment-dialog-head"><div><small data-equipment-counter>Учебная карточка РССМП</small><h2 id="tour-equipment-title" data-equipment-name>Оборудование</h2></div><button type="button" data-equipment-close aria-label="Закрыть карточку">{ICONS['close']}</button></div>
+  <div class="tour-equipment-layout"><a class="tour-equipment-poster" data-equipment-poster href="#" target="_blank" rel="noopener"><img data-equipment-image src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" width="1000" height="1250" alt="" loading="lazy"><span>Открыть памятку в полном размере</span></a><div class="tour-equipment-copy"><p class="tour-equipment-kind" data-equipment-kind></p><p data-equipment-description></p><p class="tour-equipment-source">Оригинальная карточка РССМП содержит обозначение органов управления, разделы «Быстрый запуск» и «Не пропустить».</p><p class="tour-equipment-disclaimer"><strong>Важно:</strong> карточка предназначена для ознакомления. При обучении и работе используйте утверждённые станцией материалы, действующие СОП и инструкцию производителя.</p></div></div>
+  <div class="tour-equipment-nav" data-equipment-nav><button type="button" data-equipment-prev aria-label="Предыдущая карточка">{ICONS['prev']}</button><button type="button" data-equipment-next aria-label="Следующая карточка">{ICONS['next']}</button></div>
+</dialog>
   <p class="tour-vr-status" data-vr-status aria-live="polite"></p>
   <p class="sr-only" data-tour-announce aria-live="polite"></p>
 </div>

@@ -64,8 +64,20 @@
     c: { title: 'Реанимобиль класса C', short: 'Класс C' }
   };
 
+  // Подтверждённые станцией карточки оборудования. Сайт показывает оригинальные
+  // материалы без переработки их в самостоятельную медицинскую инструкцию.
+  const equipmentCards = {
+    'medprom-aivl': { name: 'А-ИВЛ/ВВЛп-3/30 «Медпром»', kind: 'Аппарат искусственной вентиляции лёгких', image: '/assets/equipment/equipment-medprom-aivl-3-30.jpg', description: 'Переносной аппарат ИВЛ. На карточке РССМП обозначены органы управления, быстрый запуск и ключевые меры безопасности.' },
+    'axion-apex': { name: 'AXION APEX', kind: 'Дефибриллятор-монитор', image: '/assets/equipment/equipment-axion-apex.jpg', description: 'Монитор-дефибриллятор с экраном, электродами и ложками. На карточке РССМП обозначены основные элементы управления и меры безопасности.' },
+    'lifepak-1000': { name: 'LIFEPAK 1000', kind: 'Дефибриллятор-монитор', image: '/assets/equipment/equipment-lifepak-1000.jpg', description: 'Переносной дефибриллятор-монитор. Карточка РССМП показывает экран, индикатор готовности, разъём электродов и кнопки управления.' },
+    'armed-7d': { name: 'ARMED 7D', kind: 'Электроотсасыватель', image: '/assets/equipment/equipment-armed-7d.jpg', description: 'Переносной электроотсасыватель. На карточке РССМП обозначены ёмкость, трубки, вакуумметр, переключатель и регулятор давления.' },
+    'axion-ecg': { name: 'AXION', kind: 'ЭКГ-аппарат', image: '/assets/equipment/equipment-axion-ecg.jpg', description: 'Переносной электрокардиограф. На карточке РССМП обозначены экран, клавиши навигации, отсек бумаги и кабель пациента.' },
+    'onetouch-verio-reflect': { name: 'OneTouch Verio Reflect', kind: 'Глюкометр', image: '/assets/equipment/equipment-onetouch-verio-reflect.jpg', description: 'Комплект глюкометра с тест-полосками и ланцетным устройством. Карточка РССМП содержит схему комплекта и памятку по работе.' }
+  };
+  const equipmentOrder = ['medprom-aivl', 'axion-apex', 'lifepak-1000', 'armed-7d', 'axion-ecg', 'onetouch-verio-reflect'];
+
   // Автомобили станции сняты 9 октября 2026 года: точки стоят на фактическом оборудовании.
-  // Модели автомобилей и оборудования в описаниях не названы до подтверждения станцией.
+  // В описаниях названы только модели, подтверждённые карточками РССМП или владельцем; остальные не подменяем догадками.
   const scenes = {
     'b-yard': {
       vehicle: 'b', view: 'yard',
@@ -107,7 +119,7 @@
       yaw: -1.4,
       pitch: -0.05,
       hotspots: [
-        { yaw: -1.34, pitch: -0.03, title: 'Аппарат искусственной вентиляции лёгких', text: 'Предназначен для респираторной поддержки пациента. Режимы работы зависят от конкретной модели.' },
+        { yaw: -1.34, pitch: -0.03, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Оригинальная карточка РССМП доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
         { yaw: -1.22, pitch: 0.17, title: 'Кислородная система', text: 'Обеспечивает размещение и подключение кислородного оборудования. Точный состав зависит от комплектации автомобиля.' },
         { yaw: -1.96, pitch: -0.5, title: 'Система носилок', text: 'Предназначена для перемещения пациента и фиксации носилок в медицинском салоне.' },
         { yaw: -1.79, pitch: -0.14, title: 'Сумка экстренной помощи', text: 'Переносная медицинская укладка позволяет доставить необходимые средства непосредственно к пациенту.' },
@@ -172,8 +184,8 @@
       yaw: -1.3,
       pitch: -0.08,
       hotspots: [
-        { yaw: -1.21, pitch: -0.24, title: 'Монитор-дефибриллятор', text: 'Комплекс для мониторинга показателей пациента и проведения предусмотренных моделью лечебных мероприятий. Модель будет указана после подтверждения станцией.' },
-        { yaw: -1.35, pitch: -0.05, title: 'Аппарат искусственной вентиляции лёгких', text: 'Предназначен для респираторной поддержки пациента. Режимы работы зависят от конкретной модели.' },
+        { yaw: -1.21, pitch: -0.24, title: 'Монитор-дефибриллятор AXION APEX', text: 'На нижней полке установлен AXION APEX. В разделе учебных карточек также представлен переносной LIFEPAK 1000.', materials: ['axion-apex', 'lifepak-1000'] },
+        { yaw: -1.35, pitch: -0.05, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Оригинальная карточка РССМП доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
         { yaw: -1.53, pitch: 0.07, title: 'Инфузионное оборудование', text: 'Оборудование для контролируемого введения растворов. Состав оборудования будет указан после подтверждения станцией.' },
         { yaw: -1.24, pitch: 0.16, title: 'Кислородная система', text: 'Стационарные крепления, редукторы и точки подключения обеспечивают использование кислородного оборудования.' },
         { yaw: -1.96, pitch: -0.51, title: 'Система носилок', text: 'Обеспечивает перемещение пациента и надёжное крепление во время транспортировки.' },
@@ -183,7 +195,7 @@
         { yaw: -1.78, pitch: -0.39, title: 'Укладка на нижней полке', text: 'Крупная мягкая укладка размещена в нижней зоне стеллажа.' },
         { yaw: -0.58, pitch: -0.14, title: 'Дополнительная медицинская сумка', text: 'Отдельная переносная сумка размещена за креслом медицинского салона.' },
         { yaw: 0.47, pitch: -1.05, title: 'Жёсткий ящик у боковой двери', text: 'Жёсткий защитный ящик с маркировкой «44-2» размещён на полу у боковой двери.' },
-        { yaw: -1.47, pitch: -0.48, title: 'Аспиратор', text: 'Предназначен для удаления жидкостей из дыхательных путей. Модель будет указана после подтверждения станцией.' },
+        { yaw: -1.47, pitch: -0.48, title: 'Электроотсасыватель ARMED 7D', text: 'Переносной электроотсасыватель ARMED 7D с ёмкостью, соединительными трубками, вакуумметром и регулятором давления.', materials: ['armed-7d'] },
         { yaw: -1.18, pitch: -0.65, title: 'Сейф', text: 'Металлический сейф в нижнем отсеке, частично закрыт носилками.' },
         { yaw: -2.85, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
         { yaw: 0.42, pitch: 0.53, title: 'Панель управления отопителем', text: 'Блок управления с надписью «ОТОПИТЕЛЬ» и клавишные переключатели оборудования медицинского салона.' },
@@ -300,6 +312,67 @@
   const isAbort = error => Boolean(PSV.utils?.isAbortError?.(error) || error?.name === 'AbortError');
   const state = { vehicle: scenes[defaultScene].vehicle, scene: defaultScene, dragging: false, auto: false, gyro: false, presence: false };
 
+  // Изображения карточек загружаются только при открытии диалога.
+  const equipmentDialog = root.querySelector('[data-equipment-dialog]');
+  const equipmentName = equipmentDialog?.querySelector('[data-equipment-name]');
+  const equipmentCounter = equipmentDialog?.querySelector('[data-equipment-counter]');
+  const equipmentKind = equipmentDialog?.querySelector('[data-equipment-kind]');
+  const equipmentDescription = equipmentDialog?.querySelector('[data-equipment-description]');
+  const equipmentImage = equipmentDialog?.querySelector('[data-equipment-image]');
+  const equipmentPoster = equipmentDialog?.querySelector('[data-equipment-poster]');
+  const equipmentNav = equipmentDialog?.querySelector('[data-equipment-nav]');
+  const equipmentPrev = equipmentDialog?.querySelector('[data-equipment-prev]');
+  const equipmentNext = equipmentDialog?.querySelector('[data-equipment-next]');
+  let equipmentSelection = equipmentOrder, equipmentIndex = 0;
+  function renderEquipmentCard() {
+    const id = equipmentSelection[equipmentIndex], card = equipmentCards[id];
+    if (!card || !equipmentDialog) return;
+    equipmentName.textContent = card.name;
+    equipmentCounter.textContent = `Учебная карточка РССМП · ${equipmentIndex + 1} из ${equipmentSelection.length}`;
+    equipmentKind.textContent = card.kind;
+    equipmentDescription.textContent = card.description;
+    equipmentImage.src = card.image;
+    equipmentImage.alt = `${card.name}: учебная карточка РССМП`;
+    equipmentPoster.href = card.image;
+    equipmentPoster.setAttribute('aria-label', `Открыть памятку ${card.name} в полном размере`);
+    if (equipmentNav) equipmentNav.hidden = equipmentSelection.length < 2;
+  }
+  function openEquipmentCards(ids = equipmentOrder) {
+    const valid = ids.filter(id => own(equipmentCards, id));
+    if (!valid.length || !equipmentDialog) return;
+    equipmentSelection = valid;
+    equipmentIndex = 0;
+    renderEquipmentCard();
+    if (typeof equipmentDialog.showModal === 'function') equipmentDialog.showModal();
+    else equipmentDialog.setAttribute('open', '');
+    equipmentDialog.querySelector('[data-equipment-close]')?.focus({ preventScroll: true });
+  }
+  function closeEquipmentCards() {
+    if (!equipmentDialog?.open) return;
+    if (typeof equipmentDialog.close === 'function') equipmentDialog.close();
+    else equipmentDialog.removeAttribute('open');
+  }
+  equipmentPrev?.addEventListener('click', () => {
+    equipmentIndex = (equipmentIndex - 1 + equipmentSelection.length) % equipmentSelection.length;
+    renderEquipmentCard();
+  });
+  equipmentNext?.addEventListener('click', () => {
+    equipmentIndex = (equipmentIndex + 1) % equipmentSelection.length;
+    renderEquipmentCard();
+  });
+  equipmentDialog?.querySelector('[data-equipment-close]')?.addEventListener('click', closeEquipmentCards);
+  equipmentDialog?.addEventListener('click', event => {
+    if (event.target === equipmentDialog) closeEquipmentCards();
+  });
+  for (const button of root.querySelectorAll('[data-equipment-cards], [data-fallback-equipment]')) {
+    button.addEventListener('click', () => {
+      const menu = root.querySelector('[data-more-menu]');
+      if (menu) menu.hidden = true;
+      root.querySelector('[data-more]')?.setAttribute('aria-expanded', 'false');
+      openEquipmentCards();
+    });
+  }
+
   // three.js inside the engine needs WebGL 2 (Chrome, Edge, Firefox, Safari 15+). The engine
   // itself does not throw without it, so the check comes first.
   const hasWebGL2 = (() => {
@@ -329,6 +402,13 @@
         text.textContent = spot.text;
         details.append(summary, text);
         item.append(details);
+        if (spot.materials?.length) {
+          const materialButton = document.createElement('button');
+          materialButton.type = 'button';
+          materialButton.textContent = 'Открыть учебную памятку';
+          materialButton.addEventListener('click', () => openEquipmentCards(spot.materials));
+          item.append(materialButton);
+        }
         list.append(item);
       }
     }
@@ -451,6 +531,7 @@
   const nextButton = infoCard.querySelector('[data-card-next]');
   const guideTimer = infoCard.querySelector('.tour-guide-timer');
   const speakButton = infoCard.querySelector('[data-card-speak]');
+  const cardEquipmentButton = infoCard.querySelector('[data-card-equipment]');
   const moreButton = root.querySelector('[data-more]');
   const moreMenu = root.querySelector('[data-more-menu]');
   const moreControls = moreMenu ? [...moreMenu.querySelectorAll('button[aria-pressed]')] : [];
@@ -682,6 +763,7 @@
     if (nextButton) nextButton.hidden = !canStep;
     infoTitle.textContent = spot.title;
     infoText.textContent = spot.text;
+    if (cardEquipmentButton) cardEquipmentButton.hidden = !spot.materials?.length;
     infoAction.hidden = !spot.next;
     infoAction.textContent = spot.action || 'Перейти';
     stopSpeech();
@@ -712,6 +794,9 @@
   }
   prevButton?.addEventListener('click', () => stepHotspot(-1));
   nextButton?.addEventListener('click', () => stepHotspot(1));
+  cardEquipmentButton?.addEventListener('click', () => {
+    if (activeHotspot?.materials?.length) openEquipmentCards(activeHotspot.materials);
+  });
   infoAction.addEventListener('click', () => {
     const spot = activeHotspot;
     if (!spot?.next) return;

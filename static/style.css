@@ -2498,6 +2498,189 @@ a[href^="tel:"] {
   animation: tour-dwell var(--dwell, 6s) linear forwards;
 }
 
+
+.tour-card-actions [data-card-equipment] {
+  border-color: #9ab8aa;
+  background: #edf4f0;
+  color: #0b4a38;
+  font-weight: 600;
+}
+
+/* Original RССМП equipment cards. The dialog keeps detailed material out of
+   the panorama until it is requested and lets a visitor open the poster at full size. */
+.tour-equipment-dialog {
+  width: min(900px, calc(100% - 32px));
+  max-width: none;
+  max-height: min(92vh, 920px);
+  max-height: min(92dvh, 920px);
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 20px;
+  background: #f7faf8;
+  color: #0b2b24;
+  box-shadow: 0 28px 90px #001a1266;
+}
+.tour-equipment-dialog::backdrop {
+  background: #00140ec7;
+}
+.tour-equipment-dialog-head {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #d9e4de;
+  background: #f7faf8;
+}
+.tour-equipment-dialog-head small {
+  color: #24705b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tour-equipment-dialog-head h2 {
+  margin: 5px 0 0;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+.tour-equipment-dialog-head button {
+  display: grid;
+  flex: 0 0 40px;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #e8efea;
+  color: #274b41;
+}
+.tour-equipment-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(260px, 1fr);
+  gap: 0;
+}
+.tour-equipment-poster {
+  position: relative;
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  padding: 20px;
+  border-right: 1px solid #d9e4de;
+  background: #eaf1ed;
+  color: #0b4a38;
+  text-decoration: none;
+}
+.tour-equipment-poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 68vh;
+  max-height: 68dvh;
+  border-radius: 10px;
+  object-fit: contain;
+  box-shadow: 0 10px 30px #05251a24;
+}
+.tour-equipment-poster span {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+.tour-equipment-copy {
+  align-self: start;
+  padding: 26px 28px 30px;
+}
+.tour-equipment-kind {
+  margin: 0 0 8px;
+  color: #24705b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tour-equipment-copy > p {
+  margin: 0 0 18px;
+  color: #405c53;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.tour-equipment-copy .tour-equipment-source {
+  padding-top: 18px;
+  border-top: 1px solid #d9e4de;
+}
+.tour-equipment-copy .tour-equipment-disclaimer {
+  margin-bottom: 0;
+  padding: 14px 16px;
+  border-left: 3px solid #b32824;
+  border-radius: 0 10px 10px 0;
+  background: #f8ecea;
+  color: #50211f;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.tour-equipment-nav {
+  position: sticky;
+  z-index: 2;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 24px;
+  border-top: 1px solid #d9e4de;
+  background: #f7faf8;
+}
+.tour-equipment-nav button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #bdcec5;
+  border-radius: 50%;
+  background: #fff;
+  color: #12382e;
+}
+.tour-equipment-nav button:hover,
+.tour-equipment-dialog-head button:hover {
+  background: #dfeae4;
+}
+@media (max-width: 700px) {
+  .tour-equipment-dialog {
+    width: calc(100% - 16px);
+    max-height: 96vh;
+    max-height: 96dvh;
+    border-radius: 16px;
+  }
+  .tour-equipment-dialog-head {
+    padding: 16px 18px 14px;
+  }
+  .tour-equipment-layout {
+    grid-template-columns: 1fr;
+  }
+  .tour-equipment-poster {
+    padding: 14px;
+    border-right: 0;
+    border-bottom: 1px solid #d9e4de;
+  }
+  .tour-equipment-poster img {
+    max-height: 46vh;
+    max-height: 46dvh;
+  }
+  .tour-equipment-copy {
+    padding: 20px 18px 24px;
+  }
+  .tour-equipment-nav {
+    padding: 10px 18px;
+  }
+}
+
 /* Presence effect: red and blue light accents while it is on */
 .tour-presence {
   position: absolute;

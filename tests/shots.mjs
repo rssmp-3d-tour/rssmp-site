@@ -23,6 +23,11 @@ for (const [w, h, mobile] of [
   await p.waitForTimeout(1500);
   await p.locator('[data-tour-viewer]').screenshot({ path: `${out}/card-${w}.png` });
   await p.keyboard.press('Escape');
+  await p.locator('[data-more]').click();
+  await p.locator('[data-equipment-cards]').click();
+  await p.waitForTimeout(300);
+  await p.screenshot({ path: `${out}/equipment-${w}.png` });
+  await p.locator('[data-equipment-close]').click();
   const scenesToggle = p.locator('[data-scenes-toggle]');
   if (await scenesToggle.isVisible()) await scenesToggle.click();
   await p.locator('[data-view="interior"]').click();
