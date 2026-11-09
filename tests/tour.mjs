@@ -397,7 +397,6 @@ const openMore = async page => {
     check('T6j', 'Точка AXION APEX открывает относящиеся к дефибрилляторам карточки без изменения переходов тура', shown && first === 'AXION APEX' && second === 'LIFEPAK 1000' && card.errors.length === 0, `shown=${shown} cards=${first} → ${second} errors=${card.errors}`);
     await card.context().close();
   }
-}
 
 // T7 keyboard, direct wheel handling, mouse drag, auto rotation
 {
