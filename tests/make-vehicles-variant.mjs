@@ -14,7 +14,7 @@ const mode = process.argv[4] || 'vehicles';
 if (!['vehicles', 'demo'].includes(mode)) throw new Error(`Unknown mode: ${mode}`);
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
-for (const name of ['build_pages.py', 'shell.html', 'home.html', 'beget.htaccess', 'static']) {
+for (const name of ['build_pages.py', 'publication_guard.py', 'shell.html', 'home.html', 'beget.htaccess', 'static']) {
   fs.cpSync(path.join(project, name), path.join(out, name), { recursive: true });
 }
 

@@ -20,6 +20,7 @@ import json
 import os
 import re
 import shutil
+from publication_guard import validate_public_assets
 
 PROJECT = Path(__file__).resolve().parent
 STATIC = PROJECT / 'static'
@@ -340,6 +341,11 @@ def version_assets(text):
 
 
 # 1. Чистая папка dist из static/
+# Check before deleting the previous build; never follow links to private files.
+try:
+    validate_public_assets(STATIC)
+except ValueError as error:
+    raise SystemExit(str(error)) from error
 if ROOT.exists():
     shutil.rmtree(ROOT)
 shutil.copytree(STATIC, ROOT)

@@ -16,7 +16,7 @@ AddDefaultCharset UTF-8
 # Сайт статический: исполняемые, служебные и резервные файлы не отдаются,
 # даже если их случайно загрузить в public_html.
 <IfModule mod_authz_core.c>
-  <FilesMatch "\.(?:php\d?|phtml|phar|cgi|pl|py|sh|md|bak|old|orig|swp|sql|log|ini|env|zip|tar|gz|7z|rar)$">
+  <FilesMatch "(?i)(?:^\.|\.(?:php\d?|phtml|phar|cgi|pl|py|sh|md|bak|old|orig|swp|sql|sqlite\d?|db|log|ini|env|map|pem|key|p12|zip|tar|gz|7z|rar)$)">
     Require all denied
   </FilesMatch>
 </IfModule>
