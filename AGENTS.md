@@ -7,7 +7,7 @@
 - На каждый pull request GitHub Actions (`.github/workflows/site.yml`) собирает сайт и запускает все проверки `tests/run-all.sh`. Pull request готов, только когда проверки зелёные. Если упали — найди причину и исправь. Тесты не отключай и не ослабляй.
 - Сам на живой сайт не публикуй. После слияния владелец скачивает готовую сборку из Actions (артефакты `rssmp-github-pages`, `rssmp-beget`) и загружает её сам.
 - Скиллы (методички `SKILL.md`) лежат в `.claude/skills/<имя>/SKILL.md`, таблица выбора — в `.claude/skills/README.md`. Перед задачей прочитай подходящий скилл.
-- Чтобы запустить проверки у себя: `cd tests && npm ci && npx playwright install --with-deps chromium && npm test` (нужны Python 3, Node.js 18+ и интернет для установки).
+- Чтобы запустить проверки у себя: `cd tests && npm ci && npx playwright install --with-deps chromium && npm test` (нужны Python 3, Node.js 22.22+ в ветке 22 либо 24.8+ и интернет для установки).
 
 СМЕНА АГЕНТА (Claude ⇄ ChatGPT/Codex)
 Над сайтом по очереди работают Claude и ChatGPT или Codex. Когда у одного заканчиваются лимиты, работу продолжает другой, поэтому всё состояние хранится в репозитории, а не в переписке.

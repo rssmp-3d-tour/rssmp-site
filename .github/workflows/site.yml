@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: '22'
+          node-version: '22.22.0'
           cache: npm
           cache-dependency-path: tests/package-lock.json
 
@@ -39,8 +39,8 @@ jobs:
 
       - name: Аудит зависимостей
         run: |
-          npm audit --package-lock-only --audit-level=high --prefix tests
-          npm audit --package-lock-only --audit-level=high --prefix vendor-src
+          npm audit --package-lock-only --audit-level=low --prefix tests
+          npm audit --package-lock-only --audit-level=low --prefix vendor-src
 
       - name: Все проверки (tests/run-all.sh)
         working-directory: tests
@@ -51,7 +51,7 @@ jobs:
           python3 build_pages.py
           mkdir -p out
           cp -a dist out/beget
-          RSSMP_PUBLIC=1 RSSMP_BASE_URL=https://rssmp-3d-tour.github.io RSSMP_TARGET=github python3 build_pages.py
+          RSSMP_TARGET=github python3 build_pages.py
           cp -a dist out/github-pages
 
       - name: Архив для Beget

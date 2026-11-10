@@ -2,13 +2,16 @@
   "name": "rssmp-site-tests",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": "^22.22.0 || >=24.8.0"
+  },
   "description": "Автоматические проверки сайта РССМП: страницы, доступность (axe), 3D-тур, HTML",
   "scripts": {
     "test": "bash run-all.sh"
   },
   "devDependencies": {
     "axe-core": "^4.10.0",
-    "html-validate": "^10.17.0",
+    "html-validate": "11.21.0",
     "playwright": "1.56.1",
     "pngjs": "^7.0.0"
   }

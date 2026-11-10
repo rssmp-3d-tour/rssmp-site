@@ -133,7 +133,8 @@
       ],
       "status": "Ожидает подтверждения модели",
       "image": "/assets/equipment/axion-apex-cutout.webp",
-      "manual": "https://www.axion-med.ru/",
+      "manual": "",
+      "sourceNote": "Руководство выбирают по точной модели и исполнению на шильдике прибора.",
       "memory": [
         "Осмотрите корпус, кабели и электроды",
         "Дождитесь успешного самотестирования",
@@ -245,7 +246,8 @@
       ],
       "status": "Модель подтверждена",
       "image": "/assets/equipment/armed-7d-cutout.webp",
-      "manual": "https://stomdevice.ru/downloads/armed_rukovodstvo_polzovatelya_armed_7d_otsasyvatel_xirurgicheskij_elektricheskij__russkij.pdf",
+      "manual": "https://www.armed.ru/service",
+      "sourceNote": "Прямое руководство для этого исполнения пока не добавлено. Уточните документ в сервисе производителя; при работе используйте руководство своего прибора.",
       "memory": [
         "Проверьте герметичность и поплавок",
         "Вакуум — по медицинскому назначению",
@@ -292,14 +294,15 @@
         "Переключатель «ВКЛ/ВЫКЛ».",
         "Регулятор давления."
       ],
-      "sourceLabel": "Руководство производителя"
+      "sourceLabel": "Сервис ARMED · уточнить руководство"
     },
     "axion-ecg": {
       "kind": "Электрокардиограф",
       "classes": [],
       "status": "Ожидает шильдик и привязку к автомобилю",
       "image": "/assets/equipment/axion-ecg-cutout.webp",
-      "manual": "https://axion-med.ru/",
+      "manual": "",
+      "sourceNote": "Руководство выбирают по точной модели и исполнению на шильдике прибора.",
       "memory": [
         "Осмотрите кабель пациента",
         "Проверьте контакт электродов",
@@ -354,7 +357,8 @@
       "classes": [],
       "status": "Модель подтверждена · привязка к автомобилю не подтверждена",
       "image": "/assets/equipment/onetouch-verio-reflect-cutout.webp",
-      "manual": "https://onetouch.ru/sites/default/files/2021-10/Owner%27s%20booklet.pdf",
+      "manual": "https://svami.onetouch.ru/about/product/g_verio_reflect",
+      "sourceNote": "Руководство находится в разделе «Руководство пользователя» на странице модели. Если сайт производителя недоступен, используйте документ из комплекта своего прибора.",
       "memory": [
         "Чистые и полностью сухие руки",
         "Новый стерильный ланцет",
@@ -401,7 +405,7 @@
         "Кнопка OK / питание.",
         "Экран."
       ],
-      "sourceLabel": "Руководство производителя"
+      "sourceLabel": "OneTouch · страница модели и документы"
     },
     "armed-linz-6-b": {
       "name": "ARMED LINZ-6-B",
@@ -410,8 +414,9 @@
       "status": "Модель предоставлена владельцем · место в туре уточняется",
       "image": "/assets/equipment/armed-linz-6-b-cutout.webp",
       "description": "Дозатор медицинский для внутривенного вливания с одним шприцевым каналом. В каталоге производителя LINZ-6-B указан именно как шприцевой дозатор.",
-      "manual": "https://www.armed.ru/product/dozator-linz-6-b/",
-      "sourceLabel": "ARMED · сведения о модели",
+      "manual": "https://www.armed.ru/service",
+      "sourceLabel": "Сервис ARMED · уточнить руководство",
+      "sourceNote": "Прямое руководство для этого исполнения пока не добавлено. Уточните документ в сервисе производителя; при работе используйте руководство своего прибора.",
       "facts": [
         "Экран отображает настройки и объём вливаний.",
         "Предусмотрены аккумуляторное питание и аудиовизуальные сигналы тревоги."
@@ -758,6 +763,7 @@
   const equipmentBack = equipmentDialog?.querySelector('[data-equipment-back]');
   const equipmentSections = equipmentDialog?.querySelector('[data-equipment-sections]');
   const equipmentManual = equipmentDialog?.querySelector('[data-equipment-manual]');
+  const equipmentSourceNote = equipmentDialog?.querySelector('[data-equipment-source-note]');
   const equipmentVisual = equipmentDialog?.querySelector('[data-equipment-visual]');
   const equipmentNoImage = equipmentDialog?.querySelector('[data-equipment-no-image]');
   const equipmentNav = equipmentDialog?.querySelector('[data-equipment-nav]');
@@ -874,6 +880,10 @@
       equipmentManual.href = card.manual;
       equipmentManual.textContent = card.sourceLabel;
     } else equipmentManual.removeAttribute('href');
+    if (equipmentSourceNote) {
+      equipmentSourceNote.textContent = card.sourceNote || '';
+      equipmentSourceNote.hidden = !card.sourceNote;
+    }
     equipmentNav.hidden = equipmentSelection.length < 2;
     equipmentDialog.querySelector('[data-equipment-position]').textContent = `${equipmentIndex + 1} из ${equipmentSelection.length}`;
     equipmentDialog.scrollTop = 0;

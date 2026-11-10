@@ -57,6 +57,19 @@ try {
         }));
         check(/\/assets\/equipment\/.+cutout\.webp/.test(await page.locator('[data-equipment-image]').getAttribute('src')), `${width}px ${id}: wrong asset`);
       } else check(!await page.locator('[data-equipment-image]').getAttribute('src'), `${width}px ${id}: stale image from another model`);
+      const source = page.locator('[data-equipment-manual]');
+      const sourceNote = page.locator('[data-equipment-source-note]');
+      const needsSourceNote = ['axion-apex', 'axion-ecg', 'armed-7d', 'armed-linz-6-b', 'onetouch-verio-reflect'].includes(id);
+      check(await sourceNote.isVisible() === needsSourceNote, `${width}px ${id}: missing or stale document notice`);
+      if (['axion-apex', 'axion-ecg', 'ecg-inventory', 'aspirator-inventory'].includes(id)) {
+        check(!await source.isVisible() && !await source.getAttribute('href'), `${width}px ${id}: previous model's document remains linked`);
+      }
+      if (['armed-7d', 'armed-linz-6-b'].includes(id)) {
+        check(await source.getAttribute('href') === 'https://www.armed.ru/service' && /Сервис ARMED/.test(await source.textContent()), `${width}px ${id}: service page presented as a manual`);
+      }
+      if (id === 'onetouch-verio-reflect') {
+        check(await source.getAttribute('href') === 'https://svami.onetouch.ru/about/product/g_verio_reflect' && /страница модели/.test(await source.textContent()), `${width}px ${id}: obsolete PDF or misleading source label`);
+      }
       check(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1), `${width}px ${id}: horizontal overflow`);
       const hash = await page.evaluate(() => location.hash);
       await page.keyboard.press('ArrowDown');

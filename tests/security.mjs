@@ -36,6 +36,7 @@ for (const header of ['X-Content-Type-Options', 'X-Frame-Options', 'Referrer-Pol
 check(/frame-ancestors 'none'/.test(htaccess), 'Beget запрещает встраивание сайта во фрейм');
 check(/permissions:\s*\n\s*contents:\s*read/.test(workflow), 'GitHub Actions имеет только contents: read');
 check(!/pull_request_target/.test(workflow), 'Workflow не выполняет недоверенный PR-код с повышенным контекстом');
+check(!/RSSMP_PUBLIC\s*[:=]\s*['"]?1/.test(workflow), 'Автоматические артефакты не включают индексацию до согласования публикации');
 const actions = [...workflow.matchAll(/uses:\s*([^\s#]+)/g)].map(match => match[1]);
 check(actions.length > 0 && actions.every(value => /@[0-9a-f]{40}$/.test(value)), 'Все GitHub Actions закреплены на полном commit SHA');
 
