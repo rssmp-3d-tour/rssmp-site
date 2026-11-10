@@ -51,7 +51,7 @@ jobs:
           python3 build_pages.py
           mkdir -p out
           cp -a dist out/beget
-          RSSMP_TARGET=github python3 build_pages.py
+          RSSMP_PUBLIC=1 RSSMP_BASE_URL=https://rssmp-3d-tour.github.io RSSMP_TARGET=github python3 build_pages.py
           cp -a dist out/github-pages
 
       - name: Архив для Beget

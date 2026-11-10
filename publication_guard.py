@@ -2,6 +2,14 @@
 from pathlib import Path
 
 
+def validate_site_size(root, limit=1_000_000_000):
+    """Stay below the published GitHub Pages site size limit."""
+    size = sum(p.stat().st_size for p in Path(root).rglob('*') if p.is_file())
+    if size > limit:
+        raise ValueError(f'Published site exceeds size budget: {size} > {limit} bytes')
+    return size
+
+
 def validate_public_assets(root):
     root = Path(root)
     if root.is_symlink():

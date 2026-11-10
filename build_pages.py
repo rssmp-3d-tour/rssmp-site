@@ -20,7 +20,7 @@ import json
 import os
 import re
 import shutil
-from publication_guard import validate_public_assets
+from publication_guard import validate_public_assets, validate_site_size
 
 PROJECT = Path(__file__).resolve().parent
 STATIC = PROJECT / 'static'
@@ -388,5 +388,9 @@ if TARGET == 'github':
     write(ROOT / '.nojekyll', '')
 else:
     write(ROOT / '.htaccess', read(PROJECT / 'beget.htaccess'))
+try:
+    validate_site_size(ROOT)
+except ValueError as error:
+    raise SystemExit(str(error)) from error
 print(f'Created {len(pages)} pages and 404.html ({"public" if PUBLIC else "preview"} build, target: {TARGET}, tour: {TOUR_MODE}) in {ROOT}')
 

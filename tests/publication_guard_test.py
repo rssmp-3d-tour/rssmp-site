@@ -4,10 +4,17 @@ import tempfile
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from publication_guard import validate_public_assets
+from publication_guard import validate_public_assets, validate_site_size
 
 
 class PublicationGuardTest(unittest.TestCase):
+    def test_site_size_budget_boundary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / 'asset').write_bytes(b'12345678')
+            self.assertEqual(validate_site_size(directory, limit=8), 8)
+            with self.assertRaises(ValueError):
+                validate_site_size(directory, limit=7)
+
     def test_current_public_assets(self):
         validate_public_assets(Path(__file__).resolve().parents[1] / 'static')
 
