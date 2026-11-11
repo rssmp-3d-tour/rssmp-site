@@ -207,6 +207,70 @@ def plural(n, one, few, many):
     return few if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else many
 
 
+REGISTER_PLAN = '24.09.2026'
+REGISTER_BOARDS = {
+    '40': [
+        ('ЭКГ АКСИОН', '02.07.2020', '2'),
+        ('Дефибриллятор LIFEPAK 1000', '25.09.2020', '1'),
+        ('Аспиратор медицинский электрический Н003-А', '01.07.2020', '—'),
+        ('ИВЛ/ВВЛ Медпром 3/30', '18.12.2020', '2'),
+        ('Шприцевой дозатор ДШП 5-20 «Шмель»', '30.06.2020', '—'),
+    ],
+    '44': [
+        ('ЭКГ АКСИОН', '28.04.2023', '—'),
+        ('Дефибриллятор LIFEPAK 1000', '25.09.2020', '1'),
+        ('Дефибриллятор-монитор ДКИ-11 АКСИОН', '02.07.2020', '2'),
+        ('ИВЛ/ВВЛ Медпром 3/30', '18.12.2020', '1'),
+        ('Отсасыватель хирургический электрический «Армед»', '01.07.2020', '—'),
+        ('Шприцевой дозатор ДШП 5-20 «Шмель»', '30.06.2020', '—'),
+    ],
+    '46': [
+        ('ЭКГ ЭК 3Т 0.1-0.3 «РД» (запись на снимке)', '28.04.2023', '—'),
+        ('Дефибриллятор LIFEPAK 1000', '25.09.2020', '2'),
+        ('Отсасыватель хирургический электрический «Армед» 7D', '01.07.2020', '—'),
+        ('ИВЛ/ВВЛ Медпром 3/30', '18.12.2020', '2'),
+        ('Шприцевой дозатор 5-20 «Шмель»', '02.07.2020', '—'),
+    ],
+    '47': [
+        ('ЭКГ ЭК 3Т 0.1-0.3 «РД» (запись на снимке)', '28.04.2023', '—'),
+        ('Дефибриллятор LIFEPAK 1000', '25.09.2020', '1'),
+        ('Отсасыватель хирургический электрический «Армед» 7D', '01.07.2020', '—'),
+        ('ИВЛ «Ритм-100»', '18.12.2020', '2'),
+        ('Шприцевой дозатор 5-20 «Шмель»', '30.06.2020', '—'),
+    ],
+    '48': [
+        ('ЭКГ АКСИОН ЭК 1Т 1/3-0.7 (запись на снимке)', '25.12.2020', '1'),
+        ('Дефибриллятор LIFEPAK 1000', '25.09.2020', '2'),
+        ('Отсасыватель хирургический электрический «Армед» 7D', '01.07.2020', '—'),
+        ('ИВЛ/ВВЛ Медпром 3/30', '18.12.2020', '2'),
+        ('Шприцевой дозатор 5-20 «Шмель»', '02.07.2020', '—'),
+    ],
+}
+
+
+def equipment_register():
+    boards = []
+    for board, devices in REGISTER_BOARDS.items():
+        rows = []
+        for name, commissioned, current in devices:
+            fields = (
+                ('Ввод в эксплуатацию', commissioned),
+                ('Плановое ТО по ведомости', REGISTER_PLAN),
+                ('Текущее ТО (графа ведомости)', current),
+                ('Амортизация (графа ведомости)', '0'),
+            )
+            details = ''.join(f'<div><dt>{escape(label)}</dt><dd>{escape(value)}</dd></div>' for label, value in fields)
+            rows.append(f'<li><strong>{escape(name)}</strong><dl>{details}</dl></li>')
+        boards.append(f'<details class="equipment-register-board"><summary>Борт {board}</summary><ul>{"".join(rows)}</ul></details>')
+    return (
+        '<details class="equipment-register"><summary>Ведомость оборудования по бортам</summary>'
+        '<p>Записи с двух предоставленных снимков. Даты планового ТО приведены как в ведомости. '
+        'Прочерк обозначает отсутствие значения. Номера бортов относятся к ведомости.</p>'
+        + ''.join(boards)
+        + '<p>Борт 41 виден на первом снимке, но его строки закрыты бликом. Нужен повторный снимок.</p></details>'
+    )
+
+
 def tour_page(mode):
     """Страница 3D-тура. mode = 'demo' (один демонстрационный тур) или 'vehicles' (выбор классов B и C)."""
     demo = mode == 'demo'
@@ -283,6 +347,7 @@ def tour_page(mode):
   <div class="tour-equipment-dialog-head"><div><button class="tour-equipment-back" type="button" data-equipment-back hidden>К списку оборудования</button><small data-equipment-counter>Каталог оборудования</small><h2 id="tour-equipment-title" data-equipment-name tabindex="-1">Оборудование</h2></div><button type="button" data-equipment-close aria-label="Закрыть карточки оборудования">{ICONS['close']}</button></div>
   <div class="tour-equipment-catalog" data-equipment-catalog>
     <p class="tour-equipment-intro">Оборудование автомобилей классов B и C. Принадлежность к классу указана только для подтверждённых точек; остальные приборы собраны отдельно.</p>
+    {equipment_register()}
     <div class="tour-equipment-filters" role="group" aria-label="Показать оборудование"><button type="button" data-equipment-filter="all" aria-pressed="true">Все</button><button type="button" data-equipment-filter="b" aria-pressed="false">Класс B</button><button type="button" data-equipment-filter="c" aria-pressed="false">Класс C</button><button type="button" data-equipment-filter="pending" aria-pressed="false">Привязка уточняется</button></div>
     <p class="tour-equipment-count" data-equipment-count role="status"></p>
     <ul class="tour-equipment-list" data-equipment-list></ul>
