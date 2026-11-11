@@ -432,12 +432,11 @@
       "classes": [],
       "status": "Указан в ведомости · место в туре уточняется",
       "image": "/assets/equipment/shmel-cutout.webp",
-      "description": "Портативный дозатор лекарственных средств производства ООО «МЕДПЛАНТ». В предоставленной ведомости указан у нескольких бортов; эти номера не определяют класс автомобиля.",
+      "description": "Портативный дозатор лекарственных средств производства ООО «МЕДПЛАНТ».",
       "manual": "https://medplant.ru/catalog/dozator-shpritsevyy-portativnyy-lekarstvennykh-sredstv-dshp-5-20-shmel/",
       "sourceLabel": "МЕДПЛАНТ · сведения о модели",
       "facts": [
-        "Название и назначение сверены с каталогом производителя.",
-        "Бортовые номера ведомости хранятся отдельно от названия модели."
+        "Название и назначение сверены с каталогом производителя."
       ],
       "pending": [
         "Сопоставить конкретный прибор с автомобилем и точкой панорамы.",
@@ -486,7 +485,7 @@
       "classes": [],
       "status": "Модель уточняется · фотография не подменяется похожей",
       "image": null,
-      "description": "В ведомости есть обозначения электрокардиографов, которые нельзя однозначно прочитать на предоставленном снимке. Они не объединены с ЭКГ AXION.",
+      "description": "В ведомости указан отдельный электрокардиограф с обозначением «РД». Полное обозначение модели нужно сверить по шильдику.",
       "facts": [
         "Наличие строки в ведомости не подтверждает прибор на конкретной панораме."
       ],
@@ -501,7 +500,7 @@
       "classes": [],
       "status": "Модель уточняется · фотография не подменяется похожей",
       "image": null,
-      "description": "В ведомости есть отдельная строка электроаспиратора с неясным обозначением. Она не считается подтверждением ARMED 7D или другой похожей модели.",
+      "description": "По ведомости указан медицинский электрический аспиратор Н003-А. Изготовитель и исполнение уточняются по шильдику.",
       "facts": [
         "Запись сохранена отдельно от подтверждённых моделей."
       ],
@@ -511,6 +510,18 @@
       ]
     }
   };
+  // Даты относятся к записям о приборах в ведомости. Повторяющиеся даты сведены в одну.
+  const equipmentRegisterDates = {
+    'medprom-aivl': '18.12.2020',
+    'lifepak-1000': '25.09.2020',
+    'armed-7d': '01.07.2020',
+    'axion-ecg': '02.07.2020, 25.12.2020, 28.04.2023',
+    'shmel': '30.06.2020, 02.07.2020',
+    'ritm-100': '18.12.2020',
+    'ecg-inventory': '28.04.2023',
+    'aspirator-inventory': '01.07.2020',
+  };
+  const equipmentRegisterMaintenance = '24.09.2026';
   const equipmentOrder = ["medprom-aivl","axion-apex","lifepak-1000","armed-7d","axion-ecg","onetouch-verio-reflect","armed-linz-6-b","shmel","ritm-100","oksitest-1","ecg-inventory","aspirator-inventory"];
 
   // Автомобили станции сняты 9 октября 2026 года: точки стоят на фактическом оборудовании.
@@ -756,6 +767,7 @@
   const equipmentCounter = equipmentDialog?.querySelector('[data-equipment-counter]');
   const equipmentKind = equipmentDialog?.querySelector('[data-equipment-kind]');
   const equipmentDescription = equipmentDialog?.querySelector('[data-equipment-description]');
+  const equipmentDates = equipmentDialog?.querySelector('[data-equipment-dates]');
   const equipmentImage = equipmentDialog?.querySelector('[data-equipment-image]');
   const equipmentCatalog = equipmentDialog?.querySelector('[data-equipment-catalog]');
   const equipmentReference = equipmentDialog?.querySelector('[data-equipment-reference]');
@@ -852,6 +864,12 @@
     equipmentCounter.textContent = 'Карточка оборудования';
     equipmentKind.textContent = card.kind;
     equipmentDescription.textContent = card.description;
+    if (equipmentDates) {
+      const commissioned = equipmentRegisterDates[id];
+      equipmentDates.hidden = !commissioned;
+      equipmentDates.querySelector('[data-equipment-commissioned]').textContent = commissioned || '';
+      equipmentDates.querySelector('[data-equipment-maintenance]').textContent = commissioned ? equipmentRegisterMaintenance : '';
+    }
     equipmentDialog.querySelector('[data-equipment-status]').textContent = card.status;
     equipmentDialog.querySelector('[data-equipment-location]').textContent = equipmentLocation(card);
     equipmentVisual.hidden = !card.image;

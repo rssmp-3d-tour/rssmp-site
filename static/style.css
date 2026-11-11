@@ -2585,17 +2585,11 @@ html.equipment-open { overflow: hidden; }
   line-height: 1.6;
 }
 .tour-equipment-filters { display: flex; flex-wrap: wrap; gap: 8px; }
-.equipment-register { margin: 0 0 22px; }
-.equipment-register, .equipment-register-board { border: 1px solid #d3dfd7; border-radius: 8px; }
-.equipment-register summary { padding: 12px 14px; color: #14513c; cursor: pointer; font-weight: 650; }
-.equipment-register p { margin: 0 14px 12px; font-size: 14px; }
-.equipment-register-board { margin: 0 12px 12px; }
-.equipment-register-board ul { margin: 0; padding: 0 12px; list-style: none; }
-.equipment-register-board li { padding: 12px 0; border-top: 1px solid #d3dfd7; }
-.equipment-register-board dl { margin: 8px 0 0; }
-.equipment-register-board dl div { display: flex; flex-wrap: wrap; gap: 4px 12px; }
-.equipment-register-board dt { color: #52685d; font-size: 14px; }
-.equipment-register-board dd { margin: 0; overflow-wrap: anywhere; font-size: 14px; }
+.tour-equipment-dates { margin: 16px 0; padding: 12px 0; border-block: 1px solid #d3dfd7; }
+.tour-equipment-dates dl { margin: 8px 0 0; }
+.tour-equipment-dates dl div { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.tour-equipment-dates dt { color: #52685d; }
+.tour-equipment-dates dd { margin: 0; overflow-wrap: anywhere; }
 .tour-equipment-filters button {
   min-height: 44px;
   padding: 8px 16px;
