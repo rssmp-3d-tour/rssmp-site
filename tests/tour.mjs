@@ -20,7 +20,7 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 9 : 8, 'b-interior': HAS_YARD ? 23 : 22,
+  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 9 : 8, 'b-interior': HAS_YARD ? 24 : 23,
       ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 9 : 8, 'c-interior': HAS_YARD ? 22 : 21 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
@@ -159,7 +159,10 @@ const openMore = async page => {
     const st = await sceneState(page);
     const after = await canvasShot(page);
     const s = stats(after);
-    const good = st.hash === '#' + scene && st.hotspots === expected[scene] && !st.loading && !st.fallback && s.mean > 25 && st.view === scene.split('-')[1] && st.vehicle === (MODE === 'vehicles' ? scene[0] : undefined);
+    const blackDeviceNumber = scene === 'b-interior'
+      ? await page.locator('.tour-hotspot[aria-label="Чёрный аппарат на верхней полке"] span').first().textContent()
+      : '22';
+    const good = st.hash === '#' + scene && st.hotspots === expected[scene] && blackDeviceNumber === '22' && !st.loading && !st.fallback && s.mean > 25 && st.view === scene.split('-')[1] && st.vehicle === (MODE === 'vehicles' ? scene[0] : undefined);
     log.push(`${scene}:${good ? 'ok' : 'BAD'}(hs=${st.hotspots},mean=${s.mean.toFixed(0)},changed=${!before.equals(after)})`);
     ok = ok && good;
   }
