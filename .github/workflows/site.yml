@@ -36,6 +36,14 @@ jobs:
         working-directory: tests
         run: |
           npm ci
+          if ! getent hosts azure.archive.ubuntu.com > /dev/null; then
+            # Fall back to the primary Ubuntu archive when the runner mirror fails DNS.
+            for file in /etc/apt/apt-mirrors.txt /etc/apt/sources.list.d/ubuntu.sources; do
+              if [ -f "$file" ]; then
+                sudo sed -i 's/azure\.archive\.ubuntu\.com/archive.ubuntu.com/g' "$file"
+              fi
+            done
+          fi
           npx playwright install --with-deps chromium
 
       - name: Аудит зависимостей
