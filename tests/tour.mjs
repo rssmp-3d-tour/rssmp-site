@@ -130,6 +130,15 @@ const openMore = async page => {
   const notMirrored = right[1] > left[1];
   const centered = Math.abs(center[1] - 128) < 20;
   check('T2', 'Ориентация: верх — верх, не зеркально, центр кадра = центр панорамы', upright && notMirrored && centered, `top=${top} bottom=${bottom} leftG=${left[1]} rightG=${right[1]} centerG=${center[1]}`);
+  await page.evaluate(scene => { location.hash = `${scene}@0,-73`; }, FIRST);
+  await page.waitForTimeout(FLIGHT);
+  const floor = PNG.sync.read(await glShot(page));
+  let redPixels = 0;
+  for (let i = 0; i < floor.data.length; i += 4) {
+    const [red, green, blue] = [floor.data[i], floor.data[i + 1], floor.data[i + 2]];
+    if (red > 140 && green < 65 && blue < 65) redPixels++;
+  }
+  check('T2b', 'Эмблема РССМП видна в кадре при взгляде под камеру', redPixels > 100, `redPixels=${redPixels}`);
   await page.context().close();
 }
 
