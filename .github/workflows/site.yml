@@ -36,7 +36,10 @@ jobs:
         working-directory: tests
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
+          if ! node -e 'require("playwright").chromium.launch().then(browser => browser.close()).catch(error => { console.error(error); process.exitCode = 1; })'; then
+            npx playwright install-deps chromium
+          fi
 
       - name: Аудит зависимостей
         run: |
