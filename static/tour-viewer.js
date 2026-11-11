@@ -1068,28 +1068,11 @@
     showFallback('Не удалось запустить 3D-графику.', 'Откройте страницу в современной версии Chrome, Safari, Firefox или Edge.');
     return;
   }
-  // Radius relative to the distance from the camera, shared by the tour and VR.
-  const nadirRadius = 0.18;
-  const nadirBadge = loadImage('/assets/logo.png').then(logo => {
-    const badge = document.createElement('canvas');
-    badge.width = badge.height = 256;
-    const context = badge.getContext('2d');
-    if (!context) return null;
-    context.beginPath();
-    context.arc(128, 128, 126, 0, TAU);
-    context.fillStyle = '#14513c';
-    context.fill();
-    context.beginPath();
-    context.arc(128, 128, 119, 0, TAU);
-    context.fillStyle = '#fafcf8';
-    context.fill();
-    const scale = 160 / Math.max(logo.naturalWidth, logo.naturalHeight);
-    const width = logo.naturalWidth * scale, height = logo.naturalHeight * scale;
-    context.drawImage(logo, (256 - width) / 2, (256 - height) / 2, width, height);
-    return badge;
-  }).catch(() => null);
+  // Half-width relative to the distance from the camera, shared by the tour and VR.
+  const nadirHalfWidth = 0.22;
+  const nadirBadge = loadImage('/assets/nadir-rssmp.webp').catch(() => null);
   nadirBadge.then(badge => {
-    if (badge) PSV.addNadirBadge?.(viewer, badge, nadirRadius);
+    if (badge) PSV.addNadirBadge?.(viewer, badge, nadirHalfWidth);
   }).catch(() => {});
   const engineCanvas = stage.querySelector('canvas');
   engineCanvas?.addEventListener('webglcontextlost', event => {
@@ -2166,12 +2149,12 @@ varying vec2 u;
 varying vec3 direction;
 uniform sampler2D s;
 uniform sampler2D badge;
-uniform float badgeRadius;
+uniform float badgeHalfWidth;
 void main() {
   vec4 panorama = texture2D(s, u);
-  if (badgeRadius > 0.0 && direction.y < -0.01) {
-    vec2 floorPoint = direction.xz / (-direction.y * badgeRadius);
-    if (dot(floorPoint, floorPoint) < 1.0) {
+  if (badgeHalfWidth > 0.0 && direction.y < -0.01) {
+    vec2 floorPoint = direction.xz / (-direction.y * badgeHalfWidth);
+    if (all(lessThan(abs(floorPoint), vec2(1.0)))) {
       vec4 logo = texture2D(badge, 0.5 - floorPoint * 0.5);
       panorama.rgb = mix(panorama.rgb, logo.rgb, logo.a);
     }
@@ -2209,7 +2192,7 @@ void main() {
     const projectionLocation = gl.getUniformLocation(program, 'm'), viewLocation = gl.getUniformLocation(program, 'v');
     gl.uniform1i(gl.getUniformLocation(program, 's'), 0);
     gl.uniform1i(gl.getUniformLocation(program, 'badge'), 1);
-    const badgeRadiusLocation = gl.getUniformLocation(program, 'badgeRadius');
+    const badgeHalfWidthLocation = gl.getUniformLocation(program, 'badgeHalfWidth');
     const texture = gl.createTexture();
     const badgeTexture = gl.createTexture();
     let badgeReady = false;
@@ -2253,7 +2236,7 @@ void main() {
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, badgeTexture);
         gl.activeTexture(gl.TEXTURE0);
-        gl.uniform1f(badgeRadiusLocation, badgeReady ? nadirRadius : 0);
+        gl.uniform1f(badgeHalfWidthLocation, badgeReady ? nadirHalfWidth : 0);
         gl.uniformMatrix4fv(projectionLocation, false, projection);
         gl.uniformMatrix4fv(viewLocation, false, view);
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);

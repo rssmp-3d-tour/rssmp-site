@@ -1,21 +1,23 @@
 // Сторонние библиотеки 3D-тура, собираемые в static/vendor/psv.js (глобальный объект RssmpPSV).
 export { Viewer, events, utils, VERSION } from '@photo-sphere-viewer/core';
 export { EquirectangularTilesAdapter } from '@photo-sphere-viewer/equirectangular-tiles-adapter';
-import { CanvasTexture, CircleGeometry, Mesh, MeshBasicMaterial, SRGBColorSpace } from 'three';
+import { Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, Texture } from 'three';
 
-export function addNadirBadge(viewer, badge, angularRadius) {
+export function addNadirBadge(viewer, badge, angularHalfWidth) {
   const distance = 8;
-  const texture = new CanvasTexture(badge);
+  const size = 2 * distance * angularHalfWidth;
+  const texture = new Texture(badge);
   texture.colorSpace = SRGBColorSpace;
-  const disc = new Mesh(
-    new CircleGeometry(distance * angularRadius, 64),
-    new MeshBasicMaterial({ map: texture, transparent: true, toneMapped: false }),
+  texture.needsUpdate = true;
+  const logo = new Mesh(
+    new PlaneGeometry(size, size),
+    new MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, toneMapped: false }),
   );
-  disc.rotation.x = -Math.PI / 2;
-  disc.rotateZ(Math.PI);
-  disc.position.y = -distance;
+  logo.rotation.x = -Math.PI / 2;
+  logo.rotateZ(Math.PI);
+  logo.position.y = -distance;
   // The badge must not consume clicks on the panorama.
-  disc.raycast = () => {};
-  viewer.renderer.addObject(disc);
+  logo.raycast = () => {};
+  viewer.renderer.addObject(logo);
   viewer.needsUpdate();
 }
