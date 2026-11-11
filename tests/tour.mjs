@@ -369,32 +369,33 @@ const openMore = async page => {
 }
 
 
-  // Equipment cards: the global catalogue is hidden in «Ещё» and loads local posters on demand.
+  // Equipment catalogue and continuous cards load their local images on demand.
   {
     const cards = await open('/tours/');
     await openMore(cards);
     await cards.click('[data-equipment-cards]');
+    const catalogueCount = await cards.locator('[data-equipment-id]').count();
+    await cards.locator('[data-equipment-id]').first().click();
     const names = [];
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 12; i++) {
       names.push(await cards.textContent('[data-equipment-name]'));
-      if (i < 5) await cards.click('[data-equipment-next]');
+      if (i < 11) await cards.click('[data-equipment-next]');
     }
-    const image = await cards.getAttribute('[data-equipment-image]', 'src');
-    const poster = await cards.getAttribute('[data-equipment-poster]', 'href');
-    const expectedCards = ['А-ИВЛ/ВВЛп-3/30 «Медпром»', 'AXION APEX', 'LIFEPAK 1000', 'ARMED 7D', 'AXION', 'OneTouch Verio Reflect'];
-    check('T6i', 'Меню «Карточки»: шесть оригинальных памяток РССМП, локальные изображения и навигация', JSON.stringify(names) === JSON.stringify(expectedCards) && /\/assets\/equipment\//.test(image) && /\/assets\/equipment\//.test(poster) && cards.errors.length === 0, `names=${names.join(' | ')} image=${image} errors=${cards.errors}`);
+    const noFalseImage = !await cards.locator('[data-equipment-visual]').isVisible() && !await cards.getAttribute('[data-equipment-image]', 'src');
+    const expectedCards = ['А-ИВЛ/ВВЛп-3/30 «Медпром»', 'АКСИОН · дефибриллятор', 'LIFEPAK 1000', 'ARMED 7D', 'ЭКГ AXION', 'OneTouch Verio Reflect', 'ARMED LINZ-6-B', 'ДШП 5-20 «ШМЕЛЬ»', '«Ритм-100»', '«Окситест-1»', 'Электрокардиограф из ведомости', 'Электроаспиратор из ведомости'];
+    check('T6i', 'Меню «Карточки»: 12 записей, последовательная навигация, без подмены фото неизвестных моделей', catalogueCount === 12 && JSON.stringify(names) === JSON.stringify(expectedCards) && noFalseImage && await cards.locator('[data-equipment-poster]').count() === 0 && cards.errors.length === 0, `names=${names.join(' | ')} noFalseImage=${noFalseImage} errors=${cards.errors}`);
     await cards.context().close();
   }
   if (MODE === 'vehicles') {
     const card = await open('/tours/#c-interior');
     await sceneReady(card, '#c-interior');
-    await card.locator('[data-hotspot-list] button', { hasText: 'Монитор-дефибриллятор AXION APEX' }).click();
+    await card.locator('[data-hotspot-list] button', { hasText: 'Монитор-дефибриллятор АКСИОН' }).click();
     const shown = await card.locator('[data-card-equipment]').isVisible();
     await card.click('[data-card-equipment]');
     const first = await card.textContent('[data-equipment-name]');
     await card.click('[data-equipment-next]');
     const second = await card.textContent('[data-equipment-name]');
-    check('T6j', 'Точка AXION APEX открывает относящиеся к дефибрилляторам карточки без изменения переходов тура', shown && first === 'AXION APEX' && second === 'LIFEPAK 1000' && card.errors.length === 0, `shown=${shown} cards=${first} → ${second} errors=${card.errors}`);
+    check('T6j', 'Точка АКСИОН открывает относящиеся к дефибрилляторам карточки без изменения переходов тура', shown && first === 'АКСИОН · дефибриллятор' && second === 'LIFEPAK 1000' && card.errors.length === 0, `shown=${shown} cards=${first} → ${second} errors=${card.errors}`);
     await card.context().close();
   }
 
@@ -584,7 +585,7 @@ const openMore = async page => {
   await tp.locator('[data-tour-viewer]').scrollIntoViewIfNeeded();
   await tp.waitForTimeout(200);
   const pos = () => tp.evaluate(() => Object.fromEntries([...document.querySelectorAll('.tour-hotspot')].filter(b => !b.hidden).map(b => [b.getAttribute('aria-label'), (b.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)$/) || []).slice(1).map(Number)])));
-  const pair = MODE === 'demo' ? ['Монитор пациента', 'Система носилок'] : ['Монитор-дефибриллятор AXION APEX', 'Аппарат ИВЛ «Медпром»'];
+  const pair = MODE === 'demo' ? ['Монитор пациента', 'Система носилок'] : ['Монитор-дефибриллятор АКСИОН', 'Аппарат ИВЛ «Медпром»'];
   const gap = p => { const a = p[pair[0]], b = p[pair[1]]; return a && b ? Math.hypot(a[0] - b[0], a[1] - b[1]) : NaN; };
   // Let the tour finish loading first: without tiles the full-quality panorama replaces
   // the preview a few seconds after opening, and with software WebGL that blocks the page.
@@ -629,9 +630,11 @@ const openMore = async page => {
   const page = await open('/tours/', { init: () => { const orig = HTMLCanvasElement.prototype.getContext; HTMLCanvasElement.prototype.getContext = function (type, ...rest) { return /webgl/.test(type) ? null : orig.call(this, type, ...rest); }; } });
   const fb = await page.evaluate(() => [document.querySelector('[data-tour-fallback]').hidden, document.querySelector('[data-tour-fallback] strong').textContent, document.querySelectorAll('[data-hotspot-list] details').length, document.querySelector('[data-hotspot-list] details p')?.textContent.length || 0]);
   await page.click('[data-fallback-equipment]');
+  const equipmentCount = await page.locator('[data-equipment-id]').count();
+  await page.locator('[data-equipment-id]').first().click();
   const equipment = await page.evaluate(() => [document.querySelector('[data-equipment-dialog]').open, document.querySelector('[data-equipment-name]').textContent, document.querySelector('[data-equipment-image]').getAttribute('src')]);
   const errors = page.errors.filter(e => !/WebGL/i.test(e));
-  check('T13', 'Без WebGL — понятное сообщение, список точек и карточки оборудования', !fb[0] && /3D/.test(fb[1]) && fb[2] === expected[FIRST] && fb[3] > 20 && equipment[0] && equipment[1] && /\/assets\/equipment\//.test(equipment[2]) && errors.length === 0, `${fb} equipment=${equipment} errors=${errors}`);
+  check('T13', 'Без WebGL — понятное сообщение, список точек и все карточки оборудования', !fb[0] && /3D/.test(fb[1]) && fb[2] === expected[FIRST] && fb[3] > 20 && equipmentCount === 12 && equipment[0] && equipment[1] && /\/assets\/equipment\//.test(equipment[2]) && errors.length === 0, `${fb} equipment=${equipment} errors=${errors}`);
   await page.context().close();
 }
 

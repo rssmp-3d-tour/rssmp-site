@@ -64,17 +64,454 @@
     c: { title: 'Реанимобиль класса C', short: 'Класс C' }
   };
 
-  // Подтверждённые станцией карточки оборудования. Сайт показывает оригинальные
-  // материалы без переработки их в самостоятельную медицинскую инструкцию.
+  // Материалы владельца и сведения производителей. Учебные тексты требуют проверки врачом.
   const equipmentCards = {
-    'medprom-aivl': { name: 'А-ИВЛ/ВВЛп-3/30 «Медпром»', kind: 'Аппарат искусственной вентиляции лёгких', image: '/assets/equipment/equipment-medprom-aivl-3-30.jpg', description: 'Переносной аппарат ИВЛ. На карточке РССМП обозначены органы управления, быстрый запуск и ключевые меры безопасности.' },
-    'axion-apex': { name: 'AXION APEX', kind: 'Дефибриллятор-монитор', image: '/assets/equipment/equipment-axion-apex.jpg', description: 'Монитор-дефибриллятор с экраном, электродами и ложками. На карточке РССМП обозначены основные элементы управления и меры безопасности.' },
-    'lifepak-1000': { name: 'LIFEPAK 1000', kind: 'Дефибриллятор-монитор', image: '/assets/equipment/equipment-lifepak-1000.jpg', description: 'Переносной дефибриллятор-монитор. Карточка РССМП показывает экран, индикатор готовности, разъём электродов и кнопки управления.' },
-    'armed-7d': { name: 'ARMED 7D', kind: 'Электроотсасыватель', image: '/assets/equipment/equipment-armed-7d.jpg', description: 'Переносной электроотсасыватель. На карточке РССМП обозначены ёмкость, трубки, вакуумметр, переключатель и регулятор давления.' },
-    'axion-ecg': { name: 'AXION', kind: 'ЭКГ-аппарат', image: '/assets/equipment/equipment-axion-ecg.jpg', description: 'Переносной электрокардиограф. На карточке РССМП обозначены экран, клавиши навигации, отсек бумаги и кабель пациента.' },
-    'onetouch-verio-reflect': { name: 'OneTouch Verio Reflect', kind: 'Глюкометр', image: '/assets/equipment/equipment-onetouch-verio-reflect.jpg', description: 'Комплект глюкометра с тест-полосками и ланцетным устройством. Карточка РССМП содержит схему комплекта и памятку по работе.' }
+    "medprom-aivl": {
+      "kind": "Аппарат ИВЛ и оксигенотерапии",
+      "classes": [
+        "b",
+        "c"
+      ],
+      "status": "Модель по предоставленной карточке · исполнение в машинах сверяется",
+      "image": "/assets/equipment/medprom-aivl-3-30-cutout.webp",
+      "manual": "https://medprom.spb.ru/upload/documents/3-30_passport_2023.pdf",
+      "memory": [
+        "Проверьте контур, кислород и питание",
+        "Выполните самопроверку до подключения",
+        "Параметры — только по протоколу"
+      ],
+      "before": [
+        "Осмотрите корпус, дыхательный контур и принадлежности.",
+        "Проверьте источник кислорода, питание и заряд аккумулятора.",
+        "Убедитесь в герметичности соединений и надёжном креплении баллона.",
+        "Подберите маску и принадлежности по клинической задаче."
+      ],
+      "action": [
+        "Медленно откройте вентиль кислородного баллона.",
+        "Убедитесь по манометру в наличии кислорода.",
+        "Включите аппарат штатной кнопкой питания.",
+        "Выполните проверку потока, индикации давления и сигнализации.",
+        "Выберите режим и параметры по действующему протоколу.",
+        "Подключите пациента и продолжайте непрерывный контроль."
+      ],
+      "control": [
+        "Герметичность контура и давление.",
+        "Сигналы тревоги и состояние пациента.",
+        "Запас кислорода и уровень заряда."
+      ],
+      "critical": [
+        "Масло или жир на кислородном оборудовании взрывоопасны.",
+        "Предохраняйте баллон от ударов, падений и нагрева.",
+        "Не применяйте аппарат при ошибке самотестирования или неисправной сигнализации.",
+        "Не задавайте параметры по памяти: сверяйтесь с протоколом и клинической задачей.",
+        "Не допускайте перегиба дыхательного контура.",
+        "Контролируйте эффективность вентиляции, экскурсию грудной клетки, SpO₂ и состояние пациента.",
+        "При отказе аппарата перейдите на резервную вентиляцию и замените аппарат."
+      ],
+      "after": [
+        "Остановите аппарат штатной кнопкой.",
+        "Закройте вентиль баллона в переносном варианте.",
+        "Обработайте аппарат и принадлежности по СОП станции.",
+        "Восстановите комплект и проверьте готовность к следующему выезду."
+      ],
+      "name": "А-ИВЛ/ВВЛп-3/30 «Медпром»",
+      "description": "Переносной аппарат искусственной вентиляции лёгких и оксигенотерапии.",
+      "controls": [
+        "Контур пациента.",
+        "Кнопка питания.",
+        "Регулятор кислорода.",
+        "Регулятор ограничения давления.",
+        "Регулятор частоты/ИВЛ.",
+        "Регулятор попытки вдоха/паузы."
+      ],
+      "sourceLabel": "Руководство производителя"
+    },
+    "axion-apex": {
+      "kind": "Точная модель уточняется по шильдику",
+      "classes": [
+        "c"
+      ],
+      "status": "Ожидает подтверждения модели",
+      "image": "/assets/equipment/axion-apex-cutout.webp",
+      "manual": "",
+      "sourceNote": "Руководство выбирают по точной модели и исполнению на шильдике прибора.",
+      "memory": [
+        "Осмотрите корпус, кабели и электроды",
+        "Дождитесь успешного самотестирования",
+        "Не касайтесь пациента при анализе и разряде"
+      ],
+      "before": [
+        "Проверьте корпус, кабели, электроды и комплектность.",
+        "Включите прибор и дождитесь успешного самотестирования.",
+        "Подготовьте пациента и принадлежности по руководству подтверждённой модели."
+      ],
+      "action": [
+        "Выберите режим по утверждённому протоколу.",
+        "Проведите анализ без движения и прикосновений к пациенту.",
+        "Перед разрядом исключите контакт людей и проводящие пути.",
+        "Выполните разряд только по показаниям и утверждённому алгоритму."
+      ],
+      "control": [
+        "Самотестирование и сообщения прибора.",
+        "Контакт электродов или ложек.",
+        "Отсутствие движения и прикосновений."
+      ],
+      "critical": [
+        "APEX — обозначение ложки, а не подтверждённое название модели.",
+        "Не используйте повреждённые кабели, электроды или корпус.",
+        "Не применяйте в легковоспламеняющейся или обогащённой кислородом среде.",
+        "Не допускайте путей тока через жидкости и металлические предметы.",
+        "Не откладывайте СЛР дольше необходимого.",
+        "При неисправности немедленно замените аппарат и сообщите ответственному."
+      ],
+      "after": [
+        "Выключите прибор штатным способом.",
+        "Обработайте принадлежности по руководству точной модели.",
+        "Восстановите комплект и сообщите о выявленных неисправностях."
+      ],
+      "name": "АКСИОН · дефибриллятор",
+      "description": "Дефибриллятор-монитор с экраном, электродами и ложками. APEX — обозначение ложки; точную модель сверяют по шильдику.",
+      "controls": [
+        "Ложки STERNUM и APEX.",
+        "Экран.",
+        "Кнопка «ВКЛ/ВЫКЛ».",
+        "Блок «ЗАРЯД».",
+        "Кнопка «РАЗРЯД».",
+        "Кнопка «Дефибрилл.».",
+        "Кнопка печати."
+      ],
+      "sourceLabel": "Сайт производителя · модель уточняется"
+    },
+    "lifepak-1000": {
+      "kind": "Автоматический наружный дефибриллятор",
+      "classes": [
+        "c"
+      ],
+      "status": "Модель подтверждена",
+      "image": "/assets/equipment/lifepak-1000-cutout.webp",
+      "manual": "https://www.stryker.com/content/dam/stryker/ems/resources/operating-instructions/international/3205213-036_int-eng_lifepak_1000_operating_instructions.pdf",
+      "memory": [
+        "Включите и следуйте подсказкам",
+        "Во время анализа не касайтесь пациента",
+        "Перед разрядом убедитесь: все отошли"
+      ],
+      "before": [
+        "Установите факт остановки кровообращения по действующему алгоритму.",
+        "Включите прибор и следуйте голосовым и экранным подсказкам.",
+        "Обнажите и высушите грудную клетку.",
+        "Проверьте упаковку и срок годности электродов."
+      ],
+      "action": [
+        "Наложите электроды по схеме на упаковке.",
+        "Убедитесь в полном прилегании электродов.",
+        "Не касайтесь пациента во время анализа.",
+        "Перед разрядом громко предупредите и убедитесь, что все отошли.",
+        "Выполните разряд по подсказке и продолжайте действия по протоколу."
+      ],
+      "control": [
+        "Полное прилегание электродов.",
+        "Отсутствие движения во время анализа.",
+        "Безопасную дистанцию всех участников перед разрядом."
+      ],
+      "critical": [
+        "Не используйте высохшие, повреждённые или просроченные электроды.",
+        "Остановите автомобиль для анализа ритма.",
+        "Никто не должен касаться пациента, носилок или проводящих предметов при разряде.",
+        "Отсоедините оборудование, не защищённое от импульса дефибриллятора.",
+        "При неисправности немедленно замените аппарат и сообщите ответственному.",
+        "Работайте по СОП и инструкции производителя."
+      ],
+      "after": [
+        "Утилизируйте одноразовые электроды по правилам учреждения.",
+        "Очистите прибор только разрешёнными средствами.",
+        "Не погружайте прибор и не стерилизуйте его паром или газом.",
+        "Восстановите комплект и проверьте готовность."
+      ],
+      "name": "LIFEPAK 1000",
+      "description": "Переносной наружный дефибриллятор. Работа выполняется подготовленным персоналом по подсказкам прибора и действующему протоколу.",
+      "controls": [
+        "Разъём электродов.",
+        "Индикатор готовности OK.",
+        "Экран.",
+        "Кнопка ON.",
+        "Кнопка разряда.",
+        "Кнопка меню."
+      ],
+      "sourceLabel": "Руководство производителя"
+    },
+    "armed-7d": {
+      "kind": "Переносной электроотсасыватель",
+      "classes": [
+        "c"
+      ],
+      "status": "Модель подтверждена",
+      "image": "/assets/equipment/armed-7d-cutout.webp",
+      "manual": "https://www.armed.ru/service",
+      "sourceNote": "Прямое руководство для этого исполнения пока не добавлено. Уточните документ в сервисе производителя; при работе используйте руководство своего прибора.",
+      "memory": [
+        "Проверьте герметичность и поплавок",
+        "Вакуум — по медицинскому назначению",
+        "Следите за наполнением банки"
+      ],
+      "before": [
+        "Проверьте банку, крышку, трубки, соединения и фильтр.",
+        "Убедитесь, что поплавковое устройство свободно работает.",
+        "Соберите систему и проверьте герметичность.",
+        "Поставьте аппарат вертикально и проверьте питание."
+      ],
+      "action": [
+        "Включите аппарат.",
+        "Установите требуемый вакуум по медицинскому назначению.",
+        "Подключите подходящую аспирационную принадлежность.",
+        "Выполните аспирацию с постоянным контролем системы.",
+        "Перед выключением сбросьте вакуум."
+      ],
+      "control": [
+        "Уровень жидкости в банке.",
+        "Герметичность и показания вакуумметра.",
+        "Работу поплавка и состояние фильтра."
+      ],
+      "critical": [
+        "Не продолжайте работу после срабатывания поплавка.",
+        "Не используйте треснувшую банку, неисправный поплавок или влажный фильтр.",
+        "Не допускайте переполнения и попадания жидкости в вакуумную систему.",
+        "Перед очисткой отключите питание; корпус не погружайте в жидкость.",
+        "Не превышайте необходимый уровень вакуума.",
+        "При неисправности немедленно замените аппарат и сообщите ответственному."
+      ],
+      "after": [
+        "Слейте содержимое по правилам учреждения.",
+        "Обработайте все части, контактировавшие с жидкостью.",
+        "Загрязнённый воздушный фильтр замените — его не очищают.",
+        "Высушите и соберите комплект."
+      ],
+      "name": "ARMED 7D",
+      "description": "Переносной электроотсасыватель с ёмкостью, соединительными трубками и вакуумметром.",
+      "controls": [
+        "Соединительные трубки.",
+        "Ёмкость / банка.",
+        "Вакуумметр.",
+        "Переключатель «ВКЛ/ВЫКЛ».",
+        "Регулятор давления."
+      ],
+      "sourceLabel": "Сервис ARMED · уточнить руководство"
+    },
+    "axion-ecg": {
+      "kind": "Электрокардиограф",
+      "classes": [],
+      "status": "Ожидает шильдик и привязку к автомобилю",
+      "image": "/assets/equipment/axion-ecg-cutout.webp",
+      "manual": "",
+      "sourceNote": "Руководство выбирают по точной модели и исполнению на шильдике прибора.",
+      "memory": [
+        "Осмотрите кабель пациента",
+        "Проверьте контакт электродов",
+        "Уберите причину обрыва или шума до записи"
+      ],
+      "before": [
+        "Осмотрите изоляцию сетевого шнура и кабеля пациента.",
+        "Проверьте заряд, термобумагу и готовность аппарата.",
+        "Подготовьте электроды по их инструкции."
+      ],
+      "action": [
+        "Подключите кабель пациента.",
+        "Наложите электроды по маркировке и схеме отведений.",
+        "Убедитесь в устойчивом сигнале.",
+        "Нажмите «Пуск» для утверждённого режима регистрации.",
+        "Сохраните или распечатайте запись по порядку станции."
+      ],
+      "control": [
+        "Сообщения об обрыве и высоком шуме.",
+        "Контакт электродов.",
+        "Стабильность изолинии и качество записи."
+      ],
+      "critical": [
+        "Используйте только комплектные кабели.",
+        "Электроды ЭКГ не должны касаться электродов других изделий.",
+        "Подключённый ПК и его устройства размещают не ближе 1,5 м от пациента.",
+        "Техническое обслуживание выполняют на выключенном приборе.",
+        "Обеспечьте правильное наложение электродов по стандартным отведениям.",
+        "Минимизируйте помехи и движение пациента во время записи.",
+        "При плохом контакте повторите фиксацию электродов и проверьте качество сигнала.",
+        "Работайте по СОП и инструкции производителя."
+      ],
+      "after": [
+        "Выключите аппарат и отключите питание.",
+        "Снимите и обработайте электроды по инструкции.",
+        "Уложите кабели без перегибов.",
+        "Подготовьте бумагу и заряд для следующего применения."
+      ],
+      "name": "ЭКГ AXION",
+      "description": "Переносной электрокардиограф с экраном, термопринтером и кабелем пациента. Исполнение уточняется по шильдику.",
+      "controls": [
+        "Отсек бумаги/ленты.",
+        "Кнопки навигации.",
+        "Кнопка «Пуск».",
+        "Экран.",
+        "Кабель пациента / разъёмы."
+      ],
+      "sourceLabel": "Сайт производителя · исполнение уточняется"
+    },
+    "onetouch-verio-reflect": {
+      "kind": "Глюкометр · местоположение уточняется",
+      "classes": [],
+      "status": "Модель подтверждена · привязка к автомобилю не подтверждена",
+      "image": "/assets/equipment/onetouch-verio-reflect-cutout.webp",
+      "manual": "https://svami.onetouch.ru/about/product/g_verio_reflect",
+      "sourceNote": "Руководство находится в разделе «Руководство пользователя» на странице модели. Если сайт производителя недоступен, используйте документ из комплекта своего прибора.",
+      "memory": [
+        "Чистые и полностью сухие руки",
+        "Новый стерильный ланцет",
+        "Кровь — к боковому краю полоски"
+      ],
+      "before": [
+        "Проверьте срок годности тест-полосок.",
+        "Вымойте и полностью высушите руки.",
+        "Установите новый стерильный ланцет.",
+        "Вставьте тест-полоску и дождитесь приглашения."
+      ],
+      "action": [
+        "Выполните прокол сбоку подушечки пальца.",
+        "Сформируйте небольшую круглую каплю.",
+        "Поднесите боковой край капилляра полоски к капле.",
+        "Дождитесь заполнения и результата.",
+        "Зафиксируйте результат по порядку станции."
+      ],
+      "control": [
+        "Срок годности и условия хранения полосок.",
+        "Полное заполнение капилляра.",
+        "Соответствие результата состоянию пациента."
+      ],
+      "critical": [
+        "Прокалыватель предназначен для индивидуального использования.",
+        "Не используйте ланцет повторно.",
+        "Не наносите кровь сверху полоски или на её торец.",
+        "Не меняйте лечение только по неожиданному результату — перепроверьте его по руководству.",
+        "Не касайтесь тестовой зоны полоски руками.",
+        "Соблюдайте асептику при выполнении прокола.",
+        "При ошибке измерения повторите с новой тест-полоской по руководству производителя."
+      ],
+      "after": [
+        "Безопасно удалите ланцет и тест-полоску.",
+        "Считайте расходные материалы потенциально биологически опасными.",
+        "Очистите прибор и прокалыватель по руководству."
+      ],
+      "name": "OneTouch Verio Reflect",
+      "description": "Глюкометр с тест-полосками. Прокалыватель из комплекта предназначен для индивидуального использования.",
+      "controls": [
+        "Ланцетное устройство.",
+        "Порт для тест-полоски.",
+        "Кнопки навигации.",
+        "Кнопка OK / питание.",
+        "Экран."
+      ],
+      "sourceLabel": "OneTouch · страница модели и документы"
+    },
+    "armed-linz-6-b": {
+      "name": "ARMED LINZ-6-B",
+      "kind": "Шприцевой дозатор",
+      "classes": [],
+      "status": "Модель предоставлена владельцем · место в туре уточняется",
+      "image": "/assets/equipment/armed-linz-6-b-cutout.webp",
+      "description": "Дозатор медицинский для внутривенного вливания с одним шприцевым каналом. В каталоге производителя LINZ-6-B указан именно как шприцевой дозатор.",
+      "manual": "https://www.armed.ru/service",
+      "sourceLabel": "Сервис ARMED · уточнить руководство",
+      "sourceNote": "Прямое руководство для этого исполнения пока не добавлено. Уточните документ в сервисе производителя; при работе используйте руководство своего прибора.",
+      "facts": [
+        "Экран отображает настройки и объём вливаний.",
+        "Предусмотрены аккумуляторное питание и аудиовизуальные сигналы тревоги."
+      ],
+      "pending": [
+        "Подтвердить автомобиль, место крепления и исполнение по шильдику.",
+        "Порядок применения добавить после сверки руководства и проверки врачом."
+      ]
+    },
+    "shmel": {
+      "name": "ДШП 5-20 «ШМЕЛЬ»",
+      "kind": "Портативный шприцевой дозатор",
+      "classes": [],
+      "status": "Указан в ведомости · место в туре уточняется",
+      "image": "/assets/equipment/shmel-cutout.webp",
+      "description": "Портативный дозатор лекарственных средств производства ООО «МЕДПЛАНТ». В предоставленной ведомости указан у нескольких бортов; эти номера не определяют класс автомобиля.",
+      "manual": "https://medplant.ru/catalog/dozator-shpritsevyy-portativnyy-lekarstvennykh-sredstv-dshp-5-20-shmel/",
+      "sourceLabel": "МЕДПЛАНТ · сведения о модели",
+      "facts": [
+        "Название и назначение сверены с каталогом производителя.",
+        "Бортовые номера ведомости хранятся отдельно от названия модели."
+      ],
+      "pending": [
+        "Сопоставить конкретный прибор с автомобилем и точкой панорамы.",
+        "Порядок применения добавить после проверки врачом."
+      ]
+    },
+    "ritm-100": {
+      "name": "«Ритм-100»",
+      "kind": "Портативный аппарат ИВЛ",
+      "classes": [],
+      "status": "Модель подтверждена ранее · место в туре уточняется",
+      "image": "/assets/equipment/ritm-100-cutout.webp",
+      "description": "Аппарат искусственной вентиляции лёгких производства ООО «ТМТ» для службы скорой медицинской помощи.",
+      "manual": "https://www.tmt-medtech.com/ivl.html",
+      "sourceLabel": "ТМТ · сведения о модели",
+      "facts": [
+        "Производитель описывает управляемую и вспомогательную ИВЛ, а также оксигенотерапию.",
+        "Это отдельная модель: карточка не заменяет сведения об аппарате «Медпром»."
+      ],
+      "pending": [
+        "Подтвердить исполнение и место аппарата в автомобилях.",
+        "Учебный порядок применения добавить после проверки врачом."
+      ]
+    },
+    "oksitest-1": {
+      "name": "«Окситест-1»",
+      "kind": "Портативный пульсоксиметр",
+      "classes": [],
+      "status": "Модель подтверждена ранее · место в туре уточняется",
+      "image": "/assets/equipment/oksitest-1-cutout.webp",
+      "description": "Пульсоксиметр производства ООО «МЕДПЛАНТ» для неинвазивного наблюдения за насыщением крови кислородом и частотой пульса.",
+      "manual": "https://medplant.ru/catalog/pulsoksimetr-portativnyy-s-avtonomnym-pitaniem-quot-oksitest-1-quot-s-vzroslym-datchikom/",
+      "sourceLabel": "МЕДПЛАНТ · сведения о модели",
+      "facts": [
+        "Исполнение и датчик сверяют с фактическим комплектом.",
+        "Показания и сигналы оценивает подготовленный медицинский сотрудник."
+      ],
+      "pending": [
+        "Подтвердить датчик, исполнение и автомобиль.",
+        "Учебный порядок применения добавить после проверки врачом."
+      ]
+    },
+    "ecg-inventory": {
+      "name": "Электрокардиограф из ведомости",
+      "kind": "Обозначение требует сверки",
+      "classes": [],
+      "status": "Модель уточняется · фотография не подменяется похожей",
+      "image": null,
+      "description": "В ведомости есть обозначения электрокардиографов, которые нельзя однозначно прочитать на предоставленном снимке. Они не объединены с ЭКГ AXION.",
+      "facts": [
+        "Наличие строки в ведомости не подтверждает прибор на конкретной панораме."
+      ],
+      "pending": [
+        "Нужны читаемый шильдик и общий снимок прибора.",
+        "После идентификации уточнить название и добавить фотографию."
+      ]
+    },
+    "aspirator-inventory": {
+      "name": "Электроаспиратор из ведомости",
+      "kind": "Обозначение требует сверки",
+      "classes": [],
+      "status": "Модель уточняется · фотография не подменяется похожей",
+      "image": null,
+      "description": "В ведомости есть отдельная строка электроаспиратора с неясным обозначением. Она не считается подтверждением ARMED 7D или другой похожей модели.",
+      "facts": [
+        "Запись сохранена отдельно от подтверждённых моделей."
+      ],
+      "pending": [
+        "Нужны читаемое обозначение, изготовитель и фотография.",
+        "Сопоставить прибор с автомобилем и точкой панорамы."
+      ]
+    }
   };
-  const equipmentOrder = ['medprom-aivl', 'axion-apex', 'lifepak-1000', 'armed-7d', 'axion-ecg', 'onetouch-verio-reflect'];
+  const equipmentOrder = ["medprom-aivl","axion-apex","lifepak-1000","armed-7d","axion-ecg","onetouch-verio-reflect","armed-linz-6-b","shmel","ritm-100","oksitest-1","ecg-inventory","aspirator-inventory"];
 
   // Автомобили станции сняты 9 октября 2026 года: точки стоят на фактическом оборудовании.
   // В описаниях названы только модели, подтверждённые карточками РССМП или владельцем; остальные не подменяем догадками.
@@ -119,7 +556,7 @@
       yaw: -1.4,
       pitch: -0.05,
       hotspots: [
-        { yaw: -1.34, pitch: -0.03, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Оригинальная карточка РССМП доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
+        { yaw: -1.34, pitch: -0.03, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Карточка оборудования доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
         { yaw: -1.22, pitch: 0.17, title: 'Кислородная система', text: 'Обеспечивает размещение и подключение кислородного оборудования. Точный состав зависит от комплектации автомобиля.' },
         { yaw: -1.96, pitch: -0.5, title: 'Система носилок', text: 'Предназначена для перемещения пациента и фиксации носилок в медицинском салоне.' },
         { yaw: -1.79, pitch: -0.14, title: 'Сумка экстренной помощи', text: 'Переносная медицинская укладка позволяет доставить необходимые средства непосредственно к пациенту.' },
@@ -184,8 +621,8 @@
       yaw: -1.3,
       pitch: -0.08,
       hotspots: [
-        { yaw: -1.21, pitch: -0.24, title: 'Монитор-дефибриллятор AXION APEX', text: 'На нижней полке установлен AXION APEX. В разделе учебных карточек также представлен переносной LIFEPAK 1000.', materials: ['axion-apex', 'lifepak-1000'] },
-        { yaw: -1.35, pitch: -0.05, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Оригинальная карточка РССМП доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
+        { yaw: -1.21, pitch: -0.24, title: 'Монитор-дефибриллятор АКСИОН', text: 'На нижней полке виден дефибриллятор-монитор АКСИОН. APEX — надпись на ложке; модель уточняется по шильдику. В каталоге также представлен LIFEPAK 1000.', materials: ['axion-apex', 'lifepak-1000'] },
+        { yaw: -1.35, pitch: -0.05, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Карточка оборудования доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
         { yaw: -1.53, pitch: 0.07, title: 'Инфузионное оборудование', text: 'Оборудование для контролируемого введения растворов. Состав оборудования будет указан после подтверждения станцией.' },
         { yaw: -1.24, pitch: 0.16, title: 'Кислородная система', text: 'Стационарные крепления, редукторы и точки подключения обеспечивают использование кислородного оборудования.' },
         { yaw: -1.96, pitch: -0.51, title: 'Система носилок', text: 'Обеспечивает перемещение пациента и надёжное крепление во время транспортировки.' },
@@ -312,64 +749,212 @@
   const isAbort = error => Boolean(PSV.utils?.isAbortError?.(error) || error?.name === 'AbortError');
   const state = { vehicle: scenes[defaultScene].vehicle, scene: defaultScene, dragging: false, auto: false, gyro: false, presence: false };
 
-  // Изображения карточек загружаются только при открытии диалога.
+  // Каталог и карточка используют один диалог и одну обычную прокрутку.
+  // Изображения назначаются только после запроса пользователя.
   const equipmentDialog = root.querySelector('[data-equipment-dialog]');
   const equipmentName = equipmentDialog?.querySelector('[data-equipment-name]');
   const equipmentCounter = equipmentDialog?.querySelector('[data-equipment-counter]');
   const equipmentKind = equipmentDialog?.querySelector('[data-equipment-kind]');
   const equipmentDescription = equipmentDialog?.querySelector('[data-equipment-description]');
   const equipmentImage = equipmentDialog?.querySelector('[data-equipment-image]');
-  const equipmentPoster = equipmentDialog?.querySelector('[data-equipment-poster]');
+  const equipmentCatalog = equipmentDialog?.querySelector('[data-equipment-catalog]');
+  const equipmentReference = equipmentDialog?.querySelector('[data-equipment-reference]');
+  const equipmentList = equipmentDialog?.querySelector('[data-equipment-list]');
+  const equipmentBack = equipmentDialog?.querySelector('[data-equipment-back]');
+  const equipmentSections = equipmentDialog?.querySelector('[data-equipment-sections]');
+  const equipmentManual = equipmentDialog?.querySelector('[data-equipment-manual]');
+  const equipmentSourceNote = equipmentDialog?.querySelector('[data-equipment-source-note]');
+  const equipmentVisual = equipmentDialog?.querySelector('[data-equipment-visual]');
+  const equipmentNoImage = equipmentDialog?.querySelector('[data-equipment-no-image]');
   const equipmentNav = equipmentDialog?.querySelector('[data-equipment-nav]');
   const equipmentPrev = equipmentDialog?.querySelector('[data-equipment-prev]');
   const equipmentNext = equipmentDialog?.querySelector('[data-equipment-next]');
   let equipmentSelection = equipmentOrder, equipmentIndex = 0;
-  function renderEquipmentCard() {
+  let equipmentFilter = 'all', equipmentCatalogScroll = 0, equipmentRowId = null, equipmentOpener = null;
+  const equipmentLocation = card => card.classes.length
+    ? `По съёмке станции: ${card.classes.map(value => `класс ${value.toUpperCase()}`).join(' · ')}`
+    : 'Привязка к автомобилю и точке тура уточняется';
+  function equipmentSection(title, values, ordered = false, style = '') {
+    if (!values?.length) return;
+    const section = document.createElement('section');
+    section.className = `tour-equipment-section ${style}`.trim();
+    const heading = document.createElement('h3');
+    heading.textContent = title;
+    const list = document.createElement(ordered ? 'ol' : 'ul');
+    for (const text of values) {
+      const li = document.createElement('li');
+      li.textContent = text;
+      list.append(li);
+    }
+    section.append(heading, list);
+    equipmentSections.append(section);
+  }
+  function renderEquipmentCatalog(restore = false) {
+    if (!equipmentDialog || !equipmentCatalog) return;
+    equipmentCatalog.hidden = false;
+    equipmentReference.hidden = true;
+    equipmentBack.hidden = true;
+    equipmentNav.hidden = true;
+    equipmentCounter.textContent = 'Автомобили классов B и C';
+    equipmentName.textContent = 'Оборудование';
+    const visible = equipmentOrder.filter(id => equipmentFilter === 'all' ||
+      (equipmentFilter === 'pending' ? !equipmentCards[id].classes.length : equipmentCards[id].classes.includes(equipmentFilter)));
+    for (const button of equipmentDialog.querySelectorAll('[data-equipment-filter]')) {
+      button.setAttribute('aria-pressed', String(button.dataset.equipmentFilter === equipmentFilter));
+    }
+    equipmentList.replaceChildren();
+    for (const id of visible) {
+      const card = equipmentCards[id], li = document.createElement('li'), button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'tour-equipment-row';
+      button.dataset.equipmentId = id;
+      if (card.image) {
+        const img = document.createElement('img');
+        img.src = card.image;
+        img.alt = '';
+        img.width = 80;
+        img.height = 72;
+        img.loading = 'lazy';
+        button.append(img);
+      } else {
+        const placeholder = document.createElement('span');
+        placeholder.className = 'tour-equipment-placeholder';
+        placeholder.textContent = 'Фото уточняется';
+        button.append(placeholder);
+      }
+      const copy = document.createElement('span'), name = document.createElement('strong'), kind = document.createElement('small'), location = document.createElement('small');
+      name.textContent = card.name;
+      kind.textContent = card.kind;
+      location.textContent = equipmentLocation(card);
+      copy.append(name, kind, location);
+      button.append(copy);
+      button.addEventListener('click', () => {
+        equipmentCatalogScroll = equipmentDialog.scrollTop;
+        equipmentRowId = id;
+        equipmentSelection = visible;
+        equipmentIndex = visible.indexOf(id);
+        renderEquipmentCard(true);
+      });
+      li.append(button);
+      equipmentList.append(li);
+    }
+    equipmentDialog.querySelector('[data-equipment-count]').textContent = `Показано: ${visible.length} из ${equipmentOrder.length}`;
+    equipmentDialog.scrollTop = restore ? equipmentCatalogScroll : 0;
+    if (restore) equipmentList.querySelector(`[data-equipment-id="${equipmentRowId}"]`)?.focus({ preventScroll: true });
+  }
+  function renderEquipmentCard(focusHeading = false) {
     const id = equipmentSelection[equipmentIndex], card = equipmentCards[id];
     if (!card || !equipmentDialog) return;
+    equipmentCatalog.hidden = true;
+    equipmentReference.hidden = false;
+    equipmentBack.hidden = false;
     equipmentName.textContent = card.name;
-    equipmentCounter.textContent = `Учебная карточка РССМП · ${equipmentIndex + 1} из ${equipmentSelection.length}`;
+    equipmentCounter.textContent = 'Карточка оборудования';
     equipmentKind.textContent = card.kind;
     equipmentDescription.textContent = card.description;
-    equipmentImage.src = card.image;
-    equipmentImage.alt = `${card.name}: учебная карточка РССМП`;
-    equipmentPoster.href = card.image;
-    equipmentPoster.setAttribute('aria-label', `Открыть памятку ${card.name} в полном размере`);
-    if (equipmentNav) equipmentNav.hidden = equipmentSelection.length < 2;
+    equipmentDialog.querySelector('[data-equipment-status]').textContent = card.status;
+    equipmentDialog.querySelector('[data-equipment-location]').textContent = equipmentLocation(card);
+    equipmentVisual.hidden = !card.image;
+    equipmentReference.classList.toggle('is-text-only', !card.image);
+    equipmentNoImage.textContent = 'Фотография появится после подтверждения модели.';
+    equipmentNoImage.hidden = Boolean(card.image);
+    if (card.image) {
+      equipmentImage.src = card.image;
+      equipmentImage.alt = `Внешний вид: ${card.name}`;
+    } else {
+      equipmentImage.removeAttribute('src');
+      equipmentImage.alt = '';
+    }
+    equipmentSections.replaceChildren();
+    equipmentSection('Вспомнить за 10 секунд', card.memory, true, 'tour-equipment-memory');
+    equipmentSection('Органы управления и комплект', card.controls);
+    equipmentSection('Перед работой', card.before, true);
+    equipmentSection('Порядок действий', card.action, true);
+    equipmentSection('Что контролировать', card.control);
+    equipmentSection('Не пропустить', card.critical, false, 'tour-equipment-critical');
+    equipmentSection('После применения', card.after, true);
+    equipmentSection('Сведения об устройстве', card.facts);
+    equipmentSection('Что уточнить', card.pending);
+    equipmentManual.hidden = !card.manual;
+    if (card.manual) {
+      equipmentManual.href = card.manual;
+      equipmentManual.textContent = card.sourceLabel;
+    } else equipmentManual.removeAttribute('href');
+    if (equipmentSourceNote) {
+      equipmentSourceNote.textContent = card.sourceNote || '';
+      equipmentSourceNote.hidden = !card.sourceNote;
+    }
+    equipmentNav.hidden = equipmentSelection.length < 2;
+    equipmentDialog.querySelector('[data-equipment-position]').textContent = `${equipmentIndex + 1} из ${equipmentSelection.length}`;
+    equipmentDialog.scrollTop = 0;
+    if (focusHeading) equipmentName.focus({ preventScroll: true });
   }
-  function openEquipmentCards(ids = equipmentOrder) {
+  function openEquipmentCards(ids = equipmentOrder, catalog = false, opener = document.activeElement) {
     const valid = ids.filter(id => own(equipmentCards, id));
     if (!valid.length || !equipmentDialog) return;
+    equipmentOpener = opener;
     equipmentSelection = valid;
     equipmentIndex = 0;
-    renderEquipmentCard();
+    if (catalog) { equipmentFilter = 'all'; renderEquipmentCatalog(); }
+    else renderEquipmentCard();
     if (typeof equipmentDialog.showModal === 'function') equipmentDialog.showModal();
     else equipmentDialog.setAttribute('open', '');
+    document.documentElement.classList.add('equipment-open');
     equipmentDialog.querySelector('[data-equipment-close]')?.focus({ preventScroll: true });
+  }
+  function equipmentClosed() {
+    document.documentElement.classList.remove('equipment-open');
+    const opener = equipmentOpener;
+    equipmentOpener = null;
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
   }
   function closeEquipmentCards() {
     if (!equipmentDialog?.open) return;
     if (typeof equipmentDialog.close === 'function') equipmentDialog.close();
     else equipmentDialog.removeAttribute('open');
+    // Native close events are queued; unlock the document in the same action.
+    equipmentClosed();
   }
   equipmentPrev?.addEventListener('click', () => {
     equipmentIndex = (equipmentIndex - 1 + equipmentSelection.length) % equipmentSelection.length;
-    renderEquipmentCard();
+    renderEquipmentCard(true);
   });
   equipmentNext?.addEventListener('click', () => {
     equipmentIndex = (equipmentIndex + 1) % equipmentSelection.length;
-    renderEquipmentCard();
+    renderEquipmentCard(true);
   });
+  equipmentBack?.addEventListener('click', () => renderEquipmentCatalog(true));
+  for (const button of equipmentDialog?.querySelectorAll('[data-equipment-filter]') || []) {
+    button.addEventListener('click', () => {
+      equipmentFilter = button.dataset.equipmentFilter;
+      equipmentCatalogScroll = 0;
+      renderEquipmentCatalog();
+    });
+  }
   equipmentDialog?.querySelector('[data-equipment-close]')?.addEventListener('click', closeEquipmentCards);
+  equipmentDialog?.addEventListener('close', () => { if (!equipmentDialog.open) equipmentClosed(); });
+  equipmentDialog?.addEventListener('cancel', event => { event.preventDefault(); closeEquipmentCards(); });
+  // Arrow keys scroll the open material; they never rotate the panorama behind it.
+  equipmentDialog?.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); closeEquipmentCards(); }
+    event.stopPropagation();
+  });
+  equipmentImage?.addEventListener('error', () => {
+    equipmentVisual.hidden = true;
+    equipmentNoImage.hidden = false;
+    equipmentNoImage.textContent = 'Не удалось загрузить фотографию. Текст карточки доступен.';
+  });
   equipmentDialog?.addEventListener('click', event => {
-    if (event.target === equipmentDialog) closeEquipmentCards();
+    if (event.target !== equipmentDialog) return;
+    const box = equipmentDialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closeEquipmentCards();
   });
   for (const button of root.querySelectorAll('[data-equipment-cards], [data-fallback-equipment]')) {
     button.addEventListener('click', () => {
       const menu = root.querySelector('[data-more-menu]');
       if (menu) menu.hidden = true;
       root.querySelector('[data-more]')?.setAttribute('aria-expanded', 'false');
-      openEquipmentCards();
+      openEquipmentCards(equipmentOrder, true, button.matches('[data-equipment-cards]') ? root.querySelector('[data-more]') : button);
     });
   }
 

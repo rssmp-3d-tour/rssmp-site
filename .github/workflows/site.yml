@@ -28,6 +28,7 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+          check-latest: true
           cache: npm
           cache-dependency-path: tests/package-lock.json
 
@@ -39,8 +40,8 @@ jobs:
 
       - name: Аудит зависимостей
         run: |
-          npm audit --package-lock-only --audit-level=high --prefix tests
-          npm audit --package-lock-only --audit-level=high --prefix vendor-src
+          npm audit --package-lock-only --audit-level=low --prefix tests
+          npm audit --package-lock-only --audit-level=low --prefix vendor-src
 
       - name: Все проверки (tests/run-all.sh)
         working-directory: tests

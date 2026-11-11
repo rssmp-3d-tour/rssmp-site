@@ -6,6 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 [ -d node_modules ] || npm install --silent
+python3 publication_guard_test.py
 python3 ../build_pages.py
 VARIANT=$(mktemp -d)
 DEMO=$(mktemp -d)
@@ -19,6 +20,7 @@ node --check ../static/tour-viewer.js
 node security.mjs
 npx html-validate --config htmlvalidate.json ../dist/*.html ../dist/*/index.html
 node functional.mjs "$BASE"
+node equipment.mjs "$BASE"
 node tour.mjs "$BASE" results
 node words.mjs "$BASE"
 node modes.mjs "$BASE"
