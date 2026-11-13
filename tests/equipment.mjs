@@ -8,10 +8,16 @@ const base = process.argv[2];
 if (!base) throw new Error('Usage: node equipment.mjs BASE_URL');
 const browser = await chromium.launch();
 const sizes = [[320, 568], [390, 844], [768, 1024], [844, 390], [1366, 768]];
-const originals = ['medprom-aivl', 'axion-apex', 'lifepak-1000', 'armed-7d', 'axion-ecg', 'onetouch-verio-reflect'];
+const originals = ['medprom-aivl', 'axion-apex', 'armed-7d', 'onetouch-verio-reflect'];
 const noPhoto = new Set(['ecg-inventory', 'stationary-safe', 'vacuum-mattress']);
 const casePhotos = { 'lifepak-1000': 'b-22.webp', 'cardiometer-mt': 'b-12-case.webp' };
 const sections = ['Вспомнить за 10 секунд', 'Органы управления и комплект', 'Перед работой', 'Порядок действий', 'Что контролировать', 'Не пропустить', 'После применения'];
+const stationTextBlocks = {
+  'resuscitation-kit': 44, 'obstetric-kit': 18, 'infusion-thermocontainer': 9,
+  'portable-oxygen-rik': 18, 'foot-suction': 17, 'aspirator-inventory': 7,
+  'stationary-safe': 1, 'axion-ecg': 26, 'cardiometer-mt': 12,
+  'vacuum-mattress': 20, 'lifepak-1000': 17
+};
 let checked = 0;
 function check(ok, message) { if (!ok) throw new Error(message); checked++; }
 try {
@@ -45,6 +51,10 @@ try {
       check(await page.locator('[data-equipment-reference]').isVisible(), `${width}px ${id}: card did not open`);
       check(!await page.locator('[data-equipment-catalog]').isVisible(), `${width}px ${id}: catalogue remains visible`);
       const headings = await page.locator('[data-equipment-sections] h3').allTextContents();
+      if (Object.hasOwn(stationTextBlocks, id)) {
+        const fullText = page.locator('.tour-equipment-reading h3, .tour-equipment-reading p, .tour-equipment-reading li');
+        check(await fullText.count() === stationTextBlocks[id], `${width}px ${id}: incomplete station text`);
+      }
       if (originals.includes(id)) {
         check(JSON.stringify(headings) === JSON.stringify(sections), `${width}px ${id}: missing continuous section`);
         check(await page.locator('[data-equipment-sections] li').count() >= 20, `${width}px ${id}: material lost`);
@@ -69,10 +79,10 @@ try {
         check(!await caseFigure.isVisible() && !await caseImage.getAttribute('src'), `${width}px ${id}: stale transport case photo`);
       }
       if (id === 'resuscitation-kit') {
-        check(headings.length === 6 && (await page.locator('[data-equipment-sections] li').count()) === 32, `${width}px: incomplete resuscitation kit`);
+        check(headings.length === 7 && (await page.locator('[data-equipment-sections] li').count()) === 36, `${width}px: incomplete resuscitation kit`);
       }
       if (id === 'obstetric-kit') {
-        check(headings[0] === 'Состав набора' && (await page.locator('[data-equipment-sections] li').count()) === 15, `${width}px: incomplete obstetric kit`);
+        check(headings[0] === 'Наименование и Количество' && (await page.locator('[data-equipment-sections] li').count()) === 16, `${width}px: incomplete obstetric kit`);
       }
       const source = page.locator('[data-equipment-manual]');
       const sourceNote = page.locator('[data-equipment-source-note]');
