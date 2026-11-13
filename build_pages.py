@@ -198,7 +198,7 @@ ICONS = {
     'down': icon('M6 9l6 6 6-6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
-TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 79) if TOUR_YARD else (4, 63)}
+TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 86) if TOUR_YARD else (4, 70)}
 
 
 def plural(n, one, few, many):
