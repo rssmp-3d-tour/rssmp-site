@@ -1187,30 +1187,16 @@
   const equipmentLocation = card => card.classes.length
     ? `В туре: ${card.classes.map(value => `класс ${value.toUpperCase()}`).join(' · ')}`
     : 'Привязка к автомобилю и точке тура уточняется';
-  function equipmentSection(title, values, ordered = false, style = '') {
-    if (!values?.length) return;
-    const section = document.createElement('section');
+  function renderEquipmentText(rows, style = '') {
+    if (!rows.length) return;
+    const section = document.createElement('div');
     section.className = `tour-equipment-section ${style}`.trim();
-    const heading = document.createElement('h3');
-    heading.textContent = title;
-    const list = document.createElement(ordered ? 'ol' : 'ul');
-    for (const text of values) {
-      const li = document.createElement('li');
-      li.textContent = text;
-      list.append(li);
-    }
-    section.append(heading, list);
-    equipmentSections.append(section);
-  }
-  function renderStationCardText(rows) {
-    const section = document.createElement('section');
-    section.className = 'tour-equipment-section tour-equipment-reading';
     let list = null;
     for (const [type, text] of rows) {
-      if (type === 'item' || type === 'step') {
-        const tag = type === 'step' ? 'ol' : 'ul';
-        if (list?.localName !== tag) {
-          list = document.createElement(tag);
+      const listTag = type === 'step' ? 'ol' : type === 'item' ? 'ul' : null;
+      if (listTag) {
+        if (list?.localName !== listTag) {
+          list = document.createElement(listTag);
           section.append(list);
         }
         const item = document.createElement('li');
@@ -1224,6 +1210,10 @@
       }
     }
     equipmentSections.append(section);
+  }
+  function equipmentSection(title, values, ordered = false) {
+    if (!values?.length) return;
+    renderEquipmentText([['heading', title], ...values.map(text => [ordered ? 'step' : 'item', text])]);
   }
   function renderEquipmentCatalog(restore = false) {
     if (!equipmentDialog || !equipmentCatalog) return;
@@ -1316,14 +1306,14 @@
     }
     equipmentSections.replaceChildren();
     if (own(stationCardText, id)) {
-      renderStationCardText(stationCardText[id]);
+      renderEquipmentText(stationCardText[id], 'tour-equipment-reading');
     } else {
-      equipmentSection('Вспомнить за 10 секунд', card.memory, true, 'tour-equipment-memory');
+      equipmentSection('Вспомнить за 10 секунд', card.memory, true);
       equipmentSection('Органы управления и комплект', card.controls);
       equipmentSection('Перед работой', card.before, true);
       equipmentSection('Порядок действий', card.action, true);
       equipmentSection('Что контролировать', card.control);
-      equipmentSection('Не пропустить', card.critical, false, 'tour-equipment-critical');
+      equipmentSection('Не пропустить', card.critical);
       equipmentSection('После применения', card.after, true);
       equipmentSection('Сведения об устройстве', card.facts);
       for (const [title, items] of Object.entries(card.inventory || {})) equipmentSection(title, items);
