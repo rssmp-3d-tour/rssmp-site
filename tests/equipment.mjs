@@ -9,7 +9,7 @@ if (!base) throw new Error('Usage: node equipment.mjs BASE_URL');
 const browser = await chromium.launch();
 const sizes = [[320, 568], [390, 844], [768, 1024], [844, 390], [1366, 768]];
 const originals = ['medprom-aivl', 'axion-apex', 'lifepak-1000', 'armed-7d', 'axion-ecg', 'onetouch-verio-reflect'];
-const noPhoto = new Set(['ecg-inventory', 'portable-oxygen-rik', 'stationary-safe', 'vacuum-mattress']);
+const noPhoto = new Set(['ecg-inventory', 'stationary-safe', 'vacuum-mattress']);
 const casePhotos = { 'lifepak-1000': 'b-22.webp', 'cardiometer-mt': 'b-12-case.webp' };
 const sections = ['Вспомнить за 10 секунд', 'Органы управления и комплект', 'Перед работой', 'Порядок действий', 'Что контролировать', 'Не пропустить', 'После применения'];
 let checked = 0;

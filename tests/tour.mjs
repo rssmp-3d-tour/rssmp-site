@@ -413,30 +413,29 @@ const openMore = async page => {
   if (MODE === 'vehicles') {
     const page = await open('/tours/#b-interior');
     await sceneReady(page, '#b-interior');
+    const cases = [
+      ['Переносной кислородный баллон с редуктором РИК', 7, 'b-7.webp'],
+      ['Дефибриллятор LIFEPAK 1000', 22, 'b-22.webp']
+    ];
     const results = [];
-    for (const [title, number, expectedName, caseFile] of [
-      ['Переносной кислородный баллон с редуктором РИК', 7, 'Переносной кислородный баллон с редуктором РИК', null],
-      ['Дефибриллятор LIFEPAK 1000', 22, 'LIFEPAK 1000', 'b-22.webp']
-    ]) {
+    for (const [title, number, file] of cases) {
       await page.locator('[data-hotspot-list] button', { hasText: title }).click();
       const numberText = await page.textContent('[data-card-index]');
       const photo = page.locator('[data-card-photos] img');
-      if (caseFile) {
-        await photo.scrollIntoViewIfNeeded();
-        await page.waitForFunction(() => document.querySelector('[data-card-photos] img')?.naturalWidth > 0);
-      }
-      const photoCount = await photo.count();
+      await photo.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => document.querySelector('[data-card-photos] img')?.naturalWidth > 0);
+      const src = await photo.getAttribute('src');
       await page.click('[data-card-equipment]');
       const referenceName = await page.textContent('[data-equipment-name]');
-      const caseSrc = await page.locator('[data-equipment-case] img').getAttribute('src');
+      const casePhoto = page.locator('[data-equipment-case] img');
+      const caseSrc = await casePhoto.getAttribute('src');
       const mainSrc = await page.getAttribute('[data-equipment-image]', 'src');
-      const imageMatches = caseFile
-        ? photoCount === 1 && new URL(caseSrc, base).pathname.endsWith('/' + caseFile) && new URL(mainSrc, base).pathname.endsWith('/lifepak-1000-cutout.webp')
-        : photoCount === 0 && !mainSrc && !caseSrc;
-      results.push(numberText?.startsWith(`Точка ${number} из`) && imageMatches && referenceName === expectedName);
+      const matchingPhoto = number === 7 ? !caseSrc && mainSrc === src : caseSrc === src && new URL(mainSrc, base).pathname.endsWith('/lifepak-1000-cutout.webp');
+      const expectedName = number === 7 ? title : 'LIFEPAK 1000';
+      results.push(numberText?.startsWith(`Точка ${number} из`) && new URL(src, base).pathname.endsWith(`/${file}`) && matchingPhoto && referenceName === expectedName);
       await page.click('[data-equipment-close]');
     }
-    check('T6k', 'Точки 7 и 22 открывают правильные карточки и показывают доступные изображения', results.every(Boolean) && page.errors.length === 0, `${results} errors=${page.errors}`);
+    check('T6k', 'Точки 7 и 22 открывают свои карточки и фотографии транспортных чехлов', results.every(Boolean) && page.errors.length === 0, `${results} errors=${page.errors}`);
     await page.context().close();
   }
 
