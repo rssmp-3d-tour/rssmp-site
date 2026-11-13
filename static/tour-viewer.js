@@ -185,10 +185,12 @@
     "lifepak-1000": {
       "kind": "Автоматический наружный дефибриллятор",
       "classes": [
+        "b",
         "c"
       ],
       "status": "Модель подтверждена",
       "image": "/assets/equipment/lifepak-1000-cutout.webp",
+      "caseImage": "/assets/tour-equipment/b-22.webp",
       "manual": "https://www.stryker.com/content/dam/stryker/ems/resources/operating-instructions/international/3205213-036_int-eng_lifepak_1000_operating_instructions.pdf",
       "memory": [
         "Включите и следуйте подсказкам",
@@ -228,12 +230,12 @@
         "Восстановите комплект и проверьте готовность."
       ],
       "name": "LIFEPAK 1000",
-      "description": "Переносной наружный дефибриллятор. Работа выполняется подготовленным персоналом по подсказкам прибора и действующему протоколу.",
+      "description": "Переносной дефибриллятор Physio-Control. В режиме АНД анализирует сердечный ритм и подаёт голосовые и экранные подсказки. В салоне класса B находится в чёрном чехле на верхней полке.",
       "controls": [
         "Разъём электродов.",
         "Индикатор готовности OK.",
         "Экран.",
-        "Кнопка ON.",
+        "Кнопка включения и выключения ON/OFF.",
         "Кнопка разряда.",
         "Кнопка меню."
       ],
@@ -298,11 +300,12 @@
     },
     "axion-ecg": {
       "kind": "Электрокардиограф",
-      "classes": [],
-      "status": "Ожидает шильдик и привязку к автомобилю",
-      "image": "/assets/equipment/axion-ecg-cutout.webp",
-      "manual": "",
-      "sourceNote": "Руководство выбирают по точной модели и исполнению на шильдике прибора.",
+      "classes": ["b"],
+      "status": "Модель по документу станции",
+      "image": "/assets/tour-equipment/b-11.webp",
+      "photoCaption": "Прибор и электроды в открытом чехле.",
+      "manual": "https://axion-med.ru/catalog/kardiologiya/elektrokardiografy_/elektrokardiograf-ek1t-1-3-07-aksion/",
+      "sourceNote": "Руководство выбирают по исполнению и году выпуска прибора.",
       "memory": [
         "Осмотрите кабель пациента",
         "Проверьте контакт электродов",
@@ -328,7 +331,6 @@
       "critical": [
         "Используйте только комплектные кабели.",
         "Электроды ЭКГ не должны касаться электродов других изделий.",
-        "Подключённый ПК и его устройства размещают не ближе 1,5 м от пациента.",
         "Техническое обслуживание выполняют на выключенном приборе.",
         "Обеспечьте правильное наложение электродов по стандартным отведениям.",
         "Минимизируйте помехи и движение пациента во время записи.",
@@ -341,8 +343,8 @@
         "Уложите кабели без перегибов.",
         "Подготовьте бумагу и заряд для следующего применения."
       ],
-      "name": "ЭКГ AXION",
-      "description": "Переносной электрокардиограф с экраном, термопринтером и кабелем пациента. Исполнение уточняется по шильдику.",
+      "name": "Электрокардиограф ЭК1Т-1/3-07 «АКСИОН»",
+      "description": "Переносной одно- и трёхканальный электрокардиограф с дисплеем и термопринтером для регистрации и печати ЭКГ.",
       "controls": [
         "Отсек бумаги/ленты.",
         "Кнопки навигации.",
@@ -350,7 +352,7 @@
         "Экран.",
         "Кабель пациента / разъёмы."
       ],
-      "sourceLabel": "Сайт производителя · исполнение уточняется"
+      "sourceLabel": "АКСИОН · страница модели"
     },
     "onetouch-verio-reflect": {
       "kind": "Глюкометр · местоположение уточняется",
@@ -495,18 +497,190 @@
       ]
     },
     "aspirator-inventory": {
-      "name": "Электроаспиратор из ведомости",
-      "kind": "Обозначение требует сверки",
-      "classes": [],
-      "status": "Модель уточняется · фотография не подменяется похожей",
-      "image": null,
-      "description": "По ведомости указан медицинский электрический аспиратор Н003-А. Изготовитель и исполнение уточняются по шильдику.",
-      "facts": [
-        "Запись сохранена отдельно от подтверждённых моделей."
+      "name": "Электроотсасыватель Med-Mos Н003-А",
+      "kind": "Медицинский электрический аспиратор",
+      "classes": ["b"],
+      "status": "Модель сверена по фотографии и каталогу Med-Mos",
+      "image": "/assets/tour-equipment/b-9.webp",
+      "photoCaption": "Аспиратор с ёмкостью и трубками.",
+      "description": "Электрический насос создаёт разрежение для удаления секрета и жидкостей в ёмкость-сборник.",
+      "manual": "https://med-mos.ru/catalog/medicinskoe-oborudovanie/aspiratory/aspirator-h003-a",
+      "sourceLabel": "Med-Mos · описание модели",
+      "controls": [
+        "Ёмкость-сборник с крышкой и соединительными трубками.",
+        "Вакуумметр и регулятор разрежения на передней панели.",
+        "Индикаторы питания и работы."
       ],
-      "pending": [
-        "Нужны читаемое обозначение, изготовитель и фотография.",
-        "Сопоставить прибор с автомобилем и точкой панорамы."
+      "facts": [
+        "Перед работой герметичность, сборку и защиту от переполнения проверяют по руководству прибора.",
+        "Настройку, применение и обработку после работы выполняют по руководству и СОП станции."
+      ]
+    },
+    "resuscitation-kit": {
+      "name": "Реанимационный набор НСМП-Р(к1)ск",
+      "kind": "Переносная укладка скорой помощи",
+      "classes": ["b"],
+      "status": "Комплектация 1 по перечню РССМП",
+      "image": "/assets/tour-equipment/b-4.webp",
+      "photoCaption": "Сумка реанимационного набора.",
+      "description": "Набор изделий для реанимационных мероприятий выездной бригады.",
+      "manual": "https://omnimed.ru/catalog/element.php?ID=1084",
+      "sourceLabel": "Омнимед · состав набора",
+      "inventory": {
+        "Перевязка и гемостаз": [
+          "Стерильный бинт — 1 шт.",
+          "Кровоостанавливающий жгут — 2 шт.",
+          "Рулонный лейкопластырь — 1 шт.",
+          "Перевязочный пакет — 1 шт.",
+          "Дезинфицирующая салфетка — 10 шт.",
+          "Стерильная салфетка — 1 уп.",
+          "Гемостатическая салфетка — 1 шт."
+        ],
+        "Инфузии и инъекции": [
+          "Жгут для внутривенных инъекций — 1 шт.",
+          "Периферический венозный катетер — 3 шт.",
+          "Набор для катетеризации центральных вен — 1 шт.",
+          "Устройство для вливания растворов — 2 шт.",
+          "Одноразовые шприцы на 2, 5, 10 и 20 мл — по 2 шт."
+        ],
+        "Оснащение для вентиляции": [
+          "Воздуховод — 2 шт.",
+          "Лицевая маска для ИВЛ — 1 шт.",
+          "Ручной мешок для ИВЛ взрослого с маской — 1 шт.",
+          "Ножной отсасыватель ОНП-1 — 1 шт."
+        ],
+        "Инструменты": [
+          "Зубчатый кровоостанавливающий зажим, изогнутый и прямой — по 1 шт.",
+          "Стерильная атравматическая игла с нитью — 4 шт.",
+          "Прямые тупоконечные ножницы — 1 шт.",
+          "Роторасширитель — 1 шт.",
+          "Скальпель — 1 шт.",
+          "Языкодержатель — 1 шт."
+        ],
+        "Интубация и коникотомия": [
+          "Клинок ларингоскопа — 3 шт.",
+          "Рукоятка ларингоскопа — 1 шт.",
+          "Набор для коникотомии — 1 шт.",
+          "Одноразовая интубационная трубка — 3 шт."
+        ],
+        "Другие изделия": [
+          "Желудочный зонд — 1 шт.",
+          "Уретральный катетер — 2 шт.",
+          "Стерильные перчатки — 2 пары.",
+          "Спасательное покрывало — 1 шт.",
+          "Пластмассовая воронка — 1 шт.",
+          "Одноразовая хирургическая маска — 2 шт."
+        ]
+      }
+    },
+    "obstetric-kit": {
+      "name": "Акушерский набор НАСМП-02-«МЕДПЛАНТ»",
+      "kind": "Набор для выездной бригады",
+      "classes": ["b"],
+      "status": "Комплектация по перечню РССМП",
+      "image": "/assets/tour-equipment/b-5.webp",
+      "photoCaption": "Акушерский набор в сумке СМУ-02.",
+      "description": "Изделия для оказания акушерской помощи роженице и новорождённому в универсальной медицинской сумке СМУ-02.",
+      "manual": "https://medplant.ru/catalog/nabor-akusherskiy-dlya-okazaniya-skoroy-meditsinskoy-pomoshchi-nasmp_02_medplant_-po-pr_-_1165n-ot-/",
+      "sourceLabel": "МЕДПЛАНТ · страница набора",
+      "inventory": {
+        "Состав набора": [
+          "Шейный воротник-шина для новорождённого или комплект шин — 2 шт.",
+          "Стерильная глазная повязка, от 55 × 70 мм — 2 шт.",
+          "Грелка — 2 шт.",
+          "Зажим Кохера — 2 шт.",
+          "Зубчатый кровоостанавливающий зажим, изогнутый и прямой — по 1 шт.",
+          "Зажимы, скобы или клипсы для пуповины — 6 шт.",
+          "Атравматическая игла — 1 шт.",
+          "Общехирургический иглодержатель — 1 шт.",
+          "Катетер для отсоса слизи с фильтром или резиновая спринцовка — 2 шт.",
+          "Акушерское бельё для роженицы и новорождённого — 2 комплекта.",
+          "Одноразовая хирургическая одежда — 2 комплекта.",
+          "Стерильный пинцет — 2 шт.",
+          "Одноразовый стерильный скальпель или ножницы для пересечения пуповины — 2 шт.",
+          "Деревянный акушерский стетоскоп — 1 шт.",
+          "Детское байковое одеяло — 2 шт."
+        ]
+      }
+    },
+    "infusion-thermocontainer": {
+      "name": "Термоконтейнер ТК-«Медплант»",
+      "kind": "Контейнер для инфузионных растворов",
+      "classes": ["b"],
+      "status": "Модель по документу станции",
+      "image": "/assets/tour-equipment/b-6.webp",
+      "photoCaption": "Термоконтейнер с кабелем питания.",
+      "description": "Подогревает инфузионные растворы и поддерживает их температуру при перевозке. Питается от бортовой сети автомобиля.",
+      "manual": "https://medplant.ru/catalog/konteyner-termoizolyatsionnyy-s-avtomaticheskim-podogrevom-i-podderzhaniem-temperatury-infuzionnykh/",
+      "sourceLabel": "МЕДПЛАНТ · страница модели",
+      "facts": [
+        "Малый отсек рассчитан на два флакона, большой — на четыре. Малый отсек прогревается в первую очередь.",
+        "Съёмные разделители защищают флаконы от соприкосновения при перевозке.",
+        "Переключатель выбирает порог включения подогрева: 11 или 13 В. Режим сверяют с руководством контейнера и требованиями к бортовой сети."
+      ]
+    },
+    "portable-oxygen-rik": {
+      "name": "Переносной кислородный баллон с редуктором РИК",
+      "kind": "Портативное кислородное оборудование",
+      "classes": ["b"],
+      "status": "Исполнение редуктора уточняется по маркировке",
+      "image": null,
+      "description": "Баллон хранит медицинский кислород. Редуктор понижает давление, манометр показывает давление в баллоне, расходомер регулирует подачу.",
+      "sourceNote": "Подключение, контроль герметичности и настройка — по паспорту установленного редуктора и СОП станции.",
+      "facts": [
+        "В документе станции указано семейство РИК. Точная модификация редуктора и объём баллона уточняются."
+      ]
+    },
+    "foot-suction": {
+      "name": "Механический ножной отсасыватель",
+      "kind": "Аспиратор с ножным приводом",
+      "classes": ["b"],
+      "status": "Точная модель уточняется",
+      "image": "/assets/tour-equipment/b-8.webp",
+      "photoCaption": "Сумка отсасывателя с прозрачной передней стенкой.",
+      "description": "Насос с педалью создаёт разрежение без подключения к электросети. Удаляемая жидкость собирается в ёмкость.",
+      "facts": [
+        "Основные части — педальный насос, ёмкость-сборник и соединительные трубки.",
+        "Сборку, проверку герметичности и обработку после работы выполняют по паспорту конкретной модели и СОП станции."
+      ]
+    },
+    "stationary-safe": {
+      "name": "Стационарный сейф",
+      "kind": "Хранение с ограниченным доступом",
+      "classes": ["b"],
+      "status": "Назначение по документу станции",
+      "image": null,
+      "description": "Закреплённый сейф для хранения наркотических и психотропных лекарственных средств."
+    },
+    "cardiometer-mt": {
+      "name": "Электрокардиограф КФС-01.001 «Кардиометр-МТ»",
+      "kind": "Беспроводной электрокардиограф",
+      "classes": ["b"],
+      "status": "Модель сверена по документу и фотографии станции",
+      "image": "/assets/tour-equipment/b-12.webp",
+      "photoCaption": "Регистратор, кабели и электроды в открытом чехле.",
+      "caseImage": "/assets/tour-equipment/b-12-case.webp",
+      "description": "Комплекс регистрирует ЭКГ в покое в 12 отведениях и передаёт запись по Bluetooth на совместимое устройство. Программа поддерживает автоматическую интерпретацию и телеметрию.",
+      "manual": "https://micard.ru/produktsiya/kardiometr-mt",
+      "sourceLabel": "МИКАРД-ЛАНА · сведения о комплексе",
+      "facts": [
+        "Для регистрации нужны комплектный кабель отведений, электроды и совместимое программное обеспечение.",
+        "Перед регистрацией проверяют заряд, связь с программой и качество сигнала.",
+        "Автоматическое заключение проверяет медицинский специалист."
+      ]
+    },
+    "vacuum-mattress": {
+      "name": "Вакуумный матрас МИВ-2 «НПФ-Медтехника»",
+      "kind": "Иммобилизационное оснащение",
+      "classes": ["b"],
+      "status": "Модель по документу станции",
+      "image": null,
+      "description": "Матрас для фиксации пациента при транспортировке. После откачки воздуха наполнитель уплотняется и оболочка сохраняет приданную форму.",
+      "manual": "https://medtechnics.ru/catalog/immobilizatsiya/matras-immobilizatsionnyy-vakuumnyy-npf-medtekhnika/",
+      "sourceLabel": "НПФ-Медтехника · страница модели",
+      "facts": [
+        "В комплект входят вакуумный насос и транспортная сумка. Для фиксации предусмотрены ремни.",
+        "При поступлении воздуха через клапан матрас снова становится гибким."
       ]
     }
   };
@@ -522,7 +696,7 @@
     'aspirator-inventory': '01.07.2020',
   };
   const equipmentRegisterMaintenance = '24.09.2026';
-  const equipmentOrder = ["medprom-aivl","axion-apex","lifepak-1000","armed-7d","axion-ecg","onetouch-verio-reflect","armed-linz-6-b","shmel","ritm-100","oksitest-1","ecg-inventory","aspirator-inventory"];
+  const equipmentOrder = Object.keys(equipmentCards);
 
   // Автомобили станции сняты 9 октября 2026 года: точки стоят на фактическом оборудовании.
   // В описаниях названы только модели, подтверждённые карточками РССМП или владельцем; остальные не подменяем догадками.
@@ -567,19 +741,19 @@
       yaw: -1.4,
       pitch: -0.05,
       hotspots: [
-        { yaw: -1.34, pitch: -0.03, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Карточка оборудования доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
+        { yaw: -1.34, pitch: -0.03, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Карточка оборудования доступна по кнопке «Карточка оборудования».', materials: ['medprom-aivl'] },
         { yaw: -1.22, pitch: 0.17, title: 'Кислородная система', text: 'Обеспечивает размещение и подключение кислородного оборудования. Точный состав зависит от комплектации автомобиля.' },
         { yaw: -1.96, pitch: -0.5, title: 'Система носилок', text: 'Предназначена для перемещения пациента и фиксации носилок в медицинском салоне.' },
-        { yaw: -1.79, pitch: -0.14, title: 'Реанимационный набор НСМП-Р(к1)ск', text: 'Комплектация 1 по данным станции. Перевязка и гемостаз: стерильный бинт ×1, кровоостанавливающий жгут ×2, рулонный лейкопластырь ×1, перевязочный пакет ×1, дезинфицирующие салфетки ×10, стерильные салфетки ×1 уп., гемостатическая салфетка ×1. Инфузии и инъекции: жгут ×1, периферические венозные катетеры ×3, набор для катетеризации центральных вен ×1, устройства для вливания ×2, шприцы 2, 5, 10 и 20 мл — по 2. ИВЛ: воздуховоды ×2, лицевая маска ×1, взрослый ручной мешок с маской ×1, ножной отсасыватель ОНП-1 ×1. Инструменты: изогнутый и прямой зубчатые кровоостанавливающие зажимы — по 1, стерильные атравматические иглы с нитью ×4, тупоконечные прямые ножницы, роторасширитель, скальпель и языкодержатель — по 1. Для интубации и коникотомии: клинки ларингоскопа ×3, рукоятка ×1, набор для коникотомии ×1, одноразовые интубационные трубки ×3. Прочее: желудочный зонд ×1, уретральные катетеры ×2, стерильные перчатки ×2 пары, спасательное покрывало ×1, пластмассовая воронка ×1, хирургические маски ×2.', photos: ['/assets/tour-equipment/b-4.webp'] },
-        { yaw: -1.8, pitch: 0.08, title: 'Акушерский набор НАСМП-02-«МЕДПЛАНТ»', text: 'Комплектация в сумке СМУ-02 по данным станции. По 2: шейные воротники-шины для новорождённых (или комплекты шин), стерильные глазные повязки (от 55 × 70 мм), грелки, зажимы Кохера, катетеры для отсоса слизи с фильтром или резиновые спринцовки, комплекты акушерского белья для роженицы и новорождённого, комплекты одноразовой хирургической одежды, стерильные пинцеты, одноразовые стерильные скальпели или ножницы для пересечения пуповины, детские байковые одеяла. По 1: изогнутый и прямой зубчатые кровоостанавливающие зажимы, атравматическая игла, общехирургический иглодержатель и деревянный акушерский стетоскоп. Зажимы, скобы или клипсы для пуповины — 6.', photos: ['/assets/tour-equipment/b-5.webp'] },
-        { yaw: -1.66, pitch: -0.13, title: 'Термоконтейнер ТК-«Медплант»', text: 'Теплоизолированный контейнер для подогрева и поддержания температуры инфузионных растворов. Питается от бортовой сети автомобиля. Условия подключения и режим подогрева зависят от исполнения.', photos: ['/assets/tour-equipment/b-6.webp'] },
-        { yaw: -1.38, pitch: -0.3, title: 'Переносной кислородный баллон с редуктором РИК', text: 'Баллон хранит медицинский кислород. Редуктор снижает давление газа и позволяет регулировать его подачу. Подключение и настройку выполняет обученный персонал по паспорту установленного редуктора и СОП станции.' },
-        { yaw: -1.57, pitch: -0.42, title: 'Механический ножной отсасыватель', text: 'Аспиратор с ножной педалью. Насос создаёт разрежение без электросети, а удаляемая жидкость собирается в ёмкость. Модель уточняется. Подготовка и обработка выполняются по паспорту прибора и СОП станции.', photos: ['/assets/tour-equipment/b-8.webp'] },
-        { yaw: -1.42, pitch: -0.49, title: 'Медицинский отсасыватель', text: 'Аппарат в нижнем отсеке создаёт разрежение и собирает удаляемый секрет и жидкости в ёмкость. Модель уточняется. Настройку, применение и обработку выполняют по руководству конкретного прибора и СОП станции.', photos: ['/assets/tour-equipment/b-9.webp'] },
-        { yaw: -1.2, pitch: -0.63, title: 'Стационарный сейф', text: 'Закреплённый сейф для хранения наркотических и психотропных лекарственных средств.' },
-        { yaw: -1.134, pitch: -0.297, title: 'Электрокардиограф ЭК1Т-1/3-07 «АКСИОН»', text: 'Одно- и трёхканальный электрокардиограф для регистрации и печати ЭКГ. Порядок подготовки, выбор режима записи и обработку электродов сверяют с руководством к установленному исполнению и СОП станции.', photos: ['/assets/tour-equipment/b-11.webp'] },
-        { yaw: -0.977, pitch: -0.183, title: 'Электрокардиограф КФС-01.001 «Кардиометр-МТ»', text: 'Регистрирует ЭКГ в 12 отведениях в покое и передаёт запись по Bluetooth на совместимое устройство. Комплекс поддерживает автоматическую интерпретацию и интернет-телеметрию. Автоматическое заключение проверяет медицинский специалист.', photos: ['/assets/tour-equipment/b-12.webp', '/assets/tour-equipment/b-12-case.webp'] },
-        { yaw: -1.77, pitch: -0.39, title: 'Вакуумный матрас МИВ-2 «НПФ-Медтехника»', text: 'Иммобилизационный матрас для фиксации пациента при транспортировке. После удаления воздуха наполнитель уплотняется и матрас сохраняет приданную форму. В комплект входят ручной вакуумный насос и транспортная сумка.' },
+        { yaw: -1.79, pitch: -0.14, title: 'Реанимационный набор НСМП-Р(к1)ск', text: 'Переносной реанимационный набор. Перечень изделий и их количество указаны в карточке оборудования.', materials: ['resuscitation-kit'], photo: true },
+        { yaw: -1.8, pitch: 0.08, title: 'Акушерский набор НАСМП-02-«МЕДПЛАНТ»', text: 'Акушерский набор в сумке СМУ-02. В карточке — комплектация по перечню станции.', materials: ['obstetric-kit'], photo: true },
+        { yaw: -1.66, pitch: -0.13, title: 'Термоконтейнер ТК-«Медплант»', text: 'Теплоизолированный контейнер для подогрева инфузионных растворов. Питается от бортовой сети.', materials: ['infusion-thermocontainer'], photo: true },
+        { yaw: -1.38, pitch: -0.3, title: 'Переносной кислородный баллон с редуктором РИК', text: 'Баллон с медицинским кислородом хранится в красном транспортном чехле. Редуктор понижает давление и регулирует подачу.', materials: ['portable-oxygen-rik'] },
+        { yaw: -1.57, pitch: -0.42, title: 'Механический ножной отсасыватель', text: 'Аспиратор с ножным приводом, ёмкостью-сборником и соединительными трубками.', materials: ['foot-suction'], photo: true },
+        { yaw: -1.42, pitch: -0.49, title: 'Электроотсасыватель Med-Mos Н003-А', text: 'Портативный электрический аспиратор с ёмкостью, трубками, вакуумметром и регулятором.', materials: ['aspirator-inventory'], photo: true },
+        { yaw: -1.2, pitch: -0.63, title: 'Стационарный сейф', text: 'Закреплённый сейф для хранения наркотических и психотропных лекарственных средств.', materials: ['stationary-safe'] },
+        { yaw: -1.134, pitch: -0.297, title: 'Электрокардиограф ЭК1Т-1/3-07 «АКСИОН»', text: 'Переносной одно- и трёхканальный электрокардиограф с термопринтером.', materials: ['axion-ecg'], photo: true },
+        { yaw: -0.977, pitch: -0.183, title: 'Электрокардиограф КФС-01.001 «Кардиометр-МТ»', text: 'Регистрирует ЭКГ в покое в 12 отведениях и передаёт запись по Bluetooth.', materials: ['cardiometer-mt'], photo: true },
+        { yaw: -1.77, pitch: -0.39, title: 'Вакуумный матрас МИВ-2 «НПФ-Медтехника»', text: 'Иммобилизационный матрас для фиксации пациента при транспортировке.', materials: ['vacuum-mattress'] },
         { yaw: 0.37, pitch: -1.05, title: 'Жёсткий ящик у боковой двери', text: 'Жёсткий защитный ящик размещён на полу у боковой двери медицинского салона.' },
         { yaw: -2.77, pitch: 0.62, title: 'Иммобилизационное оснащение', text: 'Используется для ограничения движения повреждённой области при переноске и транспортировке пациента.' },
         { yaw: 0.35, pitch: 0.53, title: 'Панель управления отопителем', text: 'Блок управления с надписью «ОТОПИТЕЛЬ» и клавишные переключатели оборудования медицинского салона.' },
@@ -588,7 +762,7 @@
         { yaw: -1.06, pitch: 0.18, title: 'Электрические розетки', text: 'Розетки 220 В и 12 В на панели рабочего места — для питания медицинского оборудования.' },
         { yaw: -0.4, pitch: -0.7, title: 'Огнетушитель', text: 'Закреплён у кресла медицинского салона. Место отмечено знаком на стене.' },
         { yaw: -2.13, pitch: -0.02, title: 'Кресло для переноски пациента', text: 'Складное кресло закреплено на внутренней стороне задней двери.' },
-        { yaw: -1.67, pitch: 0.09, title: 'Дефибриллятор LIFEPAK с режимом АНД', text: 'В режиме автоматической наружной дефибрилляции прибор анализирует сердечный ритм и подаёт подсказки оператору. Точная модель уточняется по маркировке корпуса. Для работы используют руководство конкретного прибора и СОП станции.', photos: ['/assets/tour-equipment/b-22.webp'] },
+        { yaw: -1.67, pitch: 0.09, title: 'Дефибриллятор LIFEPAK 1000', text: 'Переносной дефибриллятор с режимом АНД. Хранится в чёрном чехле на верхней полке.', materials: ['lifepak-1000'], photo: true },
         { yaw: -1.79, pitch: 0.31, title: 'Верхний отсек 1', text: 'Закрытый отсек для хранения оснащения. Содержимое уточняется.' },
         { yaw: -1.49, pitch: 0.38, title: 'Верхний отсек 2', text: 'Закрытый отсек для хранения оснащения. Содержимое уточняется.' },
         { yaw: -1.05, pitch: 0.42, title: 'Верхний отсек 3', text: 'Закрытый отсек для хранения оснащения. Содержимое уточняется.' },
@@ -637,7 +811,7 @@
       pitch: -0.08,
       hotspots: [
         { yaw: -1.21, pitch: -0.24, title: 'Монитор-дефибриллятор АКСИОН', text: 'На нижней полке виден дефибриллятор-монитор АКСИОН. APEX — надпись на ложке; модель уточняется по шильдику. В каталоге также представлен LIFEPAK 1000.', materials: ['axion-apex', 'lifepak-1000'] },
-        { yaw: -1.35, pitch: -0.05, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Карточка оборудования доступна по кнопке «Учебная памятка».', materials: ['medprom-aivl'] },
+        { yaw: -1.35, pitch: -0.05, title: 'Аппарат ИВЛ «Медпром»', text: 'А-ИВЛ/ВВЛп-3/30 «Медпром» — переносной аппарат искусственной вентиляции лёгких. Карточка оборудования доступна по кнопке «Карточка оборудования».', materials: ['medprom-aivl'] },
         { yaw: -1.53, pitch: 0.07, title: 'Инфузионное оборудование', text: 'Оборудование для контролируемого введения растворов. Состав оборудования будет указан после подтверждения станцией.' },
         { yaw: -1.24, pitch: 0.16, title: 'Кислородная система', text: 'Стационарные крепления, редукторы и точки подключения обеспечивают использование кислородного оборудования.' },
         { yaw: -1.96, pitch: -0.51, title: 'Система носилок', text: 'Обеспечивает перемещение пациента и надёжное крепление во время транспортировки.' },
@@ -773,6 +947,9 @@
   const equipmentDescription = equipmentDialog?.querySelector('[data-equipment-description]');
   const equipmentDates = equipmentDialog?.querySelector('[data-equipment-dates]');
   const equipmentImage = equipmentDialog?.querySelector('[data-equipment-image]');
+  const equipmentCaption = equipmentDialog?.querySelector('[data-equipment-caption]');
+  const equipmentCase = equipmentDialog?.querySelector('[data-equipment-case]');
+  const equipmentCaseImage = equipmentCase?.querySelector('img');
   const equipmentCatalog = equipmentDialog?.querySelector('[data-equipment-catalog]');
   const equipmentReference = equipmentDialog?.querySelector('[data-equipment-reference]');
   const equipmentList = equipmentDialog?.querySelector('[data-equipment-list]');
@@ -788,7 +965,7 @@
   let equipmentSelection = equipmentOrder, equipmentIndex = 0;
   let equipmentFilter = 'all', equipmentCatalogScroll = 0, equipmentRowId = null, equipmentOpener = null;
   const equipmentLocation = card => card.classes.length
-    ? `По съёмке станции: ${card.classes.map(value => `класс ${value.toUpperCase()}`).join(' · ')}`
+    ? `В туре: ${card.classes.map(value => `класс ${value.toUpperCase()}`).join(' · ')}`
     : 'Привязка к автомобилю и точке тура уточняется';
   function equipmentSection(title, values, ordered = false, style = '') {
     if (!values?.length) return;
@@ -878,14 +1055,23 @@
     equipmentDialog.querySelector('[data-equipment-location]').textContent = equipmentLocation(card);
     equipmentVisual.hidden = !card.image;
     equipmentReference.classList.toggle('is-text-only', !card.image);
-    equipmentNoImage.textContent = 'Фотография появится после подтверждения модели.';
+    equipmentNoImage.textContent = 'Фотография пока недоступна.';
     equipmentNoImage.hidden = Boolean(card.image);
+    equipmentCaption.textContent = card.photoCaption || 'Иллюстрация для идентификации. Исполнение сверяйте с прибором.';
     if (card.image) {
       equipmentImage.src = card.image;
       equipmentImage.alt = `Внешний вид: ${card.name}`;
     } else {
       equipmentImage.removeAttribute('src');
       equipmentImage.alt = '';
+    }
+    equipmentCase.hidden = !card.caseImage;
+    if (card.caseImage) {
+      equipmentCaseImage.src = card.caseImage;
+      equipmentCaseImage.alt = `Транспортный чехол: ${card.name}`;
+    } else {
+      equipmentCaseImage.removeAttribute('src');
+      equipmentCaseImage.alt = '';
     }
     equipmentSections.replaceChildren();
     equipmentSection('Вспомнить за 10 секунд', card.memory, true, 'tour-equipment-memory');
@@ -896,6 +1082,7 @@
     equipmentSection('Не пропустить', card.critical, false, 'tour-equipment-critical');
     equipmentSection('После применения', card.after, true);
     equipmentSection('Сведения об устройстве', card.facts);
+    for (const [title, items] of Object.entries(card.inventory || {})) equipmentSection(title, items);
     equipmentSection('Что уточнить', card.pending);
     equipmentManual.hidden = !card.manual;
     if (card.manual) {
@@ -917,7 +1104,10 @@
     equipmentOpener = opener;
     equipmentSelection = valid;
     equipmentIndex = 0;
-    if (catalog) { equipmentFilter = 'all'; renderEquipmentCatalog(); }
+    equipmentFilter = 'all';
+    equipmentCatalogScroll = 0;
+    equipmentRowId = catalog ? null : valid[0];
+    if (catalog) renderEquipmentCatalog();
     else renderEquipmentCard();
     if (typeof equipmentDialog.showModal === 'function') equipmentDialog.showModal();
     else equipmentDialog.setAttribute('open', '');
@@ -966,6 +1156,7 @@
     equipmentNoImage.hidden = false;
     equipmentNoImage.textContent = 'Не удалось загрузить фотографию. Текст карточки доступен.';
   });
+  equipmentCaseImage?.addEventListener('error', () => { equipmentCase.hidden = true; });
   equipmentDialog?.addEventListener('click', event => {
     if (event.target !== equipmentDialog) return;
     const box = equipmentDialog.getBoundingClientRect();
@@ -980,20 +1171,19 @@
     });
   }
 
-  // three.js inside the engine needs WebGL 2 (Chrome, Edge, Firefox, Safari 15+). The engine
-  // itself does not throw without it, so the check comes first.
-  function hotspotPhotos(spot) {
-    return (spot.photos ?? []).map((source, index) => {
-      const photo = document.createElement('img');
-      photo.className = 'tour-point-photo';
-      photo.src = source;
-      photo.alt = spot.photos.length > 1 ? `${spot.title} · фото ${index + 1}` : spot.title;
-      photo.loading = 'lazy';
-      photo.decoding = 'async';
-      return photo;
-    });
+  function addHotspotPhoto(container, spot) {
+    if (!spot.photo) return;
+    const card = equipmentCards[spot.materials[0]];
+    const photo = document.createElement('img');
+    photo.className = 'tour-point-photo';
+    photo.loading = 'lazy';
+    photo.decoding = 'async';
+    photo.alt = card.caseImage ? `Транспортный чехол: ${spot.title}` : card.photoCaption;
+    photo.src = card.caseImage || card.image;
+    container.append(photo);
   }
 
+  // three.js inside the engine needs WebGL 2 (Chrome, Edge, Firefox, Safari 15+).
   const hasWebGL2 = (() => {
     try {
       const gl = document.createElement('canvas').getContext('webgl2');
@@ -1019,15 +1209,18 @@
         const text = document.createElement('p');
         summary.textContent = spot.next ? `${spot.title} · ${spot.action}` : spot.title;
         text.textContent = spot.text;
-        details.append(summary, text, ...hotspotPhotos(spot));
+        details.append(summary, text);
         item.append(details);
         if (spot.materials?.length) {
           const materialButton = document.createElement('button');
           materialButton.type = 'button';
-          materialButton.textContent = 'Открыть учебную памятку';
-          materialButton.addEventListener('click', () => openEquipmentCards(spot.materials));
-          item.append(materialButton);
+          materialButton.textContent = 'Карточка оборудования';
+          materialButton.addEventListener('click', () => openEquipmentCards(spot.materials, false, materialButton));
+          details.append(materialButton);
         }
+        if (spot.photo) details.addEventListener('toggle', () => {
+          if (details.open && !details.querySelector('img')) addHotspotPhoto(details, spot);
+        });
         list.append(item);
       }
     }
@@ -1389,7 +1582,9 @@
     if (nextButton) nextButton.hidden = !canStep;
     infoTitle.textContent = spot.title;
     infoText.textContent = spot.text;
-    infoPhotos?.replaceChildren(...hotspotPhotos(spot));
+    infoPhotos?.replaceChildren();
+    if (infoPhotos) addHotspotPhoto(infoPhotos, spot);
+    infoCard.scrollTop = 0;
     if (cardEquipmentButton) cardEquipmentButton.hidden = !spot.materials?.length;
     infoAction.hidden = !spot.next;
     infoAction.textContent = spot.action || 'Перейти';
@@ -1422,7 +1617,7 @@
   prevButton?.addEventListener('click', () => stepHotspot(-1));
   nextButton?.addEventListener('click', () => stepHotspot(1));
   cardEquipmentButton?.addEventListener('click', () => {
-    if (activeHotspot?.materials?.length) openEquipmentCards(activeHotspot.materials);
+    if (activeHotspot?.materials?.length) openEquipmentCards(activeHotspot.materials, false, cardEquipmentButton);
   });
   infoAction.addEventListener('click', () => {
     const spot = activeHotspot;
