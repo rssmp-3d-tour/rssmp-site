@@ -9,6 +9,8 @@ if (!base) throw new Error('Usage: node equipment.mjs BASE_URL');
 const browser = await chromium.launch();
 const sizes = [[320, 568], [390, 844], [768, 1024], [844, 390], [1366, 768]];
 const originals = ['medprom-aivl', 'axion-apex', 'lifepak-1000', 'armed-7d', 'axion-ecg', 'onetouch-verio-reflect'];
+const noPhoto = new Set(['ecg-inventory', 'stationary-safe', 'vacuum-mattress']);
+const casePhotos = { 'lifepak-1000': 'b-22.webp', 'cardiometer-mt': 'b-12-case.webp' };
 const sections = ['Вспомнить за 10 секунд', 'Органы управления и комплект', 'Перед работой', 'Порядок действий', 'Что контролировать', 'Не пропустить', 'После применения'];
 let checked = 0;
 function check(ok, message) { if (!ok) throw new Error(message); checked++; }
@@ -18,7 +20,7 @@ try {
     const page = await context.newPage();
     const errors = [], images = [];
     page.on('pageerror', error => errors.push(error.message));
-    page.on('request', request => { if (request.url().includes('/assets/equipment/')) images.push(request.url()); });
+    page.on('request', request => { if (/\/assets\/(tour-)?equipment\//.test(request.url())) images.push(request.url()); });
     await page.addInitScript(() => {
       const getContext = HTMLCanvasElement.prototype.getContext;
       HTMLCanvasElement.prototype.getContext = function (kind, ...rest) { return kind === 'webgl2' ? null : getContext.call(this, kind, ...rest); };
@@ -28,8 +30,8 @@ try {
     await page.locator('[data-fallback-equipment]').click();
     const dialog = page.locator('[data-equipment-dialog]');
     check(await dialog.isVisible(), `${width}px: catalogue unavailable without WebGL`);
-    check(await page.locator('[data-equipment-id]').count() === 12, `${width}px: expected 12 catalogue records`);
-    for (const [filter, count] of [['b', 1], ['c', 4], ['pending', 8], ['all', 12]]) {
+    check(await page.locator('[data-equipment-id]').count() === 20, `${width}px: expected 20 catalogue records`);
+    for (const [filter, count] of [['b', 12], ['c', 4], ['pending', 6], ['all', 20]]) {
       await page.locator(`[data-equipment-filter="${filter}"]`).click();
       check(await page.locator('[data-equipment-id]').count() === count, `${width}px: incorrect ${filter} membership`);
       check(await page.locator('[data-equipment-filter][aria-pressed="true"]').count() === 1, `${width}px: filter state ambiguous`);
@@ -48,20 +50,35 @@ try {
         check(await page.locator('[data-equipment-sections] li').count() >= 20, `${width}px ${id}: material lost`);
       }
       check(await page.locator('[data-equipment-reference] [role="tab"], [data-equipment-reference] [role="tabpanel"], [data-equipment-poster]').count() === 0, `${width}px ${id}: tabs or original poster remain`);
-      const hasImage = !id.endsWith('-inventory');
+      const hasImage = !noPhoto.has(id);
       check(await page.locator('[data-equipment-visual]').isVisible() === hasImage, `${width}px ${id}: wrong image state`);
       if (hasImage) {
         await page.locator('[data-equipment-image]').evaluate(img => img.complete && img.naturalWidth ? true : new Promise((resolve, reject) => {
           img.addEventListener('load', resolve, { once: true });
           img.addEventListener('error', () => reject(new Error('Image failed to load')), { once: true });
         }));
-        check(/\/assets\/equipment\/.+cutout\.webp/.test(await page.locator('[data-equipment-image]').getAttribute('src')), `${width}px ${id}: wrong asset`);
+        const imagePath = new URL(await page.locator('[data-equipment-image]').getAttribute('src'), base).pathname;
+        check(/\/assets\/(equipment\/.+cutout|tour-equipment\/b-\d+)\.webp$/.test(imagePath), `${width}px ${id}: wrong asset`);
       } else check(!await page.locator('[data-equipment-image]').getAttribute('src'), `${width}px ${id}: stale image from another model`);
+      const caseFigure = page.locator('[data-equipment-case]');
+      const caseImage = caseFigure.locator('img');
+      if (casePhotos[id]) {
+        const casePath = new URL(await caseImage.getAttribute('src'), base).pathname;
+        check(await caseFigure.isVisible() && casePath.endsWith(`/${casePhotos[id]}`), `${width}px ${id}: incorrect transport case photo`);
+      } else {
+        check(!await caseFigure.isVisible() && !await caseImage.getAttribute('src'), `${width}px ${id}: stale transport case photo`);
+      }
+      if (id === 'resuscitation-kit') {
+        check(headings.length === 6 && (await page.locator('[data-equipment-sections] li').count()) === 32, `${width}px: incomplete resuscitation kit`);
+      }
+      if (id === 'obstetric-kit') {
+        check(headings[0] === 'Состав набора' && (await page.locator('[data-equipment-sections] li').count()) === 15, `${width}px: incomplete obstetric kit`);
+      }
       const source = page.locator('[data-equipment-manual]');
       const sourceNote = page.locator('[data-equipment-source-note]');
-      const needsSourceNote = ['axion-apex', 'axion-ecg', 'armed-7d', 'armed-linz-6-b', 'onetouch-verio-reflect'].includes(id);
+      const needsSourceNote = ['axion-apex', 'axion-ecg', 'armed-7d', 'armed-linz-6-b', 'onetouch-verio-reflect', 'portable-oxygen-rik'].includes(id);
       check(await sourceNote.isVisible() === needsSourceNote, `${width}px ${id}: missing or stale document notice`);
-      if (['axion-apex', 'axion-ecg', 'ecg-inventory', 'aspirator-inventory'].includes(id)) {
+      if (['axion-apex', 'ecg-inventory', 'portable-oxygen-rik', 'foot-suction', 'stationary-safe'].includes(id)) {
         check(!await source.isVisible() && !await source.getAttribute('href'), `${width}px ${id}: previous model's document remains linked`);
       }
       if (['armed-7d', 'armed-linz-6-b'].includes(id)) {
@@ -88,7 +105,7 @@ try {
     check(await page.locator('[data-fallback-equipment]').evaluate(el => el === document.activeElement), `${width}px: close did not restore focus`);
     check(!await page.evaluate(() => document.documentElement.classList.contains('equipment-open')), `${width}px: page scroll remains locked`);
     check(errors.length === 0, `${width}px: JS errors ${errors.join('; ')}`);
-    console.log(`OK — equipment: ${width}×${height}, 12 records, filters, keyboard, images, axe`);
+    console.log(`OK — equipment: ${width}×${height}, 20 records, filters, keyboard, images, axe`);
     await context.close();
   }
   console.log(`Equipment: ${checked}/${checked} checks passed`);

@@ -20,7 +20,7 @@ const tourHtml = await (await fetch(base + '/tours/')).text();
 const MODE = tourHtml.match(/data-tour-mode="(demo|vehicles)"/)?.[1] || 'demo';
 const HAS_YARD = /data-view="yard"/.test(tourHtml);
 const expected = MODE === 'demo' ? { 'demo-exterior': 4, 'demo-interior': 7 }
-  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 9 : 8, 'b-interior': HAS_YARD ? 24 : 23,
+  : { ...(HAS_YARD ? { 'b-yard': 6 } : {}), 'b-exterior': HAS_YARD ? 9 : 8, 'b-interior': HAS_YARD ? 27 : 26,
       ...(HAS_YARD ? { 'c-yard': 6 } : {}), 'c-exterior': HAS_YARD ? 9 : 8, 'c-interior': HAS_YARD ? 22 : 21 };
 const TOTAL = Object.values(expected).reduce((a, b) => a + b, 0);
 const [EXT, INT] = ['exterior', 'interior'].map(view => `${MODE === 'demo' ? 'demo' : 'b'}-${view}`);
@@ -159,10 +159,10 @@ const openMore = async page => {
     const st = await sceneState(page);
     const after = await canvasShot(page);
     const s = stats(after);
-    const blackDeviceNumber = scene === 'b-interior'
-      ? await page.locator('.tour-hotspot[aria-label="Чёрный аппарат на верхней полке"] span').first().textContent()
+    const aedPointNumber = scene === 'b-interior'
+      ? await page.locator('.tour-hotspot[aria-label="Дефибриллятор LIFEPAK 1000"] span').first().textContent()
       : '22';
-    const good = st.hash === '#' + scene && st.hotspots === expected[scene] && blackDeviceNumber === '22' && !st.loading && !st.fallback && s.mean > 25 && st.view === scene.split('-')[1] && st.vehicle === (MODE === 'vehicles' ? scene[0] : undefined);
+    const good = st.hash === '#' + scene && st.hotspots === expected[scene] && aedPointNumber === '22' && !st.loading && !st.fallback && s.mean > 25 && st.view === scene.split('-')[1] && st.vehicle === (MODE === 'vehicles' ? scene[0] : undefined);
     log.push(`${scene}:${good ? 'ok' : 'BAD'}(hs=${st.hotspots},mean=${s.mean.toFixed(0)},changed=${!before.equals(after)})`);
     ok = ok && good;
   }
@@ -271,7 +271,7 @@ const openMore = async page => {
         'c-yard': ['Реанимобиль класса C', 'Ступень бокового входа', 'Кабина водителя']
       } : {}),
       'b-exterior': ['Задняя дверь медицинского салона', 'Баллон с редуктором', 'Иммобилизационное оснащение', 'Сиденья медицинского салона'],
-      'b-interior': ['Медицинская укладка на верхней полке', 'Дополнительная медицинская укладка', 'Медицинская укладка у рабочего места', 'Бордовая сумка', 'Чёрная сумка', 'Укладка на нижней полке', 'Жёсткий ящик у боковой двери', 'Сумка в нижнем отсеке', 'Аппарат в нижнем отсеке', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель'],
+      'b-interior': ['Акушерский набор НАСМП-02-«МЕДПЛАНТ»', 'Термоконтейнер ТК-«Медплант»', 'Переносной кислородный баллон с редуктором РИК', 'Электрокардиограф ЭК1Т-1/3-07 «АКСИОН»', 'Электрокардиограф КФС-01.001 «Кардиометр-МТ»', 'Вакуумный матрас МИВ-2 «НПФ-Медтехника»', 'Жёсткий ящик у боковой двери', 'Механический ножной отсасыватель', 'Электроотсасыватель Med-Mos Н003-А', 'Стационарный сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель', 'Верхний отсек 1', 'Верхний отсек 2', 'Верхний отсек 3'],
       'c-exterior': ['Задняя дверь медицинского салона', 'Кислородный баллон', 'Иммобилизационное оснащение', 'Сиденья медицинского салона'],
       'c-interior': ['Медицинская укладка на верхней полке', 'Кейс с маркировкой LUCAS', 'Укладка на нижней полке', 'Дополнительная медицинская сумка', 'Жёсткий ящик у боковой двери', 'Сейф', 'Кресло для переноски пациента', 'Панель управления отопителем', 'Аварийный люк', 'Аварийный молоток', 'Электрические розетки', 'Огнетушитель']
     };
@@ -388,14 +388,14 @@ const openMore = async page => {
     await cards.click('[data-equipment-cards]');
     const catalogueCount = await cards.locator('[data-equipment-id]').count();
     await cards.locator('[data-equipment-id]').first().click();
+    const expectedCards = ['А-ИВЛ/ВВЛп-3/30 «Медпром»', 'АКСИОН · дефибриллятор', 'LIFEPAK 1000', 'ARMED 7D', 'Электрокардиограф ЭК1Т-1/3-07 «АКСИОН»', 'OneTouch Verio Reflect', 'ARMED LINZ-6-B', 'ДШП 5-20 «ШМЕЛЬ»', '«Ритм-100»', '«Окситест-1»', 'Электрокардиограф из ведомости', 'Электроотсасыватель Med-Mos Н003-А', 'Реанимационный набор НСМП-Р(к1)ск', 'Акушерский набор НАСМП-02-«МЕДПЛАНТ»', 'Термоконтейнер ТК-«Медплант»', 'Переносной кислородный баллон с редуктором РИК', 'Механический ножной отсасыватель', 'Стационарный сейф', 'Электрокардиограф КФС-01.001 «Кардиометр-МТ»', 'Вакуумный матрас МИВ-2 «НПФ-Медтехника»'];
     const names = [];
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < expectedCards.length; i++) {
       names.push(await cards.textContent('[data-equipment-name]'));
-      if (i < 11) await cards.click('[data-equipment-next]');
+      if (i + 1 < expectedCards.length) await cards.click('[data-equipment-next]');
     }
     const noFalseImage = !await cards.locator('[data-equipment-visual]').isVisible() && !await cards.getAttribute('[data-equipment-image]', 'src');
-    const expectedCards = ['А-ИВЛ/ВВЛп-3/30 «Медпром»', 'АКСИОН · дефибриллятор', 'LIFEPAK 1000', 'ARMED 7D', 'ЭКГ AXION', 'OneTouch Verio Reflect', 'ARMED LINZ-6-B', 'ДШП 5-20 «ШМЕЛЬ»', '«Ритм-100»', '«Окситест-1»', 'Электрокардиограф из ведомости', 'Электроаспиратор из ведомости'];
-    check('T6i', 'Меню «Карточки»: 12 записей, последовательная навигация, без подмены фото неизвестных моделей', catalogueCount === 12 && JSON.stringify(names) === JSON.stringify(expectedCards) && noFalseImage && await cards.locator('[data-equipment-poster]').count() === 0 && cards.errors.length === 0, `names=${names.join(' | ')} noFalseImage=${noFalseImage} errors=${cards.errors}`);
+    check('T6i', 'Меню «Карточки»: 20 записей, последовательная навигация и корректное состояние фото', catalogueCount === expectedCards.length && JSON.stringify(names) === JSON.stringify(expectedCards) && noFalseImage && await cards.locator('[data-equipment-poster]').count() === 0 && cards.errors.length === 0, `names=${names.join(' | ')} noFalseImage=${noFalseImage} errors=${cards.errors}`);
     await cards.context().close();
   }
   if (MODE === 'vehicles') {
@@ -409,6 +409,34 @@ const openMore = async page => {
     const second = await card.textContent('[data-equipment-name]');
     check('T6j', 'Точка АКСИОН открывает относящиеся к дефибрилляторам карточки без изменения переходов тура', shown && first === 'АКСИОН · дефибриллятор' && second === 'LIFEPAK 1000' && card.errors.length === 0, `shown=${shown} cards=${first} → ${second} errors=${card.errors}`);
     await card.context().close();
+  }
+  if (MODE === 'vehicles') {
+    const page = await open('/tours/#b-interior');
+    await sceneReady(page, '#b-interior');
+    const cases = [
+      ['Переносной кислородный баллон с редуктором РИК', 7, 'b-7.webp'],
+      ['Дефибриллятор LIFEPAK 1000', 22, 'b-22.webp']
+    ];
+    const results = [];
+    for (const [title, number, file] of cases) {
+      await page.locator('[data-hotspot-list] button', { hasText: title }).click();
+      const numberText = await page.textContent('[data-card-index]');
+      const photo = page.locator('[data-card-photos] img');
+      await photo.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => document.querySelector('[data-card-photos] img')?.naturalWidth > 0);
+      const src = await photo.getAttribute('src');
+      await page.click('[data-card-equipment]');
+      const referenceName = await page.textContent('[data-equipment-name]');
+      const casePhoto = page.locator('[data-equipment-case] img');
+      const caseSrc = await casePhoto.getAttribute('src');
+      const mainSrc = await page.getAttribute('[data-equipment-image]', 'src');
+      const matchingPhoto = number === 7 ? !caseSrc && mainSrc === src : caseSrc === src && new URL(mainSrc, base).pathname.endsWith('/lifepak-1000-cutout.webp');
+      const expectedName = number === 7 ? title : 'LIFEPAK 1000';
+      results.push(numberText?.startsWith(`Точка ${number} из`) && new URL(src, base).pathname.endsWith(`/${file}`) && matchingPhoto && referenceName === expectedName);
+      await page.click('[data-equipment-close]');
+    }
+    check('T6k', 'Точки 7 и 22 открывают свои карточки и фотографии транспортных чехлов', results.every(Boolean) && page.errors.length === 0, `${results} errors=${page.errors}`);
+    await page.context().close();
   }
 
 // T7 keyboard, direct wheel handling, mouse drag, auto rotation
@@ -646,7 +674,7 @@ const openMore = async page => {
   await page.locator('[data-equipment-id]').first().click();
   const equipment = await page.evaluate(() => [document.querySelector('[data-equipment-dialog]').open, document.querySelector('[data-equipment-name]').textContent, document.querySelector('[data-equipment-image]').getAttribute('src')]);
   const errors = page.errors.filter(e => !/WebGL/i.test(e));
-  check('T13', 'Без WebGL — понятное сообщение, список точек и все карточки оборудования', !fb[0] && /3D/.test(fb[1]) && fb[2] === expected[FIRST] && fb[3] > 20 && equipmentCount === 12 && equipment[0] && equipment[1] && /\/assets\/equipment\//.test(equipment[2]) && errors.length === 0, `${fb} equipment=${equipment} errors=${errors}`);
+  check('T13', 'Без WebGL — понятное сообщение, список точек и все карточки оборудования', !fb[0] && /3D/.test(fb[1]) && fb[2] === expected[FIRST] && fb[3] > 20 && equipmentCount === 20 && equipment[0] && equipment[1] && /\/assets\/equipment\//.test(equipment[2]) && errors.length === 0, `${fb} equipment=${equipment} errors=${errors}`);
   await page.context().close();
 }
 
