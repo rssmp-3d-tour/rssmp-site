@@ -2440,6 +2440,15 @@ a[href^="tel:"] {
   font-size: 14px;
   line-height: 1.65;
 }
+.tour-point-photo {
+  display: block;
+  max-width: 100%;
+  max-height: 230px;
+  width: auto;
+  height: auto;
+  margin: 0 auto 12px;
+  border-radius: 8px;
+}
 .tour-card-actions {
   display: flex;
   flex-wrap: wrap;

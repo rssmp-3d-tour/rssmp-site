@@ -198,7 +198,7 @@ ICONS = {
     'down': icon('M6 9l6 6 6-6'),
 }
 # Число сцен и точек для страницы без JavaScript; tour-viewer.js пересчитывает их по данным тура.
-TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 76) if TOUR_YARD else (4, 60)}
+TOUR_STATS = {'demo': (2, 11), 'vehicles': (6, 79) if TOUR_YARD else (4, 63)}
 
 
 def plural(n, one, few, many):
@@ -278,7 +278,7 @@ def tour_page(mode):
   <div class="tour-zoom" role="group" aria-label="Масштаб"><button type="button" data-zoom="in" aria-label="Приблизить">{ICONS['plus']}</button><button type="button" data-zoom="out" aria-label="Отдалить">{ICONS['minus']}</button></div>
   <div class="tour-scene-tabs" id="tour-scene-tabs" role="tablist" aria-label="{"Сцены тура" if TOUR_YARD else "Вид автомобиля"}">{tabs}</div>
   <p class="tour-drag-hint">Мышь или один палец — вращать · колесо или щипок — масштаб</p>
-  <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-equipment hidden>Учебная памятка</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
+  <article class="tour-info-card" data-tour-card hidden tabindex="-1" aria-labelledby="tour-card-title"><div class="tour-card-head"><small data-card-index>Интерактивная точка</small><button type="button" data-card-close aria-label="Закрыть описание">{ICONS['close']}</button></div><h2 id="tour-card-title" data-card-title>Описание точки</h2><p data-card-text></p><div data-card-photos></div><div class="tour-card-actions"><button type="button" data-card-speak>Озвучить</button><button type="button" data-card-equipment hidden>Учебная памятка</button><button type="button" data-card-action></button><span class="tour-card-nav"><button type="button" data-card-prev aria-label="Предыдущая точка">{ICONS['prev']}</button><button type="button" data-card-next aria-label="Следующая точка">{ICONS['next']}</button></span></div><span class="tour-guide-timer" aria-hidden="true"><i></i></span></article>
 <dialog class="tour-equipment-dialog" data-equipment-dialog aria-labelledby="tour-equipment-title">
   <div class="tour-equipment-dialog-head"><div><button class="tour-equipment-back" type="button" data-equipment-back hidden>К списку оборудования</button><small data-equipment-counter>Каталог оборудования</small><h2 id="tour-equipment-title" data-equipment-name tabindex="-1">Оборудование</h2></div><button type="button" data-equipment-close aria-label="Закрыть карточки оборудования">{ICONS['close']}</button></div>
   <div class="tour-equipment-catalog" data-equipment-catalog>
