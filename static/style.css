@@ -2402,17 +2402,8 @@ a[href^="tel:"] {
 .tour-card-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.tour-card-head small {
-  color: #24705b;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
+  justify-content: flex-end;
+  margin-bottom: 2px;
 }
 .tour-card-head button {
   display: grid;
@@ -2437,7 +2428,7 @@ a[href^="tel:"] {
 .tour-info-card p {
   margin: 0 0 18px;
   color: #4d635b;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.65;
 }
 .tour-point-photo {
@@ -2549,12 +2540,6 @@ html.equipment-open { overflow: hidden; }
   background: #fff;
 }
 .tour-equipment-dialog-head > div { min-width: 0; }
-.tour-equipment-dialog-head small {
-  display: block;
-  color: #52685d;
-  font-size: 12px;
-  line-height: 1.5;
-}
 .tour-equipment-dialog-head h2 {
   margin: 4px 0 0;
   font-size: clamp(23px, 3vw, 32px);
@@ -2652,12 +2637,15 @@ html.equipment-open { overflow: hidden; }
 .tour-equipment-summary .tour-equipment-status { color: #52685d; font-size: 12px; }
 .tour-equipment-summary .tour-equipment-no-image { color: #52685d; font-size: 13px; }
 .tour-equipment-reference.is-text-only .tour-equipment-hero { grid-template-columns: 1fr; }
-.tour-equipment-sections { padding: 0 32px 32px; }
+.tour-equipment-sections { max-width: 76ch; margin-inline: auto; padding: 0 32px 36px; }
 .tour-equipment-section { padding: 26px 0; border-top: 1px solid #e1e9e4; }
 .tour-equipment-section:last-child { padding-bottom: 0; }
 .tour-equipment-section h3 { margin: 0 0 16px; font-size: 21px; line-height: 1.3; letter-spacing: -0.02em; }
 .tour-equipment-section ul, .tour-equipment-section ol { display: grid; gap: 11px; margin: 0; padding-left: 23px; }
-.tour-equipment-section li { max-width: 75ch; padding-left: 4px; color: #314b3e; font-size: 15px; line-height: 1.65; }
+.tour-equipment-section li, .tour-equipment-section > p { color: #263f33; font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
+.tour-equipment-section li { padding-left: 4px; }
+.tour-equipment-section > p { margin: 0 0 12px; }
+.tour-equipment-section > :is(p, ul, ol) + h3 { margin-top: 28px; }
 .tour-equipment-section li::marker { color: #14513c; font-weight: 650; }
 .tour-equipment-memory { padding: 24px; border: 0; border-radius: 10px; background: #f0f5f2; }
 .tour-equipment-memory + .tour-equipment-section { margin-top: 26px; }
@@ -2667,8 +2655,7 @@ html.equipment-open { overflow: hidden; }
 .tour-equipment-footer { padding: 24px 32px; border-top: 1px solid #e1e9e4; background: #f8faf8; }
 .tour-equipment-footer p { max-width: 75ch; margin: 0 0 10px; color: #52685d; font-size: 13px; line-height: 1.6; }
 .tour-equipment-footer a { display: inline-flex; align-items: center; min-height: 44px; color: #0b5940; font-size: 14px; text-underline-offset: 3px; overflow-wrap: anywhere; }
-.tour-equipment-nav { position: sticky; z-index: 2; bottom: 0; display: flex; align-items: center; gap: 10px; padding: 12px 32px; border-top: 1px solid #e1e9e4; background: #fff; }
-.tour-equipment-nav span { margin-right: auto; color: #52685d; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tour-equipment-nav { position: sticky; z-index: 2; bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 12px 32px; border-top: 1px solid #e1e9e4; background: #fff; }
 .tour-equipment-nav button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #d3dfd7; border-radius: 50%; background: #fff; color: #15392d; }
 .tour-equipment-dialog button:focus-visible, .tour-equipment-dialog a:focus-visible, .tour-equipment-dialog h2:focus-visible { outline: 3px solid #1f78a3; outline-offset: 3px; }
 @media (hover: hover) {
@@ -3089,8 +3076,8 @@ html.equipment-open { overflow: hidden; }
   }
   .tour-info-card p {
     margin-bottom: 12px;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.6;
   }
   .tour-card-actions button {
     min-height: 36px;

@@ -950,7 +950,6 @@
   // Изображения назначаются только после запроса пользователя.
   const equipmentDialog = root.querySelector('[data-equipment-dialog]');
   const equipmentName = equipmentDialog?.querySelector('[data-equipment-name]');
-  const equipmentCounter = equipmentDialog?.querySelector('[data-equipment-counter]');
   const equipmentKind = equipmentDialog?.querySelector('[data-equipment-kind]');
   const equipmentDescription = equipmentDialog?.querySelector('[data-equipment-description]');
   const equipmentDates = equipmentDialog?.querySelector('[data-equipment-dates]');
@@ -996,7 +995,6 @@
     equipmentReference.hidden = true;
     equipmentBack.hidden = true;
     equipmentNav.hidden = true;
-    equipmentCounter.textContent = 'Автомобили классов B и C';
     equipmentName.textContent = 'Оборудование';
     const visible = equipmentOrder.filter(id => equipmentFilter === 'all' ||
       (equipmentFilter === 'pending' ? !equipmentCards[id].classes.length : equipmentCards[id].classes.includes(equipmentFilter)));
@@ -1050,7 +1048,6 @@
     equipmentReference.hidden = false;
     equipmentBack.hidden = false;
     equipmentName.textContent = card.name;
-    equipmentCounter.textContent = 'Карточка оборудования';
     equipmentKind.textContent = card.kind;
     equipmentDescription.textContent = card.description;
     if (equipmentDates) {
@@ -1102,7 +1099,6 @@
       equipmentSourceNote.hidden = !card.sourceNote;
     }
     equipmentNav.hidden = equipmentSelection.length < 2;
-    equipmentDialog.querySelector('[data-equipment-position]').textContent = `${equipmentIndex + 1} из ${equipmentSelection.length}`;
     equipmentDialog.scrollTop = 0;
     if (focusHeading) equipmentName.focus({ preventScroll: true });
   }
