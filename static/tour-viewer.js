@@ -522,7 +522,7 @@
       "classes": ["b"],
       "status": "Комплектация 1 по перечню РССМП",
       "image": "/assets/tour-equipment/b-4.webp",
-      "photoCaption": "Сумка реанимационного набора.",
+      "photoCaption": "Сумка реанимационного набора в закрытом и открытом виде.",
       "description": "Набор изделий для реанимационных мероприятий выездной бригады.",
       "manual": "https://omnimed.ru/catalog/element.php?ID=1084",
       "sourceLabel": "Омнимед · состав набора",
