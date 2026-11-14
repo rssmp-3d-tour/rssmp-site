@@ -579,7 +579,7 @@
       "classes": ["b"],
       "status": "Комплектация по перечню РССМП",
       "image": "/assets/tour-equipment/b-5.webp",
-      "photoCaption": "Акушерский набор в сумке СМУ-02.",
+      "photoCaption": "Акушерский набор в сумке СМУ-02. Фото: каталог «Экран-Урал».",
       "description": "Изделия для оказания акушерской помощи роженице и новорождённому в универсальной медицинской сумке СМУ-02.",
       "manual": "https://medplant.ru/catalog/nabor-akusherskiy-dlya-okazaniya-skoroy-meditsinskoy-pomoshchi-nasmp_02_medplant_-po-pr_-_1165n-ot-/",
       "sourceLabel": "МЕДПЛАНТ · страница набора",
