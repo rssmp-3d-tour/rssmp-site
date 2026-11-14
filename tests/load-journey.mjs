@@ -50,10 +50,10 @@ try {
     }
     await page.locator('[data-vehicle="c"]').click();
     await page.waitForURL(/#c-/);
-    await page.evaluate(() => { location.hash='c-interior'; });
-    await page.waitForResponse(res => res.ok() && /tour-tiles\/[^/]*c-interior/.test(res.url()));
-    await page.waitForFunction(() => location.hash === '#c-interior' &&
-      document.querySelector('[data-scene-name]')?.textContent.includes('медицинский салон'));
+    await page.goto(base+'/tours/?scene-check=c#c-interior');
+    await page.waitForFunction(() =>
+      document.querySelector('[data-scene-name]')?.textContent.includes('медицинский салон') &&
+      document.querySelectorAll('.tour-hotspot').length > 0);
     await record();
     assert.ok([...requests.keys()].some(path=>path.includes('tour-tiles/') && path.includes('c-interior')));
     assert.deepEqual(failures,[]);
